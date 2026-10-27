@@ -1,0 +1,126 @@
+Structure Point
+    Public X As Integer
+    Public Y As Integer
+
+    Public Sub New(px As Integer, py As Integer)
+        X = px
+        Y = py
+    End Sub
+
+    Public Function LengthSq() As Integer
+        Return X * X + Y * Y
+    End Function
+
+    Public Sub Offset(dx As Integer, dy As Integer)
+        X = X + dx
+        Y = Y + dy
+    End Sub
+End Structure
+
+Class Animal
+    Public Name As String
+    Public Age As Integer
+
+    Public Sub New(name As String, age As Integer)
+        Me.Name = name
+        Me.Age = age
+    End Sub
+
+    Public Overridable Function Speak() As String
+        Return "..."
+    End Function
+
+    Public Overridable Sub PrintInfo()
+        Console.WriteLine("Animal: " & Name & ", Age: " & Age)
+    End Sub
+End Class
+
+Class Dog Inherits Animal
+    Public Breed As String
+
+    Public Sub New(name As String, age As Integer, breed As String)
+        MyBase.New(name, age)
+        Me.Breed = breed
+    End Sub
+
+    Public Overrides Function Speak() As String
+        Return "Woof! I am " & Breed
+    End Function
+
+    Public Overrides Sub PrintInfo()
+        MyBase.PrintInfo()
+        Console.WriteLine("  Breed: " & Breed)
+    End Sub
+End Class
+
+Class Cat Inherits Animal
+    Public IsLazy As Boolean
+
+    Public Sub New(name As String, age As Integer, isLazy As Boolean)
+        MyBase.New(name, age)
+        Me.IsLazy = isLazy
+    End Sub
+
+    Public Overrides Function Speak() As String
+        Return "Meow! Purr..."
+    End Function
+End Class
+
+Class ScopedLogger
+    Public Tag As String
+
+    Public Sub New(tag As String)
+        Me.Tag = tag
+        Console.WriteLine("  [ScopedLogger] Acquired resource: " & tag)
+    End Sub
+
+    Public Sub Log(msg As String)
+        Console.WriteLine("  [" & Tag & "] " & msg)
+    End Sub
+
+    Public Sub Dispose()
+        Console.WriteLine("  [ScopedLogger] Disposed resource: " & Tag)
+    End Sub
+End Class
+
+Module Program
+    Sub Announce(animal As Animal)
+        Console.WriteLine("Polymorphic call -> " & animal.Name & " says: " & animal.Speak())
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("=== VBC Strategy 3: Object-Oriented Programming Demo ===")
+        Console.WriteLine()
+
+        Console.WriteLine("1. Structure with methods & constructor (Value Type on Stack):")
+        Dim pt As New Point(3, 4)
+        Console.WriteLine("   Initial Point: (" & pt.X & ", " & pt.Y & "), LengthSq = " & pt.LengthSq())
+        pt.Offset(1, 2)
+        Console.WriteLine("   After Offset(1, 2): (" & pt.X & ", " & pt.Y & "), LengthSq = " & pt.LengthSq())
+        Console.WriteLine()
+
+        Console.WriteLine("2. Reference Type Classes, Constructors & Inheritance:")
+        Dim dog = New Dog("Rex", 3, "German Shepherd")
+        Dim cat = New Cat("Luna", 2, True)
+
+        dog.PrintInfo()
+        cat.PrintInfo()
+        Console.WriteLine()
+
+        Console.WriteLine("3. Dynamic Polymorphism via Virtual Tables (VTable):")
+        Announce(dog)
+        Announce(cat)
+        Console.WriteLine()
+
+        Console.WriteLine("4. Deterministic Resource Management with Using statement (RAII):")
+        Using logger = New ScopedLogger("DB_TRANSACTION")
+            logger.Log("Performing query 1...")
+            logger.Log("Performing query 2...")
+            Console.WriteLine("  Exiting Using block scope...")
+        End Using
+
+        Console.WriteLine("Post-Using: Resource was deterministically disposed!")
+        Console.WriteLine()
+        Console.WriteLine("=== All OOP Features Executed Successfully! ===")
+    End Sub
+End Module

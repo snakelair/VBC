@@ -1,0 +1,338 @@
+﻿Imports System
+
+Module EmitterModule
+
+    Function GetExprTypeName(eId As Integer) As String
+        If eId < 0 Then Return ""
+        If Nodes(eId).TypeName.Length > 0 Then Return Nodes(eId).TypeName
+        Dim k = Nodes(eId).Kind
+        If k = NODE_LITERAL Then
+            Return Nodes(eId).TypeName
+        ElseIf k = NODE_IDENT Then
+            Dim idName = Nodes(eId).Name
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, idName) Then
+                    Return currentLocals(li).TypeName
+                End If
+            Next
+            If currentEnclosingClass.Length > 0 Then
+                Dim fNode = FindClassField(currentEnclosingClass, idName)
+                If fNode >= 0 Then Return Nodes(fNode).TypeName
+            ElseIf currentEnclosingStruct.Length > 0 Then
+                Dim fNode = FindStructField(currentEnclosingStruct, idName)
+                If fNode >= 0 Then Return Nodes(fNode).TypeName
+            End If
+            For gi = 0 To globalSliceVars.Length - 1
+                If CaseInsensitiveEquals(globalSliceVars(gi).Name, idName) Then
+                    Return globalSliceVars(gi).TypeName
+                End If
+            Next
+        ElseIf k = NODE_ME Then
+            If currentEnclosingClass.Length > 0 Then Return currentEnclosingClass
+            If currentEnclosingStruct.Length > 0 Then Return currentEnclosingStruct
+        ElseIf k = NODE_MYBASE Then
+            If currentEnclosingClass.Length > 0 Then
+                Dim cId = FindClassNode(currentEnclosingClass)
+                If cId >= 0 And Nodes(cId).TypeName.Length > 0 Then
+                    Return Nodes(cId).TypeName
+                End If
+            End If
+        ElseIf k = NODE_XML_CHILD Then
+            Return "XElement"
+        ElseIf k = NODE_XML_ATTR Then
+            Return "String"
+        ElseIf k = NODE_XML_DESC Then
+            Return "XElement()"
+        ElseIf k = NODE_NULL_COND_MEMBER Then
+            Dim m = Nodes(eId).Name
+            If CaseInsensitiveEquals(m, "ToString") Then Return "String"
+            If CaseInsensitiveEquals(m, "Length") Then Return "Integer"
+            If CaseInsensitiveEquals(m, "HasValue") Then Return "Boolean"
+            Dim t = GetExprTypeName(Nodes(eId).FirstChild)
+            If IsNullableType(t) And t.Length > 12 Then Return t.Substring(12, t.Length - 12)
+            If IsClassType(t) Then
+                Dim fldNode = FindClassField(t, m)
+                If fldNode >= 0 Then Return Nodes(fldNode).TypeName
+                Dim methNode = FindClassMethod(t, m)
+                If methNode >= 0 Then Return Nodes(methNode).TypeName
+            ElseIf IsStructureType(t) Then
+                Dim fldNode = FindStructField(t, m)
+                If fldNode >= 0 Then Return Nodes(fldNode).TypeName
+                Dim methNode = FindStructMethod(t, m)
+                If methNode >= 0 Then Return Nodes(methNode).TypeName
+            ElseIf IsInterfaceType(t) Then
+                Dim ifNode = FindInterfaceNode(t)
+                If ifNode >= 0 Then
+                    Dim ch = Nodes(ifNode).FirstChild
+                    While ch <> -1
+                        If CaseInsensitiveEquals(Nodes(ch).Name, m) Then Return Nodes(ch).TypeName
+                        ch = Nodes(ch).NextSibling
+                    End While
+                End If
+            End If
+            Return "Integer"
+        ElseIf k = NODE_NEW Then
+            Return Nodes(eId).Name
+        ElseIf k = NODE_MEMBER Then
+            Dim tNode = Nodes(eId).FirstChild
+            Dim tType = GetExprTypeName(tNode)
+            Dim mName = Nodes(eId).Name
+            If CaseInsensitiveEquals(mName, "Now") Or CaseInsensitiveEquals(mName, "UtcNow") Or CaseInsensitiveEquals(mName, "Today") Then Return "DateTime"
+            If CaseInsensitiveEquals(mName, "ProcessorCount") Then Return "Integer"
+            If CaseInsensitiveEquals(mName, "TickCount64") Then Return "Long"
+            If IsNullableType(tType) Then
+                If CaseInsensitiveEquals(mName, "HasValue") Then Return "Boolean"
+                If CaseInsensitiveEquals(mName, "Value") And tType.Length > 12 Then Return tType.Substring(12, tType.Length - 12)
+            End If
+            If CaseInsensitiveEquals(tType, "XDocument") Or CaseInsensitiveEquals(tType, "XElement") Then
+                If CaseInsensitiveEquals(mName, "Value") Or CaseInsensitiveEquals(mName, "Name") Then Return "String"
+                If CaseInsensitiveEquals(mName, "Root") Then Return "XElement"
+            End If
+            If CaseInsensitiveEquals(tType, "DateTime") Then
+                If CaseInsensitiveEquals(mName, "Ticks") Then Return "Long"
+                Return "Integer"
+            End If
+            If CaseInsensitiveEquals(tType, "TimeSpan") Then
+                If CaseInsensitiveEquals(mName, "Ticks") Then Return "Long"
+                Return "Double"
+            End If
+            If CaseInsensitiveEquals(tType, "Stopwatch") Then
+                If CaseInsensitiveEquals(mName, "ElapsedMilliseconds") Then Return "Long"
+            End If
+            If CaseInsensitiveEquals(tType, "StringBuilder") Then
+                If CaseInsensitiveEquals(mName, "Length") Then Return "Integer"
+            End If
+            If IsInterfaceType(tType) Then
+                Dim ifNode = FindInterfaceNode(tType)
+                If ifNode >= 0 Then
+                    Dim ch = Nodes(ifNode).FirstChild
+                    While ch <> -1
+                        If CaseInsensitiveEquals(Nodes(ch).Name, mName) Then Return Nodes(ch).TypeName
+                        ch = Nodes(ch).NextSibling
+                    End While
+                End If
+            ElseIf IsClassType(tType) Then
+                Dim fNode = FindClassField(tType, mName)
+                If fNode >= 0 Then Return Nodes(fNode).TypeName
+                Dim mNode = FindClassMethod(tType, mName)
+                If mNode >= 0 Then Return Nodes(mNode).TypeName
+            ElseIf IsStructureType(tType) Then
+                Dim fNode = FindStructField(tType, mName)
+                If fNode >= 0 Then Return Nodes(fNode).TypeName
+                Dim mNode = FindStructMethod(tType, mName)
+                If mNode >= 0 Then Return Nodes(mNode).TypeName
+            End If
+        ElseIf k = NODE_IF_EXPR Then
+            Dim firstNode = Nodes(eId).FirstChild
+            Dim secondNode = If(firstNode >= 0, Nodes(firstNode).NextSibling, -1)
+            If secondNode >= 0 Then
+                Return GetExprTypeName(secondNode)
+            End If
+        ElseIf k = NODE_INVOKE Then
+            Dim cNode = Nodes(eId).FirstChild
+            If Nodes(cNode).Kind = NODE_MEMBER Or Nodes(cNode).Kind = NODE_NULL_COND_MEMBER Then
+                Dim tNode = Nodes(cNode).FirstChild
+                Dim tType = GetExprTypeName(tNode)
+                Dim mName = Nodes(cNode).Name
+                If CaseInsensitiveEquals(mName, "Append") Or CaseInsensitiveEquals(mName, "AppendLine") Then
+                    If CaseInsensitiveEquals(tType, "StringBuilder") Then Return "StringBuilder"
+                End If
+                If CaseInsensitiveEquals(mName, "ToHexString") Or CaseInsensitiveEquals(mName, "ToBase64String") Or CaseInsensitiveEquals(mName, "HashDataToHexString") Or CaseInsensitiveEquals(mName, "GetHexString") Or CaseInsensitiveEquals(mName, "ToString") Or CaseInsensitiveEquals(mName, "Substring") Or CaseInsensitiveEquals(mName, "ReadAllText") Or CaseInsensitiveEquals(mName, "Combine") Or CaseInsensitiveEquals(mName, "GetFileName") Or CaseInsensitiveEquals(mName, "GetExtension") Or CaseInsensitiveEquals(mName, "GetDirectoryName") Or CaseInsensitiveEquals(mName, "GetEnvironmentVariable") Or CaseInsensitiveEquals(mName, "Trim") Or CaseInsensitiveEquals(mName, "TrimStart") Or CaseInsensitiveEquals(mName, "TrimEnd") Or CaseInsensitiveEquals(mName, "ToLower") Or CaseInsensitiveEquals(mName, "ToUpper") Or CaseInsensitiveEquals(mName, "Replace") Or CaseInsensitiveEquals(mName, "Join") Or CaseInsensitiveEquals(mName, "PadLeft") Or CaseInsensitiveEquals(mName, "PadRight") Or CaseInsensitiveEquals(mName, "NewGuid") Then Return "String"
+                If CaseInsensitiveEquals(mName, "Compress") Or CaseInsensitiveEquals(mName, "Decompress") Or CaseInsensitiveEquals(mName, "FromHexString") Or CaseInsensitiveEquals(mName, "FromBase64String") Or CaseInsensitiveEquals(mName, "HashData") Or CaseInsensitiveEquals(mName, "GetBytes") Or CaseInsensitiveEquals(mName, "ToJpegBytes") Or CaseInsensitiveEquals(mName, "ReadAllBytes") Then Return "Byte()"
+                If CaseInsensitiveEquals(mName, "Split") Then Return "String()"
+                If CaseInsensitiveEquals(mName, "Elements") Or CaseInsensitiveEquals(mName, "Descendants") Then Return "XElement()"
+                If CaseInsensitiveEquals(mName, "FromFile") Or CaseInsensitiveEquals(mName, "FromBytes") Or CaseInsensitiveEquals(mName, "Resize") Then Return "Bitmap"
+                If CaseInsensitiveEquals(mName, "Create") Then Return "FileSystemWatcher"
+                If CaseInsensitiveEquals(mName, "FromSeconds") Or CaseInsensitiveEquals(mName, "FromMilliseconds") Then Return "TimeSpan"
+                If CaseInsensitiveEquals(mName, "StartNew") Then Return "Stopwatch"
+                If CaseInsensitiveEquals(mName, "Parse") Or CaseInsensitiveEquals(mName, "Load") Then
+                    If CaseInsensitiveEquals(Nodes(tNode).Name, "XDocument") Then Return "XDocument"
+                    If CaseInsensitiveEquals(Nodes(tNode).Name, "XElement") Then Return "XElement"
+                End If
+                If CaseInsensitiveEquals(mName, "ToUInt16") Or CaseInsensitiveEquals(mName, "LengthSq") Then Return "Integer"
+                If CaseInsensitiveEquals(mName, "ToUInt32") Or CaseInsensitiveEquals(mName, "ElapsedMilliseconds") Then Return "Long"
+                If CaseInsensitiveEquals(mName, "HasChanges") Or CaseInsensitiveEquals(mName, "Start") Or CaseInsensitiveEquals(mName, "ContainsKey") Or CaseInsensitiveEquals(mName, "Contains") Or CaseInsensitiveEquals(mName, "StartsWith") Or CaseInsensitiveEquals(mName, "EndsWith") Or CaseInsensitiveEquals(mName, "Delete") Or CaseInsensitiveEquals(mName, "Copy") Then Return "Boolean"
+                If IsInterfaceType(tType) Then
+                    Dim ifNode = FindInterfaceNode(tType)
+                    If ifNode >= 0 Then
+                        Dim ch = Nodes(ifNode).FirstChild
+                        While ch <> -1
+                            If CaseInsensitiveEquals(Nodes(ch).Name, mName) Then Return Nodes(ch).TypeName
+                            ch = Nodes(ch).NextSibling
+                        End While
+                    End If
+                ElseIf IsClassType(tType) Then
+                    Dim mNode = FindClassMethod(tType, mName)
+                    If mNode >= 0 Then Return Nodes(mNode).TypeName
+                ElseIf IsStructureType(tType) Then
+                    Dim mNode = FindStructMethod(tType, mName)
+                    If mNode >= 0 Then Return Nodes(mNode).TypeName
+                End If
+            Else
+                Dim fnId = FindFunctionNode(Nodes(cNode).Name)
+                If fnId >= 0 Then Return Nodes(fnId).TypeName
+            End If
+        End If
+        Return ""
+    End Function
+
+    Function MapCType(typeName As String) As String
+        If CaseInsensitiveEquals(typeName, "integer") Or CaseInsensitiveEquals(typeName, "int") Then Return "int32_t"
+        If CaseInsensitiveEquals(typeName, "long") Then Return "int64_t"
+        If CaseInsensitiveEquals(typeName, "string") Then Return "vbc_string_t"
+        If CaseInsensitiveEquals(typeName, "boolean") Or CaseInsensitiveEquals(typeName, "bool") Then Return "bool"
+        If CaseInsensitiveEquals(typeName, "single") Or CaseInsensitiveEquals(typeName, "float") Then Return "float"
+        If CaseInsensitiveEquals(typeName, "double") Then Return "double"
+        If CaseInsensitiveEquals(typeName, "byte") Then Return "uint8_t"
+        If CaseInsensitiveEquals(typeName, "void") Then Return "void"
+        If typeName.Length > 2 And CaseInsensitiveEquals(typeName.Substring(typeName.Length - 2, 2), "()") Then Return "vbc_slice_t"
+        Dim resolved As String = ResolveTypeName(typeName)
+        If CaseInsensitiveEquals(resolved, "Dictionary_Of_String_String") Or CaseInsensitiveEquals(resolved, "System.Collections.Generic.Dictionary_Of_String_String") Then Return "vbc_dict_t*"
+        If CaseInsensitiveEquals(resolved, "Bitmap") Or CaseInsensitiveEquals(resolved, "System.Drawing.Bitmap") Then Return "vbc_bitmap_t"
+        If CaseInsensitiveEquals(resolved, "FileSystemWatcher") Or CaseInsensitiveEquals(resolved, "System.IO.FileSystemWatcher") Then Return "vbc_fs_watcher_t"
+
+        ' BCL Types
+        If CaseInsensitiveEquals(resolved, "DateTime") Or CaseInsensitiveEquals(resolved, "System.DateTime") Then Return "vbc_datetime_t"
+        If CaseInsensitiveEquals(resolved, "TimeSpan") Or CaseInsensitiveEquals(resolved, "System.TimeSpan") Then Return "vbc_timespan_t"
+        If CaseInsensitiveEquals(resolved, "Stopwatch") Or CaseInsensitiveEquals(resolved, "System.Diagnostics.Stopwatch") Then Return "vbc_stopwatch_t"
+        If CaseInsensitiveEquals(resolved, "StringBuilder") Or CaseInsensitiveEquals(resolved, "System.Text.StringBuilder") Then Return "vbc_string_builder_t"
+
+        ' XML Types
+        If CaseInsensitiveEquals(resolved, "XDocument") Or CaseInsensitiveEquals(resolved, "System.Xml.Linq.XDocument") Then Return "vbc_xml_node_t*"
+        If CaseInsensitiveEquals(resolved, "XElement") Or CaseInsensitiveEquals(resolved, "System.Xml.Linq.XElement") Then Return "vbc_xml_node_t*"
+        If CaseInsensitiveEquals(resolved, "XAttribute") Or CaseInsensitiveEquals(resolved, "System.Xml.Linq.XAttribute") Then Return "vbc_xml_attr_t*"
+
+        ' Nullable Types
+        If CaseInsensitiveEquals(resolved, "Nullable_Of_Integer") Or CaseInsensitiveEquals(resolved, "Nullable_Of_Int") Or CaseInsensitiveEquals(resolved, "Integer?") Then Return "vbc_nullable_int32_t"
+        If CaseInsensitiveEquals(resolved, "Nullable_Of_Long") Or CaseInsensitiveEquals(resolved, "Long?") Then Return "vbc_nullable_int64_t"
+        If CaseInsensitiveEquals(resolved, "Nullable_Of_Double") Or CaseInsensitiveEquals(resolved, "Double?") Then Return "vbc_nullable_double"
+        If CaseInsensitiveEquals(resolved, "Nullable_Of_Single") Or CaseInsensitiveEquals(resolved, "Nullable_Of_Float") Or CaseInsensitiveEquals(resolved, "Single?") Then Return "vbc_nullable_double"
+        If CaseInsensitiveEquals(resolved, "Nullable_Of_Boolean") Or CaseInsensitiveEquals(resolved, "Nullable_Of_Bool") Or CaseInsensitiveEquals(resolved, "Boolean?") Then Return "vbc_nullable_bool"
+        If CaseInsensitiveEquals(resolved, "Nullable_Of_Byte") Or CaseInsensitiveEquals(resolved, "Byte?") Then Return "vbc_nullable_uint8_t"
+
+        ' Interfaces -> Fat Pointer struct
+        If IsInterfaceType(resolved) Then Return "Vbc_" & MangleName(resolved)
+
+        If IsClassType(resolved) Then Return "Vbc_" & MangleName(resolved) & "*"
+        If IsStructureType(resolved) Then Return "Vbc_" & MangleName(resolved)
+        If resolved.Length > 0 Then Return "Vbc_" & MangleName(resolved)
+        Return "int32_t"
+    End Function
+
+    Function GetTypeDefaultValue(tName As String) As String
+        If CaseInsensitiveEquals(tName, "String") Then Return "(vbc_string_t){0}"
+        If IsStructureType(tName) Or IsInterfaceType(tName) Then Return "(" & MapCType(tName) & "){0}"
+        If IsNullableType(tName) Then Return "(" & MapCType(tName) & "){0}"
+        If tName.Length > 2 And CaseInsensitiveEquals(tName.Substring(tName.Length - 2, 2), "()") Then Return "(vbc_slice_t){0}"
+        If IsClassType(tName) Or CaseInsensitiveEquals(tName, "Pointer") Then Return "NULL"
+        If CaseInsensitiveEquals(tName, "Double") Or CaseInsensitiveEquals(tName, "Single") Then Return "0.0"
+        If CaseInsensitiveEquals(tName, "Boolean") Then Return "false"
+        Return "0"
+    End Function
+
+    Function IsStringExpr(nId As Integer) As Boolean
+        If nId < 0 Then Return False
+        If CaseInsensitiveEquals(Nodes(nId).TypeName, "String") Then Return True
+        Dim tName = GetExprTypeName(nId)
+        If CaseInsensitiveEquals(tName, "String") Then Return True
+        Dim k = Nodes(nId).Kind
+        If k = NODE_LITERAL Then
+            Return CaseInsensitiveEquals(Nodes(nId).TypeName, "String")
+        ElseIf k = NODE_BINARY And Nodes(nId).Op = TOK_AMP Then
+            Return True
+        ElseIf k = NODE_MEMBER Then
+            Dim m = Nodes(nId).Name
+            Return CaseInsensitiveEquals(m, "Text") Or CaseInsensitiveEquals(m, "Source") Or CaseInsensitiveEquals(m, "Name") Or CaseInsensitiveEquals(m, "TypeName") Or CaseInsensitiveEquals(m, "StringValue")
+        ElseIf k = NODE_INVOKE Then
+            Dim callee = Nodes(nId).FirstChild
+            If Nodes(callee).Kind = NODE_MEMBER Then
+                Dim mem = Nodes(callee).Name
+                If CaseInsensitiveEquals(mem, "Substring") Or CaseInsensitiveEquals(mem, "ReadAllText") Or CaseInsensitiveEquals(mem, "Get") Or CaseInsensitiveEquals(mem, "ToString") Or CaseInsensitiveEquals(mem, "ToHexString") Or CaseInsensitiveEquals(mem, "ToBase64String") Or CaseInsensitiveEquals(mem, "HashDataToHexString") Or CaseInsensitiveEquals(mem, "GetHexString") Then Return True
+                For mi = 0 To Nodes.Length - 1
+                    If Nodes(mi).Kind = NODE_FUNCTION And CaseInsensitiveEquals(Nodes(mi).Name, mem) And CaseInsensitiveEquals(Nodes(mi).TypeName, "String") Then
+                        Return True
+                    End If
+                Next
+            End If
+            Dim fn = Nodes(callee).Name
+            For fi = 0 To Nodes.Length - 1
+                If Nodes(fi).Kind = NODE_FUNCTION And CaseInsensitiveEquals(Nodes(fi).Name, fn) Then
+                    Return CaseInsensitiveEquals(Nodes(fi).TypeName, "String")
+                End If
+            Next
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, fn) And currentLocals(li).TypeName.Length > 2 Then
+                    Dim elemT As String = currentLocals(li).TypeName.Substring(0, currentLocals(li).TypeName.Length - 2)
+                    Return CaseInsensitiveEquals(elemT, "String")
+                End If
+            Next
+            Return CaseInsensitiveEquals(fn, "CurrText") Or CaseInsensitiveEquals(fn, "EmitCompilationUnitToC") Or CaseInsensitiveEquals(fn, "EmitExpr") Or CaseInsensitiveEquals(fn, "MapCType") Or CaseInsensitiveEquals(fn, "NextTemp") Or CaseInsensitiveEquals(fn, "EscapeCString") Or CaseInsensitiveEquals(fn, "ReplaceDoubleQuotes") Or CaseInsensitiveEquals(fn, "StringSub") Or CaseInsensitiveEquals(fn, "args")
+        ElseIf k = NODE_IDENT Then
+            Dim name = Nodes(nId).Name
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, name) Then
+                    Return CaseInsensitiveEquals(currentLocals(li).TypeName, "String")
+                End If
+            Next
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(0, 4), "TOK_") Then Return False
+            If name.Length >= 5 And CaseInsensitiveEquals(name.Substring(0, 5), "NODE_") Then Return False
+            If CaseInsensitiveEquals(name, "res") Or CaseInsensitiveEquals(name, "indent") Or CaseInsensitiveEquals(name, "source") Or CaseInsensitiveEquals(name, "outBuf") Or CaseInsensitiveEquals(name, "prefix") Or CaseInsensitiveEquals(name, "str") Or CaseInsensitiveEquals(name, "cmd") Or CaseInsensitiveEquals(name, "inputFile") Or CaseInsensitiveEquals(name, "outputFile") Or CaseInsensitiveEquals(name, "cPath") Or CaseInsensitiveEquals(name, "cCode") Then
+                Return True
+            End If
+            If name.Length >= 3 And CaseInsensitiveEquals(name.Substring(name.Length - 3, 3), "Str") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Text") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Name") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Type") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Path") Then Return True
+        ElseIf k = NODE_IF_EXPR Then
+            Dim firstNode = Nodes(nId).FirstChild
+            Dim secondNode = If(firstNode >= 0, Nodes(firstNode).NextSibling, -1)
+            If secondNode >= 0 Then Return IsStringExpr(secondNode)
+        End If
+        Return False
+    End Function
+
+    Function IsBooleanExpr(nId As Integer) As Boolean
+        If nId < 0 Then Return False
+        If CaseInsensitiveEquals(Nodes(nId).TypeName, "Boolean") Then Return True
+        Dim tName = GetExprTypeName(nId)
+        If CaseInsensitiveEquals(tName, "Boolean") Then Return True
+        Dim k = Nodes(nId).Kind
+        If k = NODE_LITERAL Then
+            Return CaseInsensitiveEquals(Nodes(nId).TypeName, "Boolean")
+        ElseIf k = NODE_BINARY Then
+            Dim op = Nodes(nId).Op
+            If op = TOK_EQUAL Or op = TOK_NOTEQUAL Or op = TOK_LESS Or op = TOK_LESSEQ Or op = TOK_GREATER Or op = TOK_GREATEREQ Or op = TOK_ANDALSO Or op = TOK_ORELSE Then
+                Return True
+            End If
+            If op = TOK_AND Or op = TOK_OR Then
+                Return IsBooleanExpr(Nodes(nId).FirstChild) And IsBooleanExpr(Nodes(Nodes(nId).FirstChild).NextSibling)
+            End If
+        ElseIf k = NODE_UNARY And Nodes(nId).Op = TOK_NOT Then
+            Return IsBooleanExpr(Nodes(nId).FirstChild)
+        ElseIf k = NODE_IDENT Then
+            Dim name = Nodes(nId).Name
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, name) Then
+                    Return CaseInsensitiveEquals(currentLocals(li).TypeName, "Boolean")
+                End If
+            Next
+            If name.Length >= 2 And (CaseInsensitiveEquals(name.Substring(0, 2), "Is") Or CaseInsensitiveEquals(name.Substring(0, 3), "Has")) Then
+                Return True
+            End If
+            If CaseInsensitiveEquals(name, "alreadyEmitted") Or CaseInsensitiveEquals(name, "emitC") Or CaseInsensitiveEquals(name, "hasExplicitCtor") Or CaseInsensitiveEquals(name, "hasEscape") Then
+                Return True
+            End If
+        ElseIf k = NODE_INVOKE Then
+            Dim callee = Nodes(nId).FirstChild
+            If Nodes(callee).Kind = NODE_MEMBER Then
+                Dim mem = Nodes(callee).Name
+                If CaseInsensitiveEquals(mem, "Contains") Or CaseInsensitiveEquals(mem, "Exists") Or CaseInsensitiveEquals(mem, "StartsWith") Or CaseInsensitiveEquals(mem, "EndsWith") Then Return True
+            End If
+            Dim fn = Nodes(callee).Name
+            If CaseInsensitiveEquals(fn, "CaseInsensitiveEquals") Or CaseInsensitiveEquals(fn, "StringEquals") Or CaseInsensitiveEquals(fn, "IsDigit") Or CaseInsensitiveEquals(fn, "IsHexDigit") Or CaseInsensitiveEquals(fn, "IsAlpha") Or CaseInsensitiveEquals(fn, "IsAlphaOrUnderscore") Or CaseInsensitiveEquals(fn, "IsAlphaNumOrUnderscore") Or CaseInsensitiveEquals(fn, "IsWhitespace") Then Return True
+        End If
+        Return False
+    End Function
+
+End Module

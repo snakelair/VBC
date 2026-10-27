@@ -1,0 +1,10 @@
+Module Program
+    Sub Main()
+        Console.WriteLine("Starting VBC HttpClient test...")
+        Dim client As New HttpClient()
+        Dim res As HttpResponse = client.Get("http://127.0.0.1:8080/")
+        Console.WriteLine("HTTP Response Status: " & res.StatusCode)
+        Console.WriteLine("HTTP Response Body:")
+        Console.WriteLine(res.Body)
+    End Sub
+End Module

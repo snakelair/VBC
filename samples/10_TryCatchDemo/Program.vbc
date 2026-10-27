@@ -1,0 +1,53 @@
+Module Program
+    Function Divide(a As Integer, b As Integer) As Integer
+        If b = 0 Then
+            Throw New Exception("Division by zero error!", 1001)
+        End If
+        Return a / b
+    End Function
+
+    Sub Main()
+        Console.WriteLine("=== VBC Try-Catch-Finally Demo ===")
+
+        ' Test 1: Basic Try - Catch with New Exception
+        Try
+            Console.WriteLine("Calling Divide(10, 2)...")
+            Dim res1 = Divide(10, 2)
+            Console.WriteLine("Result: " & res1)
+
+            Console.WriteLine("Calling Divide(10, 0)...")
+            Dim res2 = Divide(10, 0)
+            Console.WriteLine("Result: " & res2)
+        Catch ex As Exception
+            Console.WriteLine("Caught exception!")
+            Console.WriteLine("Message: " & ex.Message)
+            Console.WriteLine("Code: " & ex.Code)
+        End Try
+
+        ' Test 2: Try - Catch - Finally with Throw String
+        Console.WriteLine()
+        Console.WriteLine("Testing Try-Catch-Finally...")
+        Dim resourceOpen = True
+        Try
+            Console.WriteLine("Resource opened.")
+            Throw "Operation timed out."
+        Catch ex As Exception
+            Console.WriteLine("Caught: " & ex.Message)
+        Finally
+            resourceOpen = False
+            Console.WriteLine("Finally block executed: Resource closed.")
+        End Try
+
+        ' Test 3: Normal execution without exceptions (Finally still runs)
+        Console.WriteLine()
+        Console.WriteLine("Testing clean run with Finally...")
+        Try
+            Console.WriteLine("Doing safe work...")
+        Finally
+            Console.WriteLine("Safe work finished, Finally executed.")
+        End Try
+
+        Console.WriteLine()
+        Console.WriteLine("All Try-Catch demos finished successfully!")
+    End Sub
+End Module

@@ -1,0 +1,35 @@
+Include <stdio.h>
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Pointer & Parameter Marshaling Demo ===")
+
+        ' 1. Out-parameters with AddressOf and ByRef
+        Dim year As Integer = 0
+        Dim month As Integer = 0
+        Dim day As Integer = 0
+
+        ' Passing out-parameters using AddressOf and ByRef
+        sscanf("2026-10-26", "%d-%d-%d", AddressOf year, ByRef month, AddressOf day)
+        Console.WriteLine("Parsed date: Year=" & year & ", Month=" & month & ", Day=" & day)
+
+        ' 2. Pointer handle and buffer auto-unpacking
+        Dim fp As Pointer = fopen("sample_test.txt", "w")
+        If fp <> Nothing Then
+            fputs("Hello from VBC via raw Pointer!", fp)
+            fclose(fp)
+            Console.WriteLine("File written successfully using Pointer handle.")
+        End If
+
+        ' 3. Auto-unpacking array buffer (Byte() -> (buf).data)
+        Dim readFp As Pointer = fopen("sample_test.txt", "r")
+        If readFp <> Nothing Then
+            Dim buffer(128) As Byte
+            Dim bytesRead = fread(buffer, 1, 127, readFp)
+            fclose(readFp)
+            Console.WriteLine("Bytes read into array buffer: " & bytesRead)
+        End If
+
+        Console.WriteLine("Done!")
+    End Sub
+End Module

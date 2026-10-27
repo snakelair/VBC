@@ -1,0 +1,34 @@
+Module Program
+    Sub Main()
+        Dim n As Integer = 400
+        Dim size As Integer = 160000
+        Dim a(160000) As Double
+        Dim b(160000) As Double
+        Dim c(160000) As Double
+
+        For i As Integer = 0 To n - 1
+            For j As Integer = 0 To n - 1
+                Dim idx As Integer = i * n + j
+                a(idx) = 1.0
+                b(idx) = 2.0
+                c(idx) = 0.0
+            Next
+        Next
+
+        For i As Integer = 0 To n - 1
+            For k As Integer = 0 To n - 1
+                Dim aik As Double = a(i * n + k)
+                For j As Integer = 0 To n - 1
+                    Dim cIdx As Integer = i * n + j
+                    c(cIdx) = c(cIdx) + aik * b(k * n + j)
+                Next
+            Next
+        Next
+
+        Dim total As Double = 0.0
+        For i As Integer = 0 To size - 1
+            total = total + c(i)
+        Next
+        Console.WriteLine(total)
+    End Sub
+End Module

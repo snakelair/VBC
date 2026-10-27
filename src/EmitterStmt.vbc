@@ -1,0 +1,468 @@
+﻿Imports System
+
+Module EmitterModule
+    Sub EmitFunctionPrototype(fnId As Integer)
+        Dim isSub = (Nodes(fnId).Kind = NODE_SUB)
+        Dim retType = If(isSub, "void", MapCType(Nodes(fnId).TypeName))
+        Dim fnName = If(CaseInsensitiveEquals(Nodes(fnId).Name, "main"), "Vbc_Main", "Vbc_" & MangleName(Nodes(fnId).Name))
+
+        EmitWrite(retType & " " & fnName & "(vbc_stack_t* _stack")
+        Dim p = Nodes(fnId).FirstChild
+        While p <> -1 And Nodes(p).Kind = NODE_PARAM
+            Dim pType = MapCType(Nodes(p).TypeName)
+            If Nodes(p).IntValue = 1 Then pType = pType & "*"
+            EmitWrite(", " & pType & " " & Nodes(p).Name)
+            p = Nodes(p).NextSibling
+        End While
+        EmitWriteLine(");")
+    End Sub
+
+    Sub EmitFunction(fnId As Integer)
+        If CaseInsensitiveEquals(Nodes(fnId).Name, "IntToStr") Then
+            EmitWriteLine("vbc_string_t Vbc_IntToStr(vbc_stack_t* _stack, int64_t n) {")
+            EmitWriteLine("    return vbc_i64_to_str(_stack, n);")
+            EmitWriteLine("}")
+            Return
+        End If
+
+        currentLocals = []
+        For gi = 0 To globalSliceVars.Length - 1
+            currentLocals.Add(globalSliceVars(gi))
+        Next
+
+        Dim isSub = (Nodes(fnId).Kind = NODE_SUB)
+        Dim retType = If(isSub, "void", MapCType(Nodes(fnId).TypeName))
+        Dim fnName = If(CaseInsensitiveEquals(Nodes(fnId).Name, "main"), "Vbc_Main", "Vbc_" & MangleName(Nodes(fnId).Name))
+
+        EmitWrite(retType & " " & fnName & "(vbc_stack_t* _stack")
+        Dim p = Nodes(fnId).FirstChild
+        While p <> -1 And Nodes(p).Kind = NODE_PARAM
+            Dim pType = MapCType(Nodes(p).TypeName)
+            Dim isByRef = (Nodes(p).IntValue = 1)
+            If isByRef Then pType = pType & "*"
+            EmitWrite(", " & pType & " " & Nodes(p).Name)
+
+            Dim l As LocalVarInfo
+            l.Name = Nodes(p).Name
+            l.TypeName = Nodes(p).TypeName
+            l.IsByRef = isByRef
+            currentLocals.Add(l)
+
+            p = Nodes(p).NextSibling
+        End While
+        EmitWriteLine(") {")
+        EmitWriteLine("")
+
+        ' Statements begin after params
+        Dim stmt = p
+        While stmt <> -1
+            EmitStatement(stmt, "    ")
+            stmt = Nodes(stmt).NextSibling
+        End While
+
+        EmitWriteLine("}")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitStatement(sId As Integer, indent As String)
+        Dim lineNum As Integer = Nodes(sId).Line
+        If lineNum > 0 Then
+            If currentSourceFile.Length > 0 Then
+                EmitWriteLine("#line " & IntToStr(lineNum) & " """ & currentSourceFile & """")
+            Else
+                EmitWriteLine("#line " & IntToStr(lineNum))
+            End If
+        End If
+
+        Dim k = Nodes(sId).Kind
+        If k = NODE_VARDECL Then
+            Dim typeName As String = Nodes(sId).TypeName
+            Dim varName As String = Nodes(sId).Name
+            If typeName.Length = 0 Then
+                If Nodes(sId).FirstChild >= 0 Then
+                    Dim inferredType As String = GetExprTypeName(Nodes(sId).FirstChild)
+                    If inferredType.Length > 0 Then
+                        typeName = inferredType
+                    Else
+                        Dim initNode As Integer = Nodes(sId).FirstChild
+                        If Nodes(initNode).Kind = NODE_NEW Then
+                            typeName = Nodes(initNode).Name
+                        ElseIf Nodes(initNode).Kind = NODE_LITERAL And CaseInsensitiveEquals(Nodes(initNode).TypeName, "String") Then
+                            typeName = "String"
+                        ElseIf Nodes(initNode).Kind = NODE_LITERAL And CaseInsensitiveEquals(Nodes(initNode).TypeName, "Boolean") Then
+                            typeName = "Boolean"
+                        ElseIf Nodes(initNode).Kind = NODE_BINARY And Nodes(initNode).Op = TOK_AMP Then
+                            typeName = "String"
+                        ElseIf Nodes(initNode).Kind = NODE_INVOKE Then
+                            Dim cNode As Integer = Nodes(initNode).FirstChild
+                            Dim fn As String = Nodes(cNode).Name
+                            If CaseInsensitiveEquals(fn, "CurrToken") Or CaseInsensitiveEquals(fn, "ParserAdvance") Or CaseInsensitiveEquals(fn, "ParserMatch") Or CaseInsensitiveEquals(fn, "LexerNextToken") Or CaseInsensitiveEquals(fn, "MakeToken") Then
+                                typeName = "Token"
+                            ElseIf CaseInsensitiveEquals(fn, "LexerNew") Then
+                                typeName = "Lexer"
+                            ElseIf CaseInsensitiveEquals(fn, "EmitCompilationUnitToC") Or CaseInsensitiveEquals(fn, "EmitExpr") Or CaseInsensitiveEquals(fn, "MapCType") Or CaseInsensitiveEquals(fn, "NextTemp") Or CaseInsensitiveEquals(fn, "EscapeCString") Or CaseInsensitiveEquals(fn, "ReplaceDoubleQuotes") Or CaseInsensitiveEquals(fn, "StringSub") Then
+                                typeName = "String"
+                            End If
+                        ElseIf Nodes(initNode).Kind = NODE_MEMBER Then
+                            Dim m As String = Nodes(initNode).Name
+                            If CaseInsensitiveEquals(m, "Text") Or CaseInsensitiveEquals(m, "Source") Or CaseInsensitiveEquals(m, "Name") Or CaseInsensitiveEquals(m, "TypeName") Or CaseInsensitiveEquals(m, "StringValue") Then
+                                typeName = "String"
+                            End If
+                        End If
+                    End If
+                End If
+                If typeName.Length = 0 Then
+                    If varName.Length >= 2 And CaseInsensitiveEquals(varName.Substring(0, 2), "is") Then
+                        typeName = "Boolean"
+                    ElseIf varName.Length >= 3 And CaseInsensitiveEquals(varName.Substring(0, 3), "has") Then
+                        typeName = "Boolean"
+                    ElseIf varName.Length >= 3 And CaseInsensitiveEquals(varName.Substring(varName.Length - 3, 3), "Str") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Text") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Name") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Type") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Path") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Code") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 3 And CaseInsensitiveEquals(varName.Substring(0, 3), "tok") Then
+                        typeName = "Token"
+                    End If
+                End If
+            End If
+            Dim loc As LocalVarInfo
+            loc.Name = Nodes(sId).Name
+            loc.TypeName = typeName
+            loc.IsByRef = False
+            currentLocals.Add(loc)
+
+            Dim cType = MapCType(typeName)
+            If typeName.Length > 2 And CaseInsensitiveEquals(typeName.Substring(typeName.Length - 2, 2), "()") Then
+                Dim elemName = typeName.Substring(0, typeName.Length - 2)
+                Dim elemCType = MapCType(elemName)
+                If Nodes(sId).FirstChild >= 0 Then
+                    Dim initStr = EmitArrayLiteral(Nodes(sId).FirstChild, elemCType)
+                    EmitWriteLine(indent & "vbc_slice_t " & Nodes(sId).Name & " = " & initStr & ";")
+                Else
+                    EmitWriteLine(indent & "vbc_slice_t " & Nodes(sId).Name & " = vbc_slice_create(_stack, 4, sizeof(" & elemCType & "));")
+                End If
+            Else
+                If Nodes(sId).FirstChild >= 0 Then
+                    Dim initStr = EmitExpr(Nodes(sId).FirstChild)
+                    Dim initType = GetExprTypeName(Nodes(sId).FirstChild)
+                    If IsClassType(typeName) And IsClassType(initType) And Not CaseInsensitiveEquals(typeName, initType) Then
+                        initStr = "((" & cType & ")" & initStr & ")"
+                    ElseIf IsInterfaceType(typeName) Then
+                        If IsClassType(initType) Then
+                            initStr = "(Vbc_" & MangleName(typeName) & "){ .obj = (void*)(" & initStr & "), ._vtable = &_vbc_" & MangleName(initType) & "_" & MangleName(typeName) & "_vtable }"
+                        ElseIf CaseInsensitiveEquals(initStr, "0") Or CaseInsensitiveEquals(initStr, "NULL") Then
+                            initStr = "(Vbc_" & MangleName(typeName) & "){0}"
+                        End If
+                    ElseIf IsNullableType(typeName) And Not IsNullableType(initType) Then
+                        If CaseInsensitiveEquals(initStr, "0") Or CaseInsensitiveEquals(initStr, "NULL") Then
+                            initStr = "(" & cType & "){0}"
+                        Else
+                            initStr = "(" & cType & "){ .has_value = true, .value = (" & initStr & ") }"
+                        End If
+                    End If
+                    EmitWriteLine(indent & cType & " " & Nodes(sId).Name & " = " & initStr & ";")
+                Else
+                    If IsClassType(typeName) Then
+                        EmitWriteLine(indent & cType & " " & Nodes(sId).Name & " = NULL;")
+                    Else
+                        EmitWriteLine(indent & cType & " " & Nodes(sId).Name & " = {0};")
+                    End If
+                End If
+            End If
+
+        ElseIf k = NODE_ASSIGN Then
+            Dim targetNode = Nodes(sId).FirstChild
+            Dim valNode = Nodes(targetNode).NextSibling
+            Dim valStr = EmitExpr(valNode)
+
+            If Nodes(targetNode).Kind = NODE_INVOKE Then
+                ' Slice element assignment: arr(i) = val
+                Dim calleeNode = Nodes(targetNode).FirstChild
+                Dim idxNode = Nodes(calleeNode).NextSibling
+                Dim calleeStr = EmitExpr(calleeNode)
+                Dim idxStr = EmitExpr(idxNode)
+                If CaseInsensitiveEquals(calleeStr, "Nodes") Then
+                    EmitWriteLine(indent & "(*((Vbc_AstNode*)vbc_slice_get(&Nodes, " & idxStr & "))) = " & valStr & ";")
+                ElseIf CaseInsensitiveEquals(calleeStr, "p_Tokens") Then
+                    EmitWriteLine(indent & "(*((Vbc_Token*)vbc_slice_get(&p_Tokens, " & idxStr & "))) = " & valStr & ";")
+                ElseIf CaseInsensitiveEquals(calleeStr, "tokens") Then
+                    EmitWriteLine(indent & "(*((Vbc_Token*)vbc_slice_get(&tokens, " & idxStr & "))) = " & valStr & ";")
+                ElseIf CaseInsensitiveEquals(calleeStr, "args") Then
+                    EmitWriteLine(indent & "(*((vbc_string_t*)vbc_slice_get(&args, " & idxStr & "))) = " & valStr & ";")
+                Else
+                    Dim calleeType = GetExprTypeName(calleeNode)
+                    Dim elemCT = "int32_t"
+                    If calleeType.Length > 2 And CaseInsensitiveEquals(calleeType.Substring(calleeType.Length - 2, 2), "()") Then
+                        Dim elemT = calleeType.Substring(0, calleeType.Length - 2)
+                        elemCT = MapCType(elemT)
+                    End If
+                    EmitWriteLine(indent & "(*((" & elemCT & "*)vbc_slice_get(&" & calleeStr & ", " & idxStr & "))) = " & valStr & ";")
+                End If
+            Else
+                Dim targetStr = EmitExpr(targetNode)
+                Dim targetType = GetExprTypeName(targetNode)
+                Dim valType = GetExprTypeName(valNode)
+                If IsClassType(targetType) And IsClassType(valType) And Not CaseInsensitiveEquals(targetType, valType) Then
+                    valStr = "((Vbc_" & targetType & "*)" & valStr & ")"
+                ElseIf IsInterfaceType(targetType) Then
+                    If IsClassType(valType) Then
+                        valStr = "(Vbc_" & MangleName(targetType) & "){ .obj = (void*)(" & valStr & "), ._vtable = &_vbc_" & MangleName(valType) & "_" & MangleName(targetType) & "_vtable }"
+                    ElseIf CaseInsensitiveEquals(valStr, "0") Or CaseInsensitiveEquals(valStr, "NULL") Then
+                        valStr = "(Vbc_" & MangleName(targetType) & "){0}"
+                    End If
+                ElseIf IsNullableType(targetType) And Not IsNullableType(valType) Then
+                    If CaseInsensitiveEquals(valStr, "0") Or CaseInsensitiveEquals(valStr, "NULL") Then
+                        valStr = "(" & MapCType(targetType) & "){0}"
+                    Else
+                        valStr = "(" & MapCType(targetType) & "){ .has_value = true, .value = (" & valStr & ") }"
+                    End If
+                End If
+                If CaseInsensitiveEquals(targetStr, "Nodes") And Nodes(valNode).Kind = NODE_ARRAY_LIT Then
+                    EmitWriteLine(indent & "Nodes = vbc_slice_create(_stack, 16, sizeof(Vbc_AstNode));")
+                ElseIf (CaseInsensitiveEquals(targetStr, "tokens") Or CaseInsensitiveEquals(targetStr, "p_Tokens")) And Nodes(valNode).Kind = NODE_ARRAY_LIT Then
+                    EmitWriteLine(indent & targetStr & " = vbc_slice_create(_stack, 16, sizeof(Vbc_Token));")
+                ElseIf targetType.Length > 2 And CaseInsensitiveEquals(targetType.Substring(targetType.Length - 2, 2), "()") And Nodes(valNode).Kind = NODE_ARRAY_LIT Then
+                    Dim elemName = targetType.Substring(0, targetType.Length - 2)
+                    Dim elemCType = MapCType(elemName)
+                    EmitWriteLine(indent & targetStr & " = " & EmitArrayLiteral(valNode, elemCType) & ";")
+                Else
+                    EmitWriteLine(indent & targetStr & " = " & valStr & ";")
+                End If
+            End If
+
+        ElseIf k = NODE_IF Then
+            Dim condNode = Nodes(sId).FirstChild
+            Dim thenBlock = Nodes(condNode).NextSibling
+            Dim condStr = EmitExpr(condNode)
+            EmitWriteLine(indent & "if (" & condStr & ") {")
+            If thenBlock >= 0 Then
+                Dim stmt = Nodes(thenBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+
+            Dim nextClause = If(thenBlock >= 0, Nodes(thenBlock).NextSibling, -1)
+            While nextClause >= 0 And Nodes(nextClause).Kind = NODE_ELSEIF
+                Dim eiCond = Nodes(nextClause).FirstChild
+                Dim eiBlock = Nodes(eiCond).NextSibling
+                Dim eiCondStr = EmitExpr(eiCond)
+                EmitWriteLine(indent & "} else if (" & eiCondStr & ") {")
+                If eiBlock >= 0 Then
+                    Dim stmt = Nodes(eiBlock).FirstChild
+                    While stmt <> -1
+                        EmitStatement(stmt, indent & "    ")
+                        stmt = Nodes(stmt).NextSibling
+                    End While
+                End If
+                nextClause = Nodes(nextClause).NextSibling
+            End While
+
+            If nextClause >= 0 And Nodes(nextClause).Kind = NODE_BLOCK Then
+                EmitWriteLine(indent & "} else {")
+                Dim stmt = Nodes(nextClause).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_FOR Then
+            Dim vName = Nodes(sId).Name
+            Dim startNode = Nodes(sId).FirstChild
+            Dim endNode = Nodes(startNode).NextSibling
+            Dim stepNode = Nodes(endNode).NextSibling
+            Dim bodyNode = Nodes(stepNode).NextSibling
+
+            Dim startStr = EmitExpr(startNode)
+            Dim endStr = EmitExpr(endNode)
+            Dim stepStr = EmitExpr(stepNode)
+
+            EmitWriteLine(indent & "for (int32_t " & vName & " = " & startStr & "; " & vName & " <= " & endStr & "; " & vName & " += " & stepStr & ") {")
+            If bodyNode >= 0 Then
+                Dim stmt = Nodes(bodyNode).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_FOREACH Then
+            Dim vName = Nodes(sId).Name
+            Dim collNode = Nodes(sId).FirstChild
+            Dim bodyNode = Nodes(collNode).NextSibling
+            Dim collStr = EmitExpr(collNode)
+            Dim qId = NextTemp("_fe")
+
+            EmitWriteLine(indent & "vbc_slice_t _c_" & qId & " = " & collStr & ";")
+            EmitWriteLine(indent & "for (int64_t _i_" & qId & " = 0; _i_" & qId & " < _c_" & qId & ".len; _i_" & qId & "++) {")
+            EmitWriteLine(indent & "    int32_t " & vName & " = ((int32_t*)_c_" & qId & ".data)[_i_" & qId & "];")
+            If bodyNode >= 0 Then
+                Dim stmt = Nodes(bodyNode).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_WHILE Then
+            Dim condStr = EmitExpr(Nodes(sId).FirstChild)
+            Dim bodyNode = Nodes(Nodes(sId).FirstChild).NextSibling
+            EmitWriteLine(indent & "while (" & condStr & ") {")
+            If bodyNode >= 0 Then
+                Dim stmt = Nodes(bodyNode).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_RETURN Then
+            If Nodes(sId).FirstChild >= 0 Then
+                Dim exprStr = EmitExpr(Nodes(sId).FirstChild)
+                EmitWriteLine(indent & "return " & exprStr & ";")
+            Else
+                EmitWriteLine(indent & "return;")
+            End If
+
+        ElseIf k = NODE_EXPR_STMT Then
+            If CaseInsensitiveEquals(Nodes(sId).Name, "break") Then
+                EmitWriteLine(indent & "break;")
+            ElseIf CaseInsensitiveEquals(Nodes(sId).Name, "throw") Then
+                Dim exStr = EmitExpr(Nodes(sId).FirstChild)
+                EmitWriteLine(indent & "vbc_throw(" & exStr & ", 1);")
+            ElseIf Nodes(sId).FirstChild >= 0 Then
+                Dim exprStr = EmitExpr(Nodes(sId).FirstChild)
+                EmitWriteLine(indent & exprStr & ";")
+            End If
+
+        ElseIf k = NODE_CONTINUE Then
+            EmitWriteLine(indent & "continue;")
+
+        ElseIf k = NODE_USING Then
+            Dim varName = Nodes(sId).Name
+            Dim typeName = Nodes(sId).TypeName
+            Dim initNode = Nodes(sId).FirstChild
+            Dim bodyBlock = If(initNode >= 0, Nodes(initNode).NextSibling, -1)
+
+            If typeName.Length = 0 And initNode >= 0 Then
+                typeName = GetExprTypeName(initNode)
+            End If
+
+            Dim loc As LocalVarInfo
+            loc.Name = varName
+            loc.TypeName = typeName
+            loc.IsByRef = False
+            currentLocals.Add(loc)
+
+            Dim cType = MapCType(typeName)
+            Dim initStr = If(initNode >= 0, EmitExpr(initNode), "{0}")
+
+            EmitWriteLine(indent & "{")
+            EmitWriteLine(indent & "    " & cType & " " & varName & " = " & initStr & ";")
+
+            If bodyBlock >= 0 Then
+                Dim stmt = Nodes(bodyBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+
+            If IsClassType(typeName) Then
+                If ClassHasVirtualMethod(typeName, "Dispose") Then
+                    Dim rootNode = GetRootClassNode(FindClassNode(typeName))
+                    Dim rootName = MangleName(Nodes(rootNode).Name)
+                    EmitWriteLine(indent & "    (((const Vbc_" & rootName & "_VTable*)((Vbc_" & rootName & "*)" & varName & ")->_vtable)->Dispose(_stack, (void*)" & varName & "));")
+                ElseIf FindClassMethod(typeName, "Dispose") >= 0 Then
+                    Dim declClass As String = MangleName(FindClassMethodDeclaringClass(typeName, "Dispose"))
+                    EmitWriteLine(indent & "    Vbc_" & declClass & "_Dispose(_stack, " & varName & ");")
+                End If
+            ElseIf IsStructureType(typeName) Then
+                If FindStructMethod(typeName, "Dispose") >= 0 Then
+                    EmitWriteLine(indent & "    Vbc_" & MangleName(typeName) & "_Dispose(_stack, &" & varName & ");")
+                End If
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_SYNCLOCK Then
+            Dim lockExpr = Nodes(sId).FirstChild
+            Dim bodyBlock = If(lockExpr >= 0, Nodes(lockExpr).NextSibling, -1)
+            Dim lockStr = EmitExpr(lockExpr)
+            Dim qId = NextTemp("_lock")
+
+            EmitWriteLine(indent & "{")
+            EmitWriteLine(indent & "    void* _lk_" & qId & " = (void*)(" & lockStr & ");")
+            EmitWriteLine(indent & "    vbc_monitor_enter(_lk_" & qId & ");")
+            If bodyBlock >= 0 Then
+                Dim stmt = Nodes(bodyBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "    vbc_monitor_exit(_lk_" & qId & ");")
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_TRY Then
+            Dim tryBlock = Nodes(sId).FirstChild
+            Dim catchBlock = If(tryBlock >= 0, Nodes(tryBlock).NextSibling, -1)
+            Dim finallyBlock = If(catchBlock >= 0, Nodes(catchBlock).NextSibling, -1)
+            Dim qId = NextTemp("_ex")
+
+            EmitWriteLine(indent & "{")
+            EmitWriteLine(indent & "    vbc_exception_frame_t _ex_frame_" & qId & ";")
+            EmitWriteLine(indent & "    vbc_push_exception_frame(&_ex_frame_" & qId & ");")
+            EmitWriteLine(indent & "    if (setjmp(_ex_frame_" & qId & ".jmp) == 0) {")
+            If tryBlock >= 0 Then
+                Dim stmt = Nodes(tryBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "        ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "        vbc_pop_exception_frame(&_ex_frame_" & qId & ");")
+            EmitWriteLine(indent & "    } else {")
+            EmitWriteLine(indent & "        vbc_pop_exception_frame(&_ex_frame_" & qId & ");")
+            If catchBlock >= 0 Then
+                Dim exVar = Nodes(catchBlock).Name
+                Dim loc As LocalVarInfo
+                loc.Name = exVar
+                loc.TypeName = "String"
+                loc.IsByRef = False
+                currentLocals.Add(loc)
+                EmitWriteLine(indent & "        vbc_string_t " & exVar & " = _ex_frame_" & qId & ".exception.Message;")
+                Dim stmt = Nodes(catchBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "        ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "    }")
+            If finallyBlock >= 0 Then
+                EmitWriteLine(indent & "    {")
+                Dim stmt = Nodes(finallyBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "        ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+                EmitWriteLine(indent & "    }")
+            End If
+            EmitWriteLine(indent & "}")
+        End If
+    End Sub
+
+End Module

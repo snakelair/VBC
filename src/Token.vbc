@@ -1,0 +1,296 @@
+Imports System
+
+Module TokenConstants
+    ' Token Kind Constants
+    Const TOK_EOF As Integer = 0
+    Const TOK_IDENT As Integer = 1
+    Const TOK_INT As Integer = 2
+    Const TOK_STR As Integer = 3
+    Const TOK_FLOAT As Integer = 4
+
+    ' Keywords
+    Const TOK_MODULE As Integer = 10
+    Const TOK_STRUCTURE As Integer = 11
+    Const TOK_SUB As Integer = 12
+    Const TOK_FUNCTION As Integer = 13
+    Const TOK_END As Integer = 14
+    Const TOK_DIM As Integer = 15
+    Const TOK_AS As Integer = 16
+    Const TOK_CONST As Integer = 17
+    Const TOK_IMPORTS As Integer = 18
+    Const TOK_IF As Integer = 19
+    Const TOK_THEN As Integer = 20
+    Const TOK_ELSEIF As Integer = 21
+    Const TOK_ELSE As Integer = 22
+    Const TOK_FOR As Integer = 23
+    Const TOK_EACH As Integer = 24
+    Const TOK_IN As Integer = 25
+    Const TOK_TO As Integer = 26
+    Const TOK_STEP As Integer = 27
+    Const TOK_NEXT As Integer = 28
+    Const TOK_WHILE As Integer = 29
+    Const TOK_RETURN As Integer = 30
+    Const TOK_EXIT As Integer = 31
+    Const TOK_FROM As Integer = 32
+    Const TOK_WHERE As Integer = 33
+    Const TOK_SELECT As Integer = 34
+    Const TOK_AGGREGATE As Integer = 35
+    Const TOK_INTO As Integer = 36
+    Const TOK_DISTINCT As Integer = 37
+    Const TOK_TAKE As Integer = 38
+    Const TOK_SKIP As Integer = 39
+    Const TOK_BYVAL As Integer = 40
+    Const TOK_BYREF As Integer = 41
+    Const TOK_NEW As Integer = 42
+    Const TOK_TRUE As Integer = 43
+    Const TOK_FALSE As Integer = 44
+    Const TOK_NOTHING As Integer = 45
+    Const TOK_CONTINUE As Integer = 46
+
+    ' OOP Keywords
+    Const TOK_CLASS As Integer = 80
+    Const TOK_INHERITS As Integer = 81
+    Const TOK_OVERRIDABLE As Integer = 82
+    Const TOK_OVERRIDES As Integer = 83
+    Const TOK_MYBASE As Integer = 84
+    Const TOK_ME As Integer = 85
+    Const TOK_PUBLIC As Integer = 86
+    Const TOK_PRIVATE As Integer = 87
+    Const TOK_PROTECTED As Integer = 88
+    Const TOK_USING As Integer = 89
+    Const TOK_NAMESPACE As Integer = 90
+    Const TOK_TRY As Integer = 91
+    Const TOK_CATCH As Integer = 92
+    Const TOK_FINALLY As Integer = 93
+    Const TOK_THROW As Integer = 94
+    Const TOK_SYNCLOCK As Integer = 95
+    Const TOK_BYTE As Integer = 96
+    Const TOK_INTERFACE As Integer = 97
+    Const TOK_IMPLEMENTS As Integer = 98
+    Const TOK_QUESTION As Integer = 100
+    Const TOK_QDOT As Integer = 101
+    Const TOK_QLPAREN As Integer = 102
+    Const TOK_XML_CHILD As Integer = 103
+    Const TOK_XML_ATTR As Integer = 104
+    Const TOK_XML_DESC As Integer = 105
+
+    ' Punctuators
+    Const TOK_LPAREN As Integer = 50
+    Const TOK_RPAREN As Integer = 51
+    Const TOK_LBRACKET As Integer = 52
+    Const TOK_RBRACKET As Integer = 53
+    Const TOK_COMMA As Integer = 54
+    Const TOK_DOT As Integer = 55
+    Const TOK_COLON As Integer = 56
+    Const TOK_NEWLINE As Integer = 57
+
+    ' Operators
+    Const TOK_EQUAL As Integer = 60
+    Const TOK_NOTEQUAL As Integer = 61
+    Const TOK_LESS As Integer = 62
+    Const TOK_LESSEQ As Integer = 63
+    Const TOK_GREATER As Integer = 64
+    Const TOK_GREATEREQ As Integer = 65
+    Const TOK_PLUS As Integer = 66
+    Const TOK_MINUS As Integer = 67
+    Const TOK_STAR As Integer = 68
+    Const TOK_SLASH As Integer = 69
+    Const TOK_AMP As Integer = 70
+    Const TOK_MOD As Integer = 71
+    Const TOK_AND As Integer = 72
+    Const TOK_OR As Integer = 73
+    Const TOK_NOT As Integer = 74
+    Const TOK_ANDALSO As Integer = 75
+    Const TOK_ORELSE As Integer = 76
+    Const TOK_XOR As Integer = 77
+    Const TOK_SHL As Integer = 78
+    Const TOK_SHR As Integer = 79
+End Module
+
+Module TokenModule
+    Structure Token
+        Dim Kind As Integer
+        Dim Text As String
+        Dim Line As Integer
+        Dim Col As Integer
+        Dim IntValue As Long
+    End Structure
+
+    Function MakeToken(kind As Integer, text As String, line As Integer, col As Integer) As Token
+        Dim tok As Token
+        tok.Kind = kind
+        tok.Text = text
+        tok.Line = line
+        tok.Col = col
+        tok.IntValue = 0
+        Return tok
+    End Function
+
+    Function LookupKeyword(text As String) As Integer
+        If CaseInsensitiveEquals(text, "module") Then Return TOK_MODULE
+        If CaseInsensitiveEquals(text, "structure") Then Return TOK_STRUCTURE
+        If CaseInsensitiveEquals(text, "sub") Then Return TOK_SUB
+        If CaseInsensitiveEquals(text, "function") Then Return TOK_FUNCTION
+        If CaseInsensitiveEquals(text, "end") Then Return TOK_END
+        If CaseInsensitiveEquals(text, "dim") Then Return TOK_DIM
+        If CaseInsensitiveEquals(text, "as") Then Return TOK_AS
+        If CaseInsensitiveEquals(text, "const") Then Return TOK_CONST
+        If CaseInsensitiveEquals(text, "imports") Then Return TOK_IMPORTS
+        If CaseInsensitiveEquals(text, "if") Then Return TOK_IF
+        If CaseInsensitiveEquals(text, "then") Then Return TOK_THEN
+        If CaseInsensitiveEquals(text, "elseif") Then Return TOK_ELSEIF
+        If CaseInsensitiveEquals(text, "else") Then Return TOK_ELSE
+        If CaseInsensitiveEquals(text, "for") Then Return TOK_FOR
+        If CaseInsensitiveEquals(text, "each") Then Return TOK_EACH
+        If CaseInsensitiveEquals(text, "in") Then Return TOK_IN
+        If CaseInsensitiveEquals(text, "to") Then Return TOK_TO
+        If CaseInsensitiveEquals(text, "step") Then Return TOK_STEP
+        If CaseInsensitiveEquals(text, "next") Then Return TOK_NEXT
+        If CaseInsensitiveEquals(text, "while") Then Return TOK_WHILE
+        If CaseInsensitiveEquals(text, "return") Then Return TOK_RETURN
+        If CaseInsensitiveEquals(text, "exit") Then Return TOK_EXIT
+        If CaseInsensitiveEquals(text, "continue") Then Return TOK_CONTINUE
+        If CaseInsensitiveEquals(text, "from") Then Return TOK_FROM
+        If CaseInsensitiveEquals(text, "where") Then Return TOK_WHERE
+        If CaseInsensitiveEquals(text, "select") Then Return TOK_SELECT
+        If CaseInsensitiveEquals(text, "aggregate") Then Return TOK_AGGREGATE
+        If CaseInsensitiveEquals(text, "into") Then Return TOK_INTO
+        If CaseInsensitiveEquals(text, "distinct") Then Return TOK_DISTINCT
+        If CaseInsensitiveEquals(text, "take") Then Return TOK_TAKE
+        If CaseInsensitiveEquals(text, "skip") Then Return TOK_SKIP
+        If CaseInsensitiveEquals(text, "byval") Then Return TOK_BYVAL
+        If CaseInsensitiveEquals(text, "byref") Then Return TOK_BYREF
+        If CaseInsensitiveEquals(text, "new") Then Return TOK_NEW
+        If CaseInsensitiveEquals(text, "andalso") Then Return TOK_ANDALSO
+        If CaseInsensitiveEquals(text, "orelse") Then Return TOK_ORELSE
+        If CaseInsensitiveEquals(text, "and") Then Return TOK_AND
+        If CaseInsensitiveEquals(text, "or") Then Return TOK_OR
+        If CaseInsensitiveEquals(text, "xor") Then Return TOK_XOR
+        If CaseInsensitiveEquals(text, "shl") Then Return TOK_SHL
+        If CaseInsensitiveEquals(text, "shr") Then Return TOK_SHR
+        If CaseInsensitiveEquals(text, "not") Then Return TOK_NOT
+        If CaseInsensitiveEquals(text, "mod") Then Return TOK_MOD
+        If CaseInsensitiveEquals(text, "true") Then Return TOK_TRUE
+        If CaseInsensitiveEquals(text, "false") Then Return TOK_FALSE
+        If CaseInsensitiveEquals(text, "nothing") Then Return TOK_NOTHING
+        If CaseInsensitiveEquals(text, "class") Then Return TOK_CLASS
+        If CaseInsensitiveEquals(text, "inherits") Then Return TOK_INHERITS
+        If CaseInsensitiveEquals(text, "overridable") Then Return TOK_OVERRIDABLE
+        If CaseInsensitiveEquals(text, "overrides") Then Return TOK_OVERRIDES
+        If CaseInsensitiveEquals(text, "mybase") Then Return TOK_MYBASE
+        If CaseInsensitiveEquals(text, "me") Then Return TOK_ME
+        If CaseInsensitiveEquals(text, "public") Then Return TOK_PUBLIC
+        If CaseInsensitiveEquals(text, "private") Then Return TOK_PRIVATE
+        If CaseInsensitiveEquals(text, "protected") Then Return TOK_PROTECTED
+        If CaseInsensitiveEquals(text, "using") Then Return TOK_USING
+        If CaseInsensitiveEquals(text, "namespace") Then Return TOK_NAMESPACE
+        If CaseInsensitiveEquals(text, "try") Then Return TOK_TRY
+        If CaseInsensitiveEquals(text, "catch") Then Return TOK_CATCH
+        If CaseInsensitiveEquals(text, "finally") Then Return TOK_FINALLY
+        If CaseInsensitiveEquals(text, "throw") Then Return TOK_THROW
+        If CaseInsensitiveEquals(text, "synclock") Then Return TOK_SYNCLOCK
+        If CaseInsensitiveEquals(text, "byte") Then Return TOK_BYTE
+        If CaseInsensitiveEquals(text, "interface") Then Return TOK_INTERFACE
+        If CaseInsensitiveEquals(text, "implements") Then Return TOK_IMPLEMENTS
+        Return TOK_IDENT
+    End Function
+
+    Function GetTokenKindName(kind As Integer) As String
+        If kind = TOK_EOF Then Return "TOK_EOF"
+        If kind = TOK_IDENT Then Return "TOK_IDENT"
+        If kind = TOK_INT Then Return "TOK_INT"
+        If kind = TOK_STR Then Return "TOK_STR"
+        If kind = TOK_FLOAT Then Return "TOK_FLOAT"
+        If kind = TOK_MODULE Then Return "TOK_MODULE"
+        If kind = TOK_STRUCTURE Then Return "TOK_STRUCTURE"
+        If kind = TOK_SUB Then Return "TOK_SUB"
+        If kind = TOK_FUNCTION Then Return "TOK_FUNCTION"
+        If kind = TOK_END Then Return "TOK_END"
+        If kind = TOK_DIM Then Return "TOK_DIM"
+        If kind = TOK_AS Then Return "TOK_AS"
+        If kind = TOK_CONST Then Return "TOK_CONST"
+        If kind = TOK_IMPORTS Then Return "TOK_IMPORTS"
+        If kind = TOK_IF Then Return "TOK_IF"
+        If kind = TOK_THEN Then Return "TOK_THEN"
+        If kind = TOK_ELSEIF Then Return "TOK_ELSEIF"
+        If kind = TOK_ELSE Then Return "TOK_ELSE"
+        If kind = TOK_FOR Then Return "TOK_FOR"
+        If kind = TOK_EACH Then Return "TOK_EACH"
+        If kind = TOK_IN Then Return "TOK_IN"
+        If kind = TOK_TO Then Return "TOK_TO"
+        If kind = TOK_STEP Then Return "TOK_STEP"
+        If kind = TOK_NEXT Then Return "TOK_NEXT"
+        If kind = TOK_WHILE Then Return "TOK_WHILE"
+        If kind = TOK_RETURN Then Return "TOK_RETURN"
+        If kind = TOK_EXIT Then Return "TOK_EXIT"
+        If kind = TOK_CONTINUE Then Return "TOK_CONTINUE"
+        If kind = TOK_FROM Then Return "TOK_FROM"
+        If kind = TOK_WHERE Then Return "TOK_WHERE"
+        If kind = TOK_SELECT Then Return "TOK_SELECT"
+        If kind = TOK_AGGREGATE Then Return "TOK_AGGREGATE"
+        If kind = TOK_INTO Then Return "TOK_INTO"
+        If kind = TOK_DISTINCT Then Return "TOK_DISTINCT"
+        If kind = TOK_TAKE Then Return "TOK_TAKE"
+        If kind = TOK_SKIP Then Return "TOK_SKIP"
+        If kind = TOK_BYVAL Then Return "TOK_BYVAL"
+        If kind = TOK_BYREF Then Return "TOK_BYREF"
+        If kind = TOK_NEW Then Return "TOK_NEW"
+        If kind = TOK_TRUE Then Return "TOK_TRUE"
+        If kind = TOK_FALSE Then Return "TOK_FALSE"
+        If kind = TOK_NOTHING Then Return "TOK_NOTHING"
+        If kind = TOK_CLASS Then Return "TOK_CLASS"
+        If kind = TOK_INHERITS Then Return "TOK_INHERITS"
+        If kind = TOK_OVERRIDABLE Then Return "TOK_OVERRIDABLE"
+        If kind = TOK_OVERRIDES Then Return "TOK_OVERRIDES"
+        If kind = TOK_MYBASE Then Return "TOK_MYBASE"
+        If kind = TOK_ME Then Return "TOK_ME"
+        If kind = TOK_PUBLIC Then Return "TOK_PUBLIC"
+        If kind = TOK_PRIVATE Then Return "TOK_PRIVATE"
+        If kind = TOK_PROTECTED Then Return "TOK_PROTECTED"
+        If kind = TOK_USING Then Return "TOK_USING"
+        If kind = TOK_NAMESPACE Then Return "TOK_NAMESPACE"
+        If kind = TOK_TRY Then Return "TOK_TRY"
+        If kind = TOK_CATCH Then Return "TOK_CATCH"
+        If kind = TOK_FINALLY Then Return "TOK_FINALLY"
+        If kind = TOK_THROW Then Return "TOK_THROW"
+        If kind = TOK_SYNCLOCK Then Return "TOK_SYNCLOCK"
+        If kind = TOK_BYTE Then Return "TOK_BYTE"
+        If kind = TOK_INTERFACE Then Return "TOK_INTERFACE"
+        If kind = TOK_IMPLEMENTS Then Return "TOK_IMPLEMENTS"
+        If kind = TOK_QUESTION Then Return "TOK_QUESTION"
+        If kind = TOK_QDOT Then Return "TOK_QDOT"
+        If kind = TOK_QLPAREN Then Return "TOK_QLPAREN"
+        If kind = TOK_XML_CHILD Then Return "TOK_XML_CHILD"
+        If kind = TOK_XML_ATTR Then Return "TOK_XML_ATTR"
+        If kind = TOK_XML_DESC Then Return "TOK_XML_DESC"
+        If kind = TOK_LPAREN Then Return "TOK_LPAREN"
+        If kind = TOK_RPAREN Then Return "TOK_RPAREN"
+        If kind = TOK_LBRACKET Then Return "TOK_LBRACKET"
+        If kind = TOK_RBRACKET Then Return "TOK_RBRACKET"
+        If kind = TOK_COMMA Then Return "TOK_COMMA"
+        If kind = TOK_DOT Then Return "TOK_DOT"
+        If kind = TOK_COLON Then Return "TOK_COLON"
+        If kind = TOK_NEWLINE Then Return "TOK_NEWLINE"
+        If kind = TOK_EQUAL Then Return "TOK_EQUAL"
+        If kind = TOK_NOTEQUAL Then Return "TOK_NOTEQUAL"
+        If kind = TOK_LESS Then Return "TOK_LESS"
+        If kind = TOK_LESSEQ Then Return "TOK_LESSEQ"
+        If kind = TOK_GREATER Then Return "TOK_GREATER"
+        If kind = TOK_GREATEREQ Then Return "TOK_GREATEREQ"
+        If kind = TOK_PLUS Then Return "TOK_PLUS"
+        If kind = TOK_MINUS Then Return "TOK_MINUS"
+        If kind = TOK_STAR Then Return "TOK_STAR"
+        If kind = TOK_SLASH Then Return "TOK_SLASH"
+        If kind = TOK_AMP Then Return "TOK_AMP"
+        If kind = TOK_MOD Then Return "TOK_MOD"
+        If kind = TOK_AND Then Return "TOK_AND"
+        If kind = TOK_OR Then Return "TOK_OR"
+        If kind = TOK_NOT Then Return "TOK_NOT"
+        If kind = TOK_ANDALSO Then Return "TOK_ANDALSO"
+        If kind = TOK_ORELSE Then Return "TOK_ORELSE"
+        If kind = TOK_XOR Then Return "TOK_XOR"
+        If kind = TOK_SHL Then Return "TOK_SHL"
+        If kind = TOK_SHR Then Return "TOK_SHR"
+        Return "TOK_UNKNOWN"
+    End Function
+End Module

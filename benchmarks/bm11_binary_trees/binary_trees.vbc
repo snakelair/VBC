@@ -1,0 +1,36 @@
+Structure TreeNode
+    Dim Left As Integer
+    Dim Right As Integer
+    Dim Item As Integer
+End Structure
+
+Module Program
+    Dim nodeCount As Integer = 0
+
+    Function BuildTree(nodes() As TreeNode, depth As Integer) As Integer
+        If depth <= 0 Then
+            Return -1
+        End If
+        Dim id As Integer = nodeCount
+        nodeCount = nodeCount + 1
+        nodes(id).Item = depth
+        nodes(id).Left = BuildTree(nodes, depth - 1)
+        nodes(id).Right = BuildTree(nodes, depth - 1)
+        Return id
+    End Function
+
+    Function CheckTree(nodes() As TreeNode, id As Integer) As Integer
+        If id = -1 Then
+            Return 1
+        End If
+        Return nodes(id).Item + CheckTree(nodes, nodes(id).Left) + CheckTree(nodes, nodes(id).Right)
+    End Function
+
+    Sub Main()
+        Dim maxNodes As Integer = 1048576
+        Dim nodes(1048576) As TreeNode
+        Dim root As Integer = BuildTree(nodes, 18)
+        Dim check As Integer = CheckTree(nodes, root)
+        Console.WriteLine(check)
+    End Sub
+End Module

@@ -1,0 +1,390 @@
+﻿Imports System
+
+Module ParserModule
+    Function ParseStatement() As Integer
+        Dim k = CurrKind()
+        If k = TOK_DIM Or k = TOK_CONST Then
+            Return ParseVariableDeclaration()
+        ElseIf k = TOK_IF Then
+            Return ParseIf()
+        ElseIf k = TOK_FOR Then
+            Return ParseFor()
+        ElseIf k = TOK_WHILE Then
+            Return ParseWhile()
+        ElseIf k = TOK_RETURN Then
+            Return ParseReturn()
+        ElseIf k = TOK_USING Then
+            Return ParseUsing()
+        ElseIf k = TOK_TRY Then
+            Return ParseTry()
+        ElseIf k = TOK_SYNCLOCK Then
+            Return ParseSyncLock()
+        ElseIf k = TOK_THROW Then
+            ParserAdvance()
+            Dim exExpr = ParseExpression()
+            Dim thId = AllocNode(NODE_EXPR_STMT, "throw", CurrLine())
+            AddChild(thId, exExpr)
+            Return thId
+        ElseIf k = TOK_EXIT Then
+            ParserAdvance()
+            If CurrKind() = TOK_FOR Or CurrKind() = TOK_WHILE Then ParserAdvance()
+            Dim exId = AllocNode(NODE_EXPR_STMT, "break", CurrLine())
+            Return exId
+        ElseIf k = TOK_CONTINUE Then
+            ParserAdvance()
+            If CurrKind() = TOK_FOR Or CurrKind() = TOK_WHILE Then ParserAdvance()
+            Dim cId = AllocNode(NODE_CONTINUE, "continue", CurrLine())
+            Return cId
+        Else
+            Return ParseAssignOrExprStatement()
+        End If
+    End Function
+
+    Function ParseTry() As Integer
+        ParserMatch(TOK_TRY)
+        SkipSeparators()
+        Dim tryId = AllocNode(NODE_TRY, "Try", CurrLine())
+        Dim tryBlock = AllocNode(NODE_BLOCK, "try_body", CurrLine())
+        AddChild(tryId, tryBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_CATCH And CurrKind() <> TOK_FINALLY And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(tryBlock, s)
+            SkipSeparators()
+        End While
+
+        If CurrKind() = TOK_CATCH Then
+            ParserAdvance()
+            Dim exVarName As String = "ex"
+            If CurrKind() = TOK_IDENT Then
+                exVarName = ParserMatch(TOK_IDENT).Text
+                If CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    Dim exType = ParseTypeName()
+                End If
+            End If
+            SkipSeparators()
+            Dim catchBlock = AllocNode(NODE_BLOCK, exVarName, CurrLine())
+            AddChild(tryId, catchBlock)
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_FINALLY And CurrKind() <> TOK_END
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(catchBlock, s)
+                SkipSeparators()
+            End While
+        End If
+
+        If CurrKind() = TOK_FINALLY Then
+            ParserAdvance()
+            SkipSeparators()
+            Dim finallyBlock = AllocNode(NODE_BLOCK, "finally_body", CurrLine())
+            AddChild(tryId, finallyBlock)
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(finallyBlock, s)
+                SkipSeparators()
+            End While
+        End If
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_TRY Then ParserAdvance()
+        Return tryId
+    End Function
+
+    Function ParseSyncLock() As Integer
+        ParserMatch(TOK_SYNCLOCK)
+        Dim lockExpr = ParseExpression()
+        SkipSeparators()
+        Dim slId = AllocNode(NODE_SYNCLOCK, "SyncLock", CurrLine())
+        AddChild(slId, lockExpr)
+
+        Dim bodyBlock = AllocNode(NODE_BLOCK, "synclock_body", CurrLine())
+        AddChild(slId, bodyBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(bodyBlock, s)
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_SYNCLOCK Then ParserAdvance()
+        Return slId
+    End Function
+
+    Function ParseUsing() As Integer
+        ParserMatch(TOK_USING)
+        Dim varName As String = ParserMatch(TOK_IDENT).Text
+        Dim typeName As String = ""
+        Dim initExpr As Integer = -1
+
+        If CurrKind() = TOK_AS Then
+            ParserAdvance()
+            If CurrKind() = TOK_NEW Then
+                initExpr = ParsePrimary()
+                typeName = Nodes(initExpr).Name
+            Else
+                typeName = ParseTypeName()
+                If CurrKind() = TOK_EQUAL Then
+                    ParserAdvance()
+                    initExpr = ParseExpression()
+                End If
+            End If
+        ElseIf CurrKind() = TOK_EQUAL Then
+            ParserAdvance()
+            initExpr = ParseExpression()
+        End If
+
+        SkipSeparators()
+
+        Dim uId = AllocNode(NODE_USING, varName, CurrLine())
+        Nodes(uId).TypeName = typeName
+        AddChild(uId, initExpr)
+
+        Dim bodyBlock = AllocNode(NODE_BLOCK, "body", CurrLine())
+        AddChild(uId, bodyBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(bodyBlock, s)
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_USING Then ParserAdvance()
+        Return uId
+    End Function
+
+    Function ParseVariableDeclaration() As Integer
+        Dim isConst As Boolean = (CurrKind() = TOK_CONST)
+        If CurrKind() = TOK_DIM Or CurrKind() = TOK_CONST Then
+            ParserAdvance() ' Dim or Const
+        End If
+        Dim vName As String = ParserMatch(TOK_IDENT).Text
+        Dim vType As String = ""
+        Dim isArray As Boolean = False
+
+        If CurrKind() = TOK_LPAREN Then
+            ParserAdvance()
+            ParserMatch(TOK_RPAREN)
+            isArray = True
+        End If
+
+        If CurrKind() = TOK_AS Then
+            ParserAdvance()
+            If CurrKind() = TOK_NEW Then
+                Dim newExpr = ParsePrimary()
+                Dim varId = AllocNode(NODE_VARDECL, vName, CurrLine())
+                Nodes(varId).TypeName = Nodes(newExpr).Name
+                AddChild(varId, newExpr)
+                Return varId
+            End If
+            vType = ParseTypeName()
+        End If
+
+        If isArray And vType.Length > 0 Then
+            vType = vType & "()"
+        End If
+
+        Dim varId = AllocNode(NODE_VARDECL, vName, CurrLine())
+        Nodes(varId).TypeName = vType
+
+        If CurrKind() = TOK_EQUAL Then
+            ParserAdvance()
+            Dim initExpr = ParseExpression()
+            AddChild(varId, initExpr)
+        End If
+
+        Return varId
+    End Function
+
+    Function ParseAssignOrExprStatement() As Integer
+        Dim exprId = ParseExpression()
+        If Nodes(exprId).Kind = NODE_BINARY And Nodes(exprId).Op = TOK_EQUAL Then
+            Dim targetNode = Nodes(exprId).FirstChild
+            Dim valNode = Nodes(targetNode).NextSibling
+            Dim assignId = AllocNode(NODE_ASSIGN, "=", Nodes(exprId).Line)
+            AddChild(assignId, targetNode)
+            AddChild(assignId, valNode)
+            Return assignId
+        End If
+
+        If CurrKind() = TOK_EQUAL Then
+            ParserAdvance()
+            Dim rhsId = ParseExpression()
+            Dim assignId = AllocNode(NODE_ASSIGN, "=", CurrLine())
+            AddChild(assignId, exprId)
+            AddChild(assignId, rhsId)
+            Return assignId
+        End If
+
+        Dim stmtId = AllocNode(NODE_EXPR_STMT, "expr", CurrLine())
+        AddChild(stmtId, exprId)
+        Return stmtId
+    End Function
+
+    Function ParseIf() As Integer
+        ParserMatch(TOK_IF)
+        Dim condId = ParseExpression()
+        If CurrKind() = TOK_THEN Then ParserAdvance()
+
+        ' Single-line If: statement follows on the same line
+        If CurrKind() <> TOK_NEWLINE And CurrKind() <> TOK_COLON And CurrKind() <> TOK_EOF Then
+            Dim sIfId = AllocNode(NODE_IF, "if", CurrLine())
+            AddChild(sIfId, condId)
+            Dim sThenBlock = AllocNode(NODE_BLOCK, "then", CurrLine())
+            AddChild(sIfId, sThenBlock)
+            Dim stmt = ParseStatement()
+            If stmt >= 0 Then AddChild(sThenBlock, stmt)
+            Return sIfId
+        End If
+
+        SkipSeparators()
+
+        Dim ifId = AllocNode(NODE_IF, "if", CurrLine())
+        AddChild(ifId, condId)
+
+        Dim thenBlock = AllocNode(NODE_BLOCK, "then", CurrLine())
+        AddChild(ifId, thenBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_ELSEIF And CurrKind() <> TOK_ELSE And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(thenBlock, s)
+            SkipSeparators()
+        End While
+
+        While CurrKind() = TOK_ELSEIF
+            ParserAdvance()
+            Dim eiCond = ParseExpression()
+            If CurrKind() = TOK_THEN Then ParserAdvance()
+            SkipSeparators()
+            Dim eiNode = AllocNode(NODE_ELSEIF, "elseif", CurrLine())
+            AddChild(eiNode, eiCond)
+            Dim eiBlock = AllocNode(NODE_BLOCK, "then", CurrLine())
+            AddChild(eiNode, eiBlock)
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_ELSEIF And CurrKind() <> TOK_ELSE And CurrKind() <> TOK_END
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(eiBlock, s)
+                SkipSeparators()
+            End While
+            AddChild(ifId, eiNode)
+        End While
+
+        ' Optional Else
+        If CurrKind() = TOK_ELSE Then
+            ParserAdvance()
+            SkipSeparators()
+            Dim elseBlock = AllocNode(NODE_BLOCK, "else", CurrLine())
+            AddChild(ifId, elseBlock)
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(elseBlock, s)
+                SkipSeparators()
+            End While
+        End If
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_IF Then ParserAdvance()
+        Return ifId
+    End Function
+
+    Function ParseFor() As Integer
+        ParserMatch(TOK_FOR)
+        If CurrKind() = TOK_EACH Then
+            ' For Each var In coll
+            ParserAdvance()
+            Dim vName As String = ParserMatch(TOK_IDENT).Text
+            ParserMatch(TOK_IN)
+            Dim collExpr = ParseExpression()
+            SkipSeparators()
+
+            Dim feId = AllocNode(NODE_FOREACH, vName, CurrLine())
+            AddChild(feId, collExpr)
+            Dim bodyId = AllocNode(NODE_BLOCK, "body", CurrLine())
+            AddChild(feId, bodyId)
+
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_NEXT
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(bodyId, s)
+                SkipSeparators()
+            End While
+
+            ParserMatch(TOK_NEXT)
+            If CurrKind() = TOK_IDENT Then ParserAdvance()
+            Return feId
+        End If
+
+        ' For var [As Type] = start To finish [Step s]
+        Dim varName As String = ParserMatch(TOK_IDENT).Text
+        If CurrKind() = TOK_AS Then
+            ParserAdvance()
+            Dim varType As String = ParserMatch(TOK_IDENT).Text
+        End If
+        ParserMatch(TOK_EQUAL)
+        Dim startExpr = ParseExpression()
+        ParserMatch(TOK_TO)
+        Dim endExpr = ParseExpression()
+        Dim stepExpr = -1
+        If CurrKind() = TOK_STEP Then
+            ParserAdvance()
+            stepExpr = ParseExpression()
+        End If
+        SkipSeparators()
+
+        Dim forId = AllocNode(NODE_FOR, varName, CurrLine())
+        AddChild(forId, startExpr)
+        AddChild(forId, endExpr)
+        If stepExpr >= 0 Then
+            AddChild(forId, stepExpr)
+        Else
+            Dim oneId = AllocNode(NODE_LITERAL, "1", CurrLine())
+            Nodes(oneId).IntValue = 1
+            AddChild(forId, oneId)
+        End If
+
+        Dim bodyBlock = AllocNode(NODE_BLOCK, "body", CurrLine())
+        AddChild(forId, bodyBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_NEXT
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(bodyBlock, s)
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_NEXT)
+        If CurrKind() = TOK_IDENT Then ParserAdvance()
+        Return forId
+    End Function
+
+    Function ParseWhile() As Integer
+        ParserMatch(TOK_WHILE)
+        Dim condExpr = ParseExpression()
+        SkipSeparators()
+
+        Dim whileId = AllocNode(NODE_WHILE, "while", CurrLine())
+        AddChild(whileId, condExpr)
+        Dim bodyBlock = AllocNode(NODE_BLOCK, "body", CurrLine())
+        AddChild(whileId, bodyBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(bodyBlock, s)
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_WHILE Then ParserAdvance()
+        Return whileId
+    End Function
+
+    Function ParseReturn() As Integer
+        ParserMatch(TOK_RETURN)
+        Dim retId = AllocNode(NODE_RETURN, "return", CurrLine())
+        If CurrKind() <> TOK_NEWLINE And CurrKind() <> TOK_COLON And CurrKind() <> TOK_EOF Then
+            Dim exprId = ParseExpression()
+            AddChild(retId, exprId)
+        End If
+        Return retId
+    End Function
+
+    ' Expression Parsing with Operator Precedence
+End Module

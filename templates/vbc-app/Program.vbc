@@ -1,0 +1,8 @@
+Imports System
+
+Module Program
+    Sub Main()
+        Console.WriteLine("Hello from VBC in Visual Studio!")
+        Console.WriteLine("Zero Garbage Collection, Native Speed!")
+    End Sub
+End Module

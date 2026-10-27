@@ -1,0 +1,8 @@
+Module Program
+    Sub Main()
+        Dim x As Integer = 5
+        If x > 0
+            Console.WriteLine("Positive")
+        End If
+    End Sub
+End Module

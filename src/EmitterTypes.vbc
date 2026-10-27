@@ -1,0 +1,274 @@
+﻿Imports System
+
+Module EmitterModule
+    Sub EmitStructure(sId As Integer)
+        EmitWriteLine("struct Vbc_" & MangleName(Nodes(sId).Name) & " {")
+        Dim fId = Nodes(sId).FirstChild
+        While fId <> -1
+            If Nodes(fId).Kind = NODE_FIELD Then
+                Dim cType = MapCType(Nodes(fId).TypeName)
+                EmitWriteLine("    " & cType & " " & Nodes(fId).Name & ";")
+            End If
+            fId = Nodes(fId).NextSibling
+        End While
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitClassDefinition(cId As Integer)
+        Dim cName = MangleName(Nodes(cId).Name)
+        Dim baseClass As String = If(Nodes(cId).TypeName.Length > 0, MangleName(ResolveTypeName(Nodes(cId).TypeName)), "")
+        EmitWriteLine("struct Vbc_" & cName & " {")
+        If baseClass.Length > 0 Then
+            EmitWriteLine("    Vbc_" & baseClass & " _base;")
+        ElseIf ClassHasVirtualMethods(cId) Then
+            Dim root = GetRootClassNode(cId)
+            EmitWriteLine("    const Vbc_" & MangleName(Nodes(root).Name) & "_VTable* _vtable;")
+        End If
+        Dim fId = Nodes(cId).FirstChild
+        While fId <> -1
+            If Nodes(fId).Kind = NODE_FIELD Then
+                Dim cType = MapCType(Nodes(fId).TypeName)
+                EmitWriteLine("    " & cType & " " & Nodes(fId).Name & ";")
+            End If
+            fId = Nodes(fId).NextSibling
+        End While
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitVTableDefinition(rootId As Integer)
+        Dim rootName = MangleName(Nodes(rootId).Name)
+        EmitWriteLine("struct Vbc_" & rootName & "_VTable {")
+        Dim emittedSlots() As String = []
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_CLASS And GetRootClassNode(i) = rootId Then
+                Dim ch = Nodes(i).FirstChild
+                While ch <> -1
+                    If (Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB) And (Nodes(ch).IntValue = 2 Or Nodes(ch).IntValue = 4 Or Nodes(ch).IntValue = 6) Then
+                        Dim slotName = Nodes(ch).Name
+                        Dim alreadyEmitted As Boolean = False
+                        For si = 0 To emittedSlots.Length - 1
+                            If CaseInsensitiveEquals(emittedSlots(si), slotName) Then alreadyEmitted = True
+                        Next
+                        If Not alreadyEmitted Then
+                            Dim isSub = (Nodes(ch).Kind = NODE_SUB)
+                            Dim retType = If(isSub, "void", MapCType(Nodes(ch).TypeName))
+                            EmitWrite("    " & retType & " (*" & slotName & ")(vbc_stack_t* _stack, void* Me")
+                            Dim p = Nodes(ch).FirstChild
+                            While p <> -1 And Nodes(p).Kind = NODE_PARAM
+                                Dim pType = MapCType(Nodes(p).TypeName)
+                                If Nodes(p).IntValue = 1 Then pType = pType & "*"
+                                EmitWrite(", " & pType & " " & Nodes(p).Name)
+                                p = Nodes(p).NextSibling
+                            End While
+                            EmitWriteLine(");")
+                            emittedSlots.Add(slotName)
+                        End If
+                    End If
+                    ch = Nodes(ch).NextSibling
+                End While
+            End If
+        Next
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitStaticVTable(cId As Integer)
+        Dim cName = MangleName(Nodes(cId).Name)
+        Dim rootId = GetRootClassNode(cId)
+        Dim rootName = MangleName(Nodes(rootId).Name)
+
+        EmitWriteLine("static const Vbc_" & rootName & "_VTable _vbc_" & cName & "_vtable = {")
+        Dim emittedSlots() As String = []
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_CLASS And GetRootClassNode(i) = rootId Then
+                Dim ch = Nodes(i).FirstChild
+                While ch <> -1
+                    If (Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB) And (Nodes(ch).IntValue = 2 Or Nodes(ch).IntValue = 4 Or Nodes(ch).IntValue = 6) Then
+                        Dim slotName = Nodes(ch).Name
+                        Dim alreadyEmitted As Boolean = False
+                        For si = 0 To emittedSlots.Length - 1
+                            If CaseInsensitiveEquals(emittedSlots(si), slotName) Then alreadyEmitted = True
+                        Next
+                        If Not alreadyEmitted Then
+                            Dim declClass As String = MangleName(FindClassMethodDeclaringClass(Nodes(cId).Name, slotName))
+                            EmitWriteLine("    ." & slotName & " = (void*)Vbc_" & declClass & "_" & slotName & ",")
+                            emittedSlots.Add(slotName)
+                        End If
+                    End If
+                    ch = Nodes(ch).NextSibling
+                End While
+            End If
+        Next
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitInterfaceDefinition(ifId As Integer)
+        Dim ifName As String = MangleName(Nodes(ifId).Name)
+        EmitWriteLine("struct Vbc_" & ifName & "_VTable {")
+        Dim ch = Nodes(ifId).FirstChild
+        While ch <> -1
+            If Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB Then
+                Dim isSub = (Nodes(ch).Kind = NODE_SUB)
+                Dim retType = If(isSub, "void", MapCType(Nodes(ch).TypeName))
+                Dim mName As String = Nodes(ch).Name
+                EmitWrite("    " & retType & " (*" & mName & ")(vbc_stack_t* _stack, void* obj")
+                Dim p = Nodes(ch).FirstChild
+                While p <> -1 And Nodes(p).Kind = NODE_PARAM
+                    Dim pType = MapCType(Nodes(p).TypeName)
+                    If Nodes(p).IntValue = 1 Then pType = pType & "*"
+                    EmitWrite(", " & pType & " " & Nodes(p).Name)
+                    p = Nodes(p).NextSibling
+                End While
+                EmitWriteLine(");")
+            End If
+            ch = Nodes(ch).NextSibling
+        End While
+        EmitWriteLine("};")
+        EmitWriteLine("")
+        EmitWriteLine("struct Vbc_" & ifName & " {")
+        EmitWriteLine("    void* obj;")
+        EmitWriteLine("    const Vbc_" & ifName & "_VTable* _vtable;")
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitClassInterfaceVTable(cId As Integer, ifId As Integer)
+        Dim cName As String = MangleName(Nodes(cId).Name)
+        Dim ifName As String = MangleName(Nodes(ifId).Name)
+        EmitWriteLine("static const Vbc_" & ifName & "_VTable _vbc_" & cName & "_" & ifName & "_vtable = {")
+        Dim mNode = Nodes(ifId).FirstChild
+        While mNode <> -1
+            If Nodes(mNode).Kind = NODE_FUNCTION Or Nodes(mNode).Kind = NODE_SUB Then
+                Dim mName As String = Nodes(mNode).Name
+                Dim declClass As String = MangleName(FindClassMethodDeclaringClass(Nodes(cId).Name, mName))
+                Dim fnName = "Vbc_" & declClass & "_" & mName
+                EmitWriteLine("    ." & mName & " = (void*)" & fnName & ",")
+            End If
+            mNode = Nodes(mNode).NextSibling
+        End While
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitTypeMethodPrototype(tId As Integer, mId As Integer, isClass As Boolean)
+        Dim tName = MangleName(Nodes(tId).Name)
+        Dim mName = Nodes(mId).Name
+        Dim isCtor = CaseInsensitiveEquals(mName, "New")
+        Dim isSub = (Nodes(mId).Kind = NODE_SUB)
+        Dim retType = If(isSub Or isCtor, "void", MapCType(Nodes(mId).TypeName))
+        Dim fnName = If(isCtor, "Vbc_" & tName & "__ctor", "Vbc_" & tName & "_" & mName)
+
+        EmitWrite(retType & " " & fnName & "(vbc_stack_t* _stack, Vbc_" & tName & "* Me")
+        Dim p = Nodes(mId).FirstChild
+        While p <> -1 And Nodes(p).Kind = NODE_PARAM
+            Dim pType = MapCType(Nodes(p).TypeName)
+            If Nodes(p).IntValue = 1 Then pType = pType & "*"
+            EmitWrite(", " & pType & " " & Nodes(p).Name)
+            p = Nodes(p).NextSibling
+        End While
+        EmitWriteLine(");")
+
+        If isClass And isCtor Then
+            EmitWrite("Vbc_" & tName & "* Vbc_" & tName & "_New(vbc_stack_t* _stack")
+            p = Nodes(mId).FirstChild
+            While p <> -1 And Nodes(p).Kind = NODE_PARAM
+                Dim pType = MapCType(Nodes(p).TypeName)
+                If Nodes(p).IntValue = 1 Then pType = pType & "*"
+                EmitWrite(", " & pType & " " & Nodes(p).Name)
+                p = Nodes(p).NextSibling
+            End While
+            EmitWriteLine(");")
+        End If
+    End Sub
+
+    Sub EmitTypeMethod(tId As Integer, mId As Integer, isClass As Boolean)
+        Dim tName = MangleName(Nodes(tId).Name)
+        Dim mName = Nodes(mId).Name
+        Dim isCtor = CaseInsensitiveEquals(mName, "New")
+        Dim isSub = (Nodes(mId).Kind = NODE_SUB)
+        Dim retType = If(isSub Or isCtor, "void", MapCType(Nodes(mId).TypeName))
+        Dim fnName = If(isCtor, "Vbc_" & tName & "__ctor", "Vbc_" & tName & "_" & mName)
+
+        If isClass Then
+            currentEnclosingClass = Nodes(tId).Name
+            currentEnclosingStruct = ""
+        Else
+            currentEnclosingClass = ""
+            currentEnclosingStruct = Nodes(tId).Name
+        End If
+
+        currentLocals = []
+        For gi = 0 To globalSliceVars.Length - 1
+            currentLocals.Add(globalSliceVars(gi))
+        Next
+
+        Dim lMe As LocalVarInfo
+        lMe.Name = "Me"
+        lMe.TypeName = Nodes(tId).Name
+        lMe.IsByRef = False
+        currentLocals.Add(lMe)
+
+        EmitWrite(retType & " " & fnName & "(vbc_stack_t* _stack, Vbc_" & tName & "* Me")
+        Dim p = Nodes(mId).FirstChild
+        While p <> -1 And Nodes(p).Kind = NODE_PARAM
+            Dim pType = MapCType(Nodes(p).TypeName)
+            If Nodes(p).IntValue = 1 Then pType = pType & "*"
+            EmitWrite(", " & pType & " " & Nodes(p).Name)
+
+            Dim l As LocalVarInfo
+            l.Name = Nodes(p).Name
+            l.TypeName = Nodes(p).TypeName
+            l.IsByRef = (Nodes(p).IntValue = 1)
+            currentLocals.Add(l)
+
+            p = Nodes(p).NextSibling
+        End While
+        EmitWriteLine(") {")
+
+        Dim stmt = p
+        While stmt <> -1
+            EmitStatement(stmt, "    ")
+            stmt = Nodes(stmt).NextSibling
+        End While
+
+        EmitWriteLine("}")
+        EmitWriteLine("")
+
+        If isClass And isCtor Then
+            Dim root = GetRootClassNode(tId)
+            Dim hasVirt = ClassHasVirtualMethods(tId)
+
+            EmitWrite("Vbc_" & tName & "* Vbc_" & tName & "_New(vbc_stack_t* _stack")
+            p = Nodes(mId).FirstChild
+            While p <> -1 And Nodes(p).Kind = NODE_PARAM
+                Dim pType = MapCType(Nodes(p).TypeName)
+                If Nodes(p).IntValue = 1 Then pType = pType & "*"
+                EmitWrite(", " & pType & " " & Nodes(p).Name)
+                p = Nodes(p).NextSibling
+            End While
+            EmitWriteLine(") {")
+            EmitWriteLine("    Vbc_" & tName & "* Me = (Vbc_" & tName & "*)vbc_stack_alloc(_stack, sizeof(Vbc_" & tName & "), sizeof(void*));")
+            EmitWriteLine("    memset(Me, 0, sizeof(Vbc_" & tName & "));")
+            If hasVirt Then
+                EmitWriteLine("    ((Vbc_" & MangleName(Nodes(root).Name) & "*)Me)->_vtable = &_vbc_" & tName & "_vtable;")
+            End If
+            EmitWrite("    Vbc_" & tName & "__ctor(_stack, Me")
+            p = Nodes(mId).FirstChild
+            While p <> -1 And Nodes(p).Kind = NODE_PARAM
+                EmitWrite(", " & Nodes(p).Name)
+                p = Nodes(p).NextSibling
+            End While
+            EmitWriteLine(");")
+            EmitWriteLine("    return Me;")
+            EmitWriteLine("}")
+            EmitWriteLine("")
+        End If
+
+        currentEnclosingClass = ""
+        currentEnclosingStruct = ""
+    End Sub
+
+End Module

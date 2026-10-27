@@ -1,0 +1,52 @@
+﻿Imports System
+
+Module ParserModule
+    ' Top-Level Compilation Unit
+    Function ParseCompilationUnit() As Integer
+        Dim unitId = AllocNode(NODE_UNIT, "CompilationUnit", CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF
+            While CurrKind() = TOK_PUBLIC Or CurrKind() = TOK_PRIVATE Or CurrKind() = TOK_PROTECTED
+                ParserAdvance()
+            End While
+
+            If CurrKind() = TOK_IMPORTS Then
+                ParserAdvance()
+                Dim ns As String = ParserMatch(TOK_IDENT).Text
+                While CurrKind() = TOK_DOT
+                    ParserAdvance()
+                    ns = ns & "." & ParserMatch(TOK_IDENT).Text
+                End While
+                p_ImportedNamespaces.Add(ns)
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_NAMESPACE Then
+                ParseNamespace(unitId)
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_MODULE Then
+                Dim modId = ParseModule()
+                AddChild(unitId, modId)
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_STRUCTURE Then
+                Dim structId = ParseStructure()
+                AddChild(unitId, structId)
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_CLASS Then
+                Dim classId = ParseClass()
+                AddChild(unitId, classId)
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_INTERFACE Then
+                Dim ifaceId = ParseInterface()
+                AddChild(unitId, ifaceId)
+                SkipSeparators()
+            Else
+                ReportWarning(CurrLine(), 0, "skipping unexpected token at top level: " & CurrText())
+                ParserAdvance()
+                SkipSeparators()
+            End If
+        End While
+
+        Return unitId
+    End Function
+
+End Module

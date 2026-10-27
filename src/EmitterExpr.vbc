@@ -1,0 +1,437 @@
+﻿Imports System
+
+Module EmitterModule
+    Function EmitArrayLiteral(eId As Integer, elemCType As String) As String
+        If eId < 0 Then Return "vbc_slice_create(_stack, 0, 0)"
+        If Nodes(eId).Kind <> NODE_ARRAY_LIT Then
+            Return EmitExpr(eId)
+        End If
+        Dim qId = NextTemp("_arr")
+        Dim cnt = Nodes(eId).ChildCount
+        Dim elemSzStr = "sizeof(" & elemCType & ")"
+        Dim initStr = "({ vbc_slice_t _s_" & qId & " = vbc_slice_create(_stack, " & IntToStr(cnt) & ", " & elemSzStr & "); "
+        Dim el = Nodes(eId).FirstChild
+        While el <> -1
+            If CaseInsensitiveEquals(elemCType, "vbc_string_t") Then
+                initStr = initStr & "{ " & elemCType & " _v = " & EmitExpr(el) & "; vbc_slice_push(_stack, &_s_" & qId & ", &_v); } "
+            Else
+                initStr = initStr & "{ " & elemCType & " _v = (" & elemCType & ")(" & EmitExpr(el) & "); vbc_slice_push(_stack, &_s_" & qId & ", &_v); } "
+            End If
+            el = Nodes(el).NextSibling
+        End While
+        initStr = initStr & "_s_" & qId & "; })"
+        Return initStr
+    End Function
+
+    Function EmitExpr(eId As Integer) As String
+        If eId < 0 Then Return "0"
+        Dim k = Nodes(eId).Kind
+
+        If k = NODE_LITERAL Then
+            If CaseInsensitiveEquals(Nodes(eId).TypeName, "String") Then
+                Return "vbc_str_lit(""" & EscapeCString(Nodes(eId).StringValue) & """)"
+            ElseIf CaseInsensitiveEquals(Nodes(eId).TypeName, "Boolean") Then
+                Return If(Nodes(eId).IntValue = 1, "true", "false")
+            Else
+                Return IntToStr(Nodes(eId).IntValue)
+            End If
+
+        ElseIf k = NODE_IDENT Then
+            Dim idName = Nodes(eId).Name
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, idName) Then
+                    If currentLocals(li).IsByRef Then
+                        Return "(*" & idName & ")"
+                    End If
+                    Return idName
+                End If
+            Next
+            If currentEnclosingClass.Length > 0 Then
+                Dim declClass As String = FindFieldDeclaringClass(currentEnclosingClass, idName)
+                Dim fNode = FindClassField(currentEnclosingClass, idName)
+                If fNode >= 0 Then
+                    If Not CaseInsensitiveEquals(declClass, currentEnclosingClass) Then
+                        Return "((Vbc_" & declClass & "*)Me)->" & idName
+                    Else
+                        Return "Me->" & idName
+                    End If
+                End If
+            ElseIf currentEnclosingStruct.Length > 0 Then
+                Dim fNode = FindStructField(currentEnclosingStruct, idName)
+                If fNode >= 0 Then
+                    Return "Me->" & idName
+                End If
+            End If
+            Return idName
+
+        ElseIf k = NODE_ME Then
+            Return "Me"
+
+        ElseIf k = NODE_MYBASE Then
+            If currentEnclosingClass.Length > 0 Then
+                Dim cId = FindClassNode(currentEnclosingClass)
+                If cId >= 0 And Nodes(cId).TypeName.Length > 0 Then
+                    Return "((Vbc_" & Nodes(cId).TypeName & "*)Me)"
+                End If
+            End If
+            Return "Me"
+
+        ElseIf k = NODE_BINARY Then
+            Dim leftNode = Nodes(eId).FirstChild
+            Dim rightNode = Nodes(leftNode).NextSibling
+            Dim leftStr = EmitExpr(leftNode)
+            Dim rightStr = EmitExpr(rightNode)
+            Dim op = Nodes(eId).Op
+
+            If op = TOK_PLUS Then Return "(" & leftStr & " + " & rightStr & ")"
+            If op = TOK_MINUS Then Return "(" & leftStr & " - " & rightStr & ")"
+            If op = TOK_STAR Then Return "(" & leftStr & " * " & rightStr & ")"
+            If op = TOK_SLASH Then Return "(" & leftStr & " / " & rightStr & ")"
+            If op = TOK_MOD Then Return "(" & leftStr & " % " & rightStr & ")"
+            If op = TOK_EQUAL Then
+                If IsStringExpr(leftNode) Or IsStringExpr(rightNode) Then
+                    Return "vbc_str_equals(" & leftStr & ", " & rightStr & ")"
+                End If
+                Return "(" & leftStr & " == " & rightStr & ")"
+            End If
+            If op = TOK_NOTEQUAL Then
+                If IsStringExpr(leftNode) Or IsStringExpr(rightNode) Then
+                    Return "(!vbc_str_equals(" & leftStr & ", " & rightStr & "))"
+                End If
+                Return "(" & leftStr & " != " & rightStr & ")"
+            End If
+            If op = TOK_LESS Then Return "(" & leftStr & " < " & rightStr & ")"
+            If op = TOK_LESSEQ Then Return "(" & leftStr & " <= " & rightStr & ")"
+            If op = TOK_GREATER Then Return "(" & leftStr & " > " & rightStr & ")"
+            If op = TOK_GREATEREQ Then Return "(" & leftStr & " >= " & rightStr & ")"
+            If op = TOK_ANDALSO Then Return "(" & leftStr & " && " & rightStr & ")"
+            If op = TOK_ORELSE Then Return "(" & leftStr & " || " & rightStr & ")"
+            If op = TOK_AND Then
+                If IsBooleanExpr(leftNode) And IsBooleanExpr(rightNode) Then
+                    Return "(" & leftStr & " && " & rightStr & ")"
+                Else
+                    Return "(" & leftStr & " & " & rightStr & ")"
+                End If
+            End If
+            If op = TOK_OR Then
+                If IsBooleanExpr(leftNode) And IsBooleanExpr(rightNode) Then
+                    Return "(" & leftStr & " || " & rightStr & ")"
+                Else
+                    Return "(" & leftStr & " | " & rightStr & ")"
+                End If
+            End If
+            If op = TOK_XOR Then Return "(" & leftStr & " ^ " & rightStr & ")"
+            If op = TOK_SHL Then Return "(" & leftStr & " << " & rightStr & ")"
+            If op = TOK_SHR Then Return "(" & leftStr & " >> " & rightStr & ")"
+            If op = TOK_AMP Then
+                Dim lExpr As String = leftStr
+                If Not IsStringExpr(leftNode) Then
+                    lExpr = "vbc_i64_to_str(_stack, (int64_t)(" & leftStr & "))"
+                End If
+                Dim rExpr As String = rightStr
+                If Not IsStringExpr(rightNode) Then
+                    rExpr = "vbc_i64_to_str(_stack, (int64_t)(" & rightStr & "))"
+                End If
+                Return "vbc_str_concat(_stack, " & lExpr & ", " & rExpr & ")"
+            End If
+            Return "(" & leftStr & " + " & rightStr & ")"
+
+        ElseIf k = NODE_UNARY Then
+            Dim opStr = EmitExpr(Nodes(eId).FirstChild)
+            If Nodes(eId).Op = TOK_NOT Then
+                If IsBooleanExpr(Nodes(eId).FirstChild) Then
+                    Return "(!" & opStr & ")"
+                Else
+                    Return "(~" & opStr & ")"
+                End If
+            End If
+            If Nodes(eId).Op = TOK_MINUS Then Return "(-" & opStr & ")"
+            Return opStr
+
+        ElseIf k = NODE_MEMBER Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim targetStr = EmitExpr(targetNode)
+            Dim mName = Nodes(eId).Name
+            Dim targetType = GetExprTypeName(targetNode)
+            If targetType.Length > 0 Then
+                targetType = ResolveTypeName(targetType)
+            End If
+
+            If IsNullableType(targetType) Then
+                If CaseInsensitiveEquals(mName, "HasValue") Then
+                    Return "(" & targetStr & ".has_value)"
+                ElseIf CaseInsensitiveEquals(mName, "Value") Then
+                    Return "(" & targetStr & ".value)"
+                End If
+            End If
+
+            If CaseInsensitiveEquals(targetType, "XDocument") Or CaseInsensitiveEquals(targetType, "XElement") Then
+                If CaseInsensitiveEquals(mName, "Value") Then
+                    Return "vbc_xml_element_get_value((vbc_xml_node_t*)(" & targetStr & "))"
+                ElseIf CaseInsensitiveEquals(mName, "Name") Then
+                    Return "vbc_xml_element_get_name((vbc_xml_node_t*)(" & targetStr & "))"
+                ElseIf CaseInsensitiveEquals(mName, "Root") Then
+                    Return "vbc_xml_get_root((vbc_xml_node_t*)(" & targetStr & "))"
+                End If
+            End If
+
+            If CaseInsensitiveEquals(targetType, "DateTime") Then
+                If CaseInsensitiveEquals(mName, "Year") Then Return targetStr & ".year"
+                If CaseInsensitiveEquals(mName, "Month") Then Return targetStr & ".month"
+                If CaseInsensitiveEquals(mName, "Day") Then Return targetStr & ".day"
+                If CaseInsensitiveEquals(mName, "Hour") Then Return targetStr & ".hour"
+                If CaseInsensitiveEquals(mName, "Minute") Then Return targetStr & ".minute"
+                If CaseInsensitiveEquals(mName, "Second") Then Return targetStr & ".second"
+                If CaseInsensitiveEquals(mName, "Millisecond") Then Return targetStr & ".millisecond"
+                If CaseInsensitiveEquals(mName, "DayOfWeek") Then Return targetStr & ".day_of_week"
+                If CaseInsensitiveEquals(mName, "Ticks") Then Return targetStr & ".ticks"
+            End If
+
+            If CaseInsensitiveEquals(targetType, "TimeSpan") Then
+                If CaseInsensitiveEquals(mName, "TotalSeconds") Then Return "vbc_timespan_total_seconds(" & targetStr & ")"
+                If CaseInsensitiveEquals(mName, "TotalMilliseconds") Then Return "vbc_timespan_total_milliseconds(" & targetStr & ")"
+                If CaseInsensitiveEquals(mName, "Ticks") Then Return targetStr & ".ticks"
+            End If
+
+            If CaseInsensitiveEquals(targetType, "Stopwatch") Then
+                If CaseInsensitiveEquals(mName, "ElapsedMilliseconds") Then Return "vbc_stopwatch_elapsed_ms(&" & targetStr & ")"
+            End If
+
+            If CaseInsensitiveEquals(targetType, "StringBuilder") Then
+                If CaseInsensitiveEquals(mName, "Length") Then Return targetStr & ".len"
+            End If
+
+            If CaseInsensitiveEquals(targetStr, "DateTime") Or CaseInsensitiveEquals(targetStr, "System.DateTime") Then
+                If CaseInsensitiveEquals(mName, "Now") Then Return "vbc_datetime_now()"
+                If CaseInsensitiveEquals(mName, "UtcNow") Then Return "vbc_datetime_utcnow()"
+                If CaseInsensitiveEquals(mName, "Today") Then Return "vbc_datetime_today()"
+            End If
+
+            If CaseInsensitiveEquals(targetStr, "Environment") Or CaseInsensitiveEquals(targetStr, "System.Environment") Then
+                If CaseInsensitiveEquals(mName, "ProcessorCount") Then Return "vbc_env_processor_count()"
+                If CaseInsensitiveEquals(mName, "TickCount64") Then Return "vbc_env_tick_count_64()"
+            End If
+
+            If CaseInsensitiveEquals(targetStr, "Math") Or CaseInsensitiveEquals(targetStr, "System.Math") Then
+                If CaseInsensitiveEquals(mName, "PI") Then Return "VBC_MATH_PI"
+                If CaseInsensitiveEquals(mName, "E") Then Return "VBC_MATH_E"
+                If CaseInsensitiveEquals(mName, "Tau") Then Return "VBC_MATH_TAU"
+            End If
+
+            If IsClassType(targetType) Then
+                Dim declClass As String = FindFieldDeclaringClass(targetType, mName)
+                If Not CaseInsensitiveEquals(declClass, targetType) Then
+                    Return "((Vbc_" & MangleName(declClass) & "*)" & targetStr & ")->" & mName
+                Else
+                    Return targetStr & "->" & mName
+                End If
+            End If
+
+            If IsStructureType(targetType) Then
+                If CaseInsensitiveEquals(targetStr, "Me") Then
+                    Return "Me->" & mName
+                Else
+                    Return targetStr & "." & mName
+                End If
+            End If
+
+            If CaseInsensitiveEquals(targetType, "Dictionary_Of_String_String") Or CaseInsensitiveEquals(targetType, "System.Collections.Generic.Dictionary_Of_String_String") Then
+                If CaseInsensitiveEquals(mName, "count") Then
+                    Return "vbc_dict_count(" & targetStr & ")"
+                End If
+            End If
+
+            Dim dotted As String = GetDottedPath(targetNode)
+            If dotted.Length > 0 Then
+                Dim staticType As String = ResolveTypeName(dotted)
+                If FindModuleNode(staticType) >= 0 Or FindClassNode(staticType) >= 0 Then
+                    Return "Vbc_" & MangleName(staticType) & "_" & mName
+                End If
+            End If
+
+            Dim sep = "."
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, targetStr) And currentLocals(li).IsByRef Then
+                    sep = "->"
+                End If
+            Next
+            If CaseInsensitiveEquals(targetStr, "lex") Or CaseInsensitiveEquals(targetStr, "req") Or CaseInsensitiveEquals(targetStr, "Me") Then
+                sep = "->"
+            End If
+            If CaseInsensitiveEquals(mName, "length") Then
+                Return targetStr & sep & "len"
+            End If
+            Return targetStr & sep & mName
+
+        ElseIf k = NODE_NULL_COND_MEMBER Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim targetStr = EmitExpr(targetNode)
+            Dim mName = Nodes(eId).Name
+            Dim targetType = GetExprTypeName(targetNode)
+            If targetType.Length > 0 Then targetType = ResolveTypeName(targetType)
+
+            If IsInterfaceType(targetType) Then
+                Dim retType = "Integer"
+                Dim ifNode = FindInterfaceNode(targetType)
+                If ifNode >= 0 Then
+                    Dim ch = Nodes(ifNode).FirstChild
+                    While ch <> -1
+                        If CaseInsensitiveEquals(Nodes(ch).Name, mName) Then retType = Nodes(ch).TypeName
+                        ch = Nodes(ch).NextSibling
+                    End While
+                End If
+                Dim defVal = GetTypeDefaultValue(retType)
+                Return "({ Vbc_" & MangleName(targetType) & " _t = " & targetStr & "; (_t.obj != NULL ? _t._vtable->" & mName & "(_stack, _t.obj) : " & defVal & "); })"
+            ElseIf IsClassType(targetType) Then
+                Dim retType = "Integer"
+                Dim fldNode = FindClassField(targetType, mName)
+                If fldNode >= 0 Then retType = Nodes(fldNode).TypeName
+                Dim methNode = FindClassMethod(targetType, mName)
+                If methNode >= 0 Then retType = Nodes(methNode).TypeName
+                Dim defVal = GetTypeDefaultValue(retType)
+                Return "({ Vbc_" & MangleName(targetType) & "* _t = " & targetStr & "; (_t != NULL ? _t->" & mName & " : " & defVal & "); })"
+            ElseIf IsNullableType(targetType) Then
+                If CaseInsensitiveEquals(mName, "HasValue") Then
+                    Return "(" & targetStr & ".has_value)"
+                ElseIf CaseInsensitiveEquals(mName, "Value") Then
+                    Return "(" & targetStr & ".value)"
+                Else
+                    Return "({ " & MapCType(targetType) & " _t = " & targetStr & "; (_t.has_value ? _t.value : 0); })"
+                End If
+            ElseIf CaseInsensitiveEquals(targetType, "String") Then
+                If CaseInsensitiveEquals(mName, "length") Then
+                    Return "({ vbc_string_t _t = " & targetStr & "; (_t.data != NULL ? _t.len : 0); })"
+                End If
+            End If
+            Return "({ __typeof__(" & targetStr & ") _t = " & targetStr & "; (_t != 0 ? _t." & mName & " : 0); })"
+
+        ElseIf k = NODE_NULL_COND_INDEX Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim idxNode = Nodes(targetNode).NextSibling
+            Dim targetStr = EmitExpr(targetNode)
+            Dim idxStr = EmitExpr(idxNode)
+            Dim targetType = GetExprTypeName(targetNode)
+            Dim elemCT = "int32_t"
+            If targetType.Length > 2 And CaseInsensitiveEquals(targetType.Substring(targetType.Length - 2, 2), "()") Then
+                Dim elemT = targetType.Substring(0, targetType.Length - 2)
+                elemCT = MapCType(elemT)
+            End If
+            Return "({ vbc_slice_t _s = " & targetStr & "; int64_t _i = " & idxStr & "; (_s.data != NULL && _i >= 0 && _i < _s.len ? (*((" & elemCT & "*)vbc_slice_get(&_s, _i))) : (" & elemCT & "){0}); })"
+
+        ElseIf k = NODE_XML_CHILD Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim targetStr = EmitExpr(targetNode)
+            Dim tagName = Nodes(eId).Name
+            Return "vbc_xml_element_get_child(_stack, (vbc_xml_node_t*)(" & targetStr & "), """ & tagName & """)"
+
+        ElseIf k = NODE_XML_ATTR Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim targetStr = EmitExpr(targetNode)
+            Dim attrName = Nodes(eId).Name
+            Return "vbc_xml_element_get_attr_val(_stack, (vbc_xml_node_t*)(" & targetStr & "), """ & attrName & """)"
+
+        ElseIf k = NODE_XML_DESC Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim targetStr = EmitExpr(targetNode)
+            Dim tagName = Nodes(eId).Name
+            Return "vbc_xml_element_get_descendants(_stack, (vbc_xml_node_t*)(" & targetStr & "), """ & tagName & """)"
+
+        ElseIf k = NODE_INVOKE Then
+            Return EmitInvoke(eId)
+        ElseIf k = NODE_NEW Then
+            Dim rawTypeName As String = Nodes(eId).Name
+            Dim newTypeName As String = ResolveTypeName(rawTypeName)
+            If CaseInsensitiveEquals(newTypeName, "Dictionary_Of_String_String") Or CaseInsensitiveEquals(newTypeName, "System.Collections.Generic.Dictionary_Of_String_String") Then
+                Return "vbc_dict_create(_stack, 16)"
+            ElseIf CaseInsensitiveEquals(newTypeName, "StringBuilder") Or CaseInsensitiveEquals(newTypeName, "System.Text.StringBuilder") Then
+                Dim capArg = Nodes(eId).FirstChild
+                Dim capStr = If(capArg >= 0, EmitExpr(capArg), "32")
+                Return "vbc_sb_create(_stack, " & capStr & ")"
+            ElseIf CaseInsensitiveEquals(newTypeName, "XElement") Or CaseInsensitiveEquals(newTypeName, "System.Xml.Linq.XElement") Then
+                Dim nameArg = Nodes(eId).FirstChild
+                Dim valArg = If(nameArg >= 0, Nodes(nameArg).NextSibling, -1)
+                Dim valStr = If(valArg >= 0, EmitExpr(valArg), "vbc_str_empty()")
+                Return "vbc_xml_alloc_node(_stack, VBC_XML_ELEMENT, " & EmitExpr(nameArg) & ", " & valStr & ")"
+            ElseIf CaseInsensitiveEquals(newTypeName, "XDocument") Or CaseInsensitiveEquals(newTypeName, "System.Xml.Linq.XDocument") Then
+                Return "vbc_xml_alloc_node(_stack, VBC_XML_DOCUMENT, vbc_str_lit(""#document""), vbc_str_empty())"
+            ElseIf IsClassType(newTypeName) Then
+                Dim argsStr = "_stack"
+                Dim arg = Nodes(eId).FirstChild
+                While arg <> -1
+                    Dim argStr = EmitExpr(arg)
+                    argsStr = argsStr & ", " & argStr
+                    arg = Nodes(arg).NextSibling
+                End While
+                Return "Vbc_" & MangleName(newTypeName) & "_New(" & argsStr & ")"
+            ElseIf IsStructureType(newTypeName) Then
+                If FindStructMethod(newTypeName, "New") >= 0 Or Nodes(eId).FirstChild >= 0 Then
+                    Dim qId = NextTemp("_t")
+                    Dim ctorArgs = "_stack, &_t_" & qId
+                    Dim argN = Nodes(eId).FirstChild
+                    While argN <> -1
+                        ctorArgs = ctorArgs & ", " & EmitExpr(argN)
+                        argN = Nodes(argN).NextSibling
+                    End While
+                    Return "({ Vbc_" & MangleName(newTypeName) & " _t_" & qId & " = {0}; Vbc_" & MangleName(newTypeName) & "__ctor(" & ctorArgs & "); _t_" & qId & "; })"
+                Else
+                    Return "(Vbc_" & MangleName(newTypeName) & "){0}"
+                End If
+            End If
+            Return "(Vbc_" & MangleName(newTypeName) & "){0}"
+
+        ElseIf k = NODE_ARRAY_LIT Then
+            Dim isStr As Boolean = False
+            If Nodes(eId).ChildCount > 0 Then
+                Dim firstEl = Nodes(eId).FirstChild
+                If IsStringExpr(firstEl) Then isStr = True
+            End If
+            Dim defElemCType = If(isStr, "vbc_string_t", "int32_t")
+            Return EmitArrayLiteral(eId, defElemCType)
+
+        ElseIf k = NODE_QUERY Then
+            Dim rVar = Nodes(eId).Name
+            Dim srcNode = Nodes(eId).FirstChild
+            Dim whereNode = If(Nodes(eId).ChildCount > 2, Nodes(srcNode).NextSibling, -1)
+            Dim selNode = If(Nodes(eId).ChildCount > 2, Nodes(whereNode).NextSibling, Nodes(srcNode).NextSibling)
+
+            Dim srcStr = EmitExpr(srcNode)
+            Dim whereStr = If(whereNode >= 0, EmitExpr(whereNode), "1")
+            Dim selStr = EmitExpr(selNode)
+            Dim qId = NextTemp("_q")
+
+            Dim qCode = "({ vbc_slice_t _s_" & qId & " = " & srcStr & "; "
+            qCode = qCode & "vbc_slice_t _r_" & qId & " = vbc_slice_create(_stack, _s_" & qId & ".len > 0 ? _s_" & qId & ".len : 4, sizeof(int32_t)); "
+            qCode = qCode & "for (int64_t _i_" & qId & " = 0; _i_" & qId & " < _s_" & qId & ".len; _i_" & qId & "++) { "
+            qCode = qCode & "int32_t " & rVar & " = ((int32_t*)_s_" & qId & ".data)[_i_" & qId & "]; "
+            qCode = qCode & "if (" & whereStr & ") { "
+            qCode = qCode & "int32_t _val = " & selStr & "; "
+            qCode = qCode & "vbc_slice_push(_stack, &_r_" & qId & ", &_val); "
+            qCode = qCode & "} "
+            qCode = qCode & "} "
+            qCode = qCode & "_r_" & qId & "; })"
+            Return qCode
+        ElseIf k = NODE_IF_EXPR Then
+            Dim firstNode = Nodes(eId).FirstChild
+            Dim secondNode = Nodes(firstNode).NextSibling
+            Dim thirdNode = If(secondNode >= 0, Nodes(secondNode).NextSibling, -1)
+            If thirdNode >= 0 Then
+                Return "((" & EmitExpr(firstNode) & ") ? (" & EmitExpr(secondNode) & ") : (" & EmitExpr(thirdNode) & "))"
+            Else
+                ' Binary null-coalescing If(val, fallback)
+                Dim vStr = EmitExpr(firstNode)
+                Dim fStr = EmitExpr(secondNode)
+                Dim vType = GetExprTypeName(firstNode)
+                Dim qId = NextTemp("_coal")
+                If IsNullableType(vType) Then
+                    Return "({ " & MapCType(vType) & " _n_" & qId & " = " & vStr & "; (_n_" & qId & ".has_value ? _n_" & qId & ".value : " & fStr & "); })"
+                ElseIf IsStringExpr(firstNode) Then
+                    Return "({ vbc_string_t _s_" & qId & " = " & vStr & "; (_s_" & qId & ".data != NULL && _s_" & qId & ".len > 0 ? _s_" & qId & " : " & fStr & "); })"
+                Else
+                    Return "({ __typeof__(" & vStr & ") _p_" & qId & " = " & vStr & "; (_p_" & qId & " != NULL ? _p_" & qId & " : " & fStr & "); })"
+                End If
+            End If
+        End If
+
+        Return "0"
+    End Function
+End Module

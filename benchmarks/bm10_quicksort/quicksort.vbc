@@ -1,0 +1,41 @@
+Module Program
+    Sub Swap(arr() As Integer, i As Integer, j As Integer)
+        Dim temp As Integer = arr(i)
+        arr(i) = arr(j)
+        arr(j) = temp
+    End Sub
+
+    Function Partition(arr() As Integer, low As Integer, high As Integer) As Integer
+        Dim pivot As Integer = arr(high)
+        Dim i As Integer = low - 1
+        For j As Integer = low To high - 1
+            If arr(j) <= pivot Then
+                i = i + 1
+                Swap(arr, i, j)
+            End If
+        Next
+        Swap(arr, i + 1, high)
+        Return i + 1
+    End Function
+
+    Sub QuickSort(arr() As Integer, low As Integer, high As Integer)
+        If low < high Then
+            Dim pi As Integer = Partition(arr, low, high)
+            QuickSort(arr, low, pi - 1)
+            QuickSort(arr, pi + 1, high)
+        End If
+    End Sub
+
+    Sub Main()
+        Dim n As Integer = 1000000
+        Dim arr(1000000) As Integer
+        Dim seed As Long = 42
+        For i As Integer = 0 To n - 1
+            seed = (seed * 1103515245 + 12345) Mod 2147483647
+            arr(i) = seed
+        Next
+        QuickSort(arr, 0, n - 1)
+        Console.WriteLine(arr(0))
+        Console.WriteLine(arr(n - 1))
+    End Sub
+End Module

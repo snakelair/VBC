@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{B28A5722-192E-47F1-92CD-0574F9DF08E3}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>VbcApp</RootNamespace>
+    <AssemblyName>VbcApp</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <VbcExe Condition=" '$(VbcExe)' == '' ">c:\Projects My\VBC\bin\vbc.exe</VbcExe>
+    <TargetName>VbcApp</TargetName>
+    <TargetPath>$(OutputPath)$(TargetName).exe</TargetPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Program.vbc" />
+  </ItemGroup>
+
+  <Target Name="Build">
+    <MakeDir Directories="$(OutputPath)" />
+    <Exec Command="&quot;$(VbcExe)&quot; compile Program.vbc -o &quot;$(TargetPath)&quot;" />
+    <Message Importance="High" Text="[VBC] Successfully built $(TargetPath)" />
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="Clean;Build" />
+
+  <Target Name="Clean">
+    <Delete Files="$(TargetPath)" />
+    <Delete Files="$(TargetPath).c" />
+  </Target>
+</Project>

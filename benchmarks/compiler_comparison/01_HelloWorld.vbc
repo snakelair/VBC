@@ -1,0 +1,7 @@
+Imports System
+
+Module Program
+    Sub Main()
+        Console.WriteLine("Hello, VBC World!")
+    End Sub
+End Module

@@ -1,0 +1,86 @@
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading
+
+Namespace SmartRoute.Core
+    Public Class RouteEntry
+        Public Ip As String
+        Public Gateway As String
+        Public Priority As Integer
+
+        Public Sub New(ipAddr As String, gw As String, prio As Integer)
+            Ip = ipAddr
+            Gateway = gw
+            Priority = prio
+        End Sub
+
+        Public Function ToString() As String
+            Return Ip & " via " & Gateway & " (prio " & Priority & ")"
+        End Function
+    End Class
+
+    Public Module RouteManager
+        Private m_Lock As Integer = 0
+
+        Public Sub AddRoute(table As Dictionary(Of String, String), cidr As String, target As String)
+            SyncLock m_Lock
+                table.Add(cidr, target)
+                Console.WriteLine("Route added: " & cidr & " -> " & target)
+            End SyncLock
+        End Sub
+    End Module
+End Namespace
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Namespaces, Concurrency & Collections Demo ===")
+        Console.WriteLine("")
+
+        ' 1. System.Collections.Generic.Dictionary test
+        Console.WriteLine("1. Testing Dictionary(Of String, String):")
+        Dim routingTable As New Dictionary(Of String, String)()
+        SmartRoute.Core.RouteManager.AddRoute(routingTable, "10.0.0.0/8", "eth0")
+        SmartRoute.Core.RouteManager.AddRoute(routingTable, "192.168.1.0/24", "wg0")
+        SmartRoute.Core.RouteManager.AddRoute(routingTable, "0.0.0.0/0", "tun0")
+
+        If routingTable.ContainsKey("10.0.0.0/8") Then
+            Console.WriteLine("Lookup 10.0.0.0/8: " & routingTable.Get("10.0.0.0/8"))
+        End If
+        If routingTable.ContainsKey("192.168.1.0/24") Then
+            Console.WriteLine("Lookup 192.168.1.0/24: " & routingTable.Get("192.168.1.0/24"))
+        End If
+        Console.WriteLine("Total routes in dictionary: " & routingTable.Count)
+        Console.WriteLine("")
+
+        ' 2. System.Threading.SyncLock & Thread.Sleep
+        Console.WriteLine("2. Testing SyncLock & Thread.Sleep:")
+        Dim syncObj As Integer = 42
+        SyncLock syncObj
+            Console.WriteLine("Inside SyncLock critical section...")
+            Thread.Sleep(50)
+            Console.WriteLine("SyncLock executed safely with zero contention.")
+        End SyncLock
+        Console.WriteLine("")
+
+        ' 3. Namespaced Class instantiation & methods
+        Console.WriteLine("3. Testing Namespaced OOP Class:")
+        Dim entry As New SmartRoute.Core.RouteEntry("172.16.0.0/12", "eth1", 100)
+        Console.WriteLine("RouteEntry: " & entry.ToString())
+        Console.WriteLine("")
+
+        ' 4. Try ... Catch ... Finally & Throw
+        Console.WriteLine("4. Testing Try ... Catch ... Finally:")
+        Try
+            Console.WriteLine("Inside Try block. Throwing exception...")
+            Throw "Invalid route configuration: gateway unreachable"
+            Console.WriteLine("This line should NOT be reached.")
+        Catch ex
+            Console.WriteLine("Caught Exception successfully: " & ex)
+        Finally
+            Console.WriteLine("Finally block executed deterministically!")
+        End Try
+
+        Console.WriteLine("")
+        Console.WriteLine("=== All Namespaces, Collections & Concurrency Tests Passed! ===")
+    End Sub
+End Module

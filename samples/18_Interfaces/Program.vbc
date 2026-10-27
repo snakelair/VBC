@@ -1,0 +1,57 @@
+Imports System
+
+Public Interface ILogger
+    Sub Log(msg As String)
+End Interface
+
+Public Interface ICalculator
+    Function Add(a As Integer, b As Integer) As Integer
+    Function Multiply(a As Integer, b As Integer) As Integer
+End Interface
+
+Public Class AppService
+    Implements ILogger, ICalculator
+
+    Public Sub Log(msg As String)
+        Console.WriteLine("   [AppService Logger] " & msg)
+    End Sub
+
+    Public Function Add(a As Integer, b As Integer) As Integer
+        Return a + b
+    End Function
+
+    Public Function Multiply(a As Integer, b As Integer) As Integer
+        Return a * b
+    End Function
+End Class
+
+Module Program
+    Sub PrintWithLogger(log As ILogger, text As String)
+        log.Log("Via function param: " & text)
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("=== VBC Pillar 4: Interfaces & Fat Pointer Dispatch Demo ===")
+
+        Dim svc As AppService = New AppService()
+
+        ' 1. Interface variable assignment & polymorphic dispatch
+        Console.WriteLine("1. Testing ILogger interface dispatch:")
+        Dim logger As ILogger = svc
+        logger.Log("First interface log message")
+
+        ' 2. Second interface on the same class
+        Console.WriteLine("2. Testing ICalculator interface dispatch:")
+        Dim calc As ICalculator = svc
+        Dim sum As Integer = calc.Add(15, 27)
+        Dim prod As Integer = calc.Multiply(6, 7)
+        Console.WriteLine("   calc.Add(15, 27) = " & sum)
+        Console.WriteLine("   calc.Multiply(6, 7) = " & prod)
+
+        ' 3. Passing interface to function
+        Console.WriteLine("3. Passing interface as function parameter:")
+        PrintWithLogger(logger, "Antigravity native dispatch works!")
+
+        Console.WriteLine("=== All Interface Tests Passed Successfully! ===")
+    End Sub
+End Module

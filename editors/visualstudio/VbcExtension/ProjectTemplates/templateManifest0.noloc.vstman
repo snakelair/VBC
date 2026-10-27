@@ -1,0 +1,77 @@
+<VSTemplateManifest Version="1.0" xmlns="http://schemas.microsoft.com/developer/vstemplatemanifest/2015">
+  <VSTemplateContainer TemplateType="Project">
+    <RelativePathOnDisk>VisualBasic\VbcConsoleApp</RelativePathOnDisk>
+    <TemplateFileName>MyTemplate.vstemplate</TemplateFileName>
+    <VSTemplateHeader>
+      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+        <TemplateID>Vbc.NativeApplication</TemplateID>
+        <Name>VBC Native Application</Name>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <ProjectType>VisualBasic</ProjectType>
+        <SortOrder>10</SortOrder>
+        <CreateNewFolder>true</CreateNewFolder>
+        <DefaultName>VbcApp</DefaultName>
+        <ProvideDefaultName>true</ProvideDefaultName>
+        <LocationField>Enabled</LocationField>
+        <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+        <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+        <LanguageTag>VisualBasic</LanguageTag>
+        <LanguageTag>visualbasic</LanguageTag>
+        <PlatformTag>Windows</PlatformTag>
+        <PlatformTag>windows</PlatformTag>
+        <ProjectTypeTag>Console</ProjectTypeTag>
+        <ProjectTypeTag>console</ProjectTypeTag>
+      </TemplateData>
+    </VSTemplateHeader>
+  </VSTemplateContainer>
+  <VSTemplateContainer TemplateType="Project">
+    <RelativePathOnDisk>VisualBasic\1033\VbcConsoleApp.zip</RelativePathOnDisk>
+    <TemplateFileName>MyTemplate.vstemplate</TemplateFileName>
+    <VSTemplateHeader>
+      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+        <TemplateID>Vbc.NativeApplication.1033</TemplateID>
+        <Name>VBC Native Application</Name>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <ProjectType>VisualBasic</ProjectType>
+        <SortOrder>10</SortOrder>
+        <CreateNewFolder>true</CreateNewFolder>
+        <DefaultName>VbcApp</DefaultName>
+        <ProvideDefaultName>true</ProvideDefaultName>
+        <LocationField>Enabled</LocationField>
+        <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+        <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+        <LanguageTag>VisualBasic</LanguageTag>
+        <LanguageTag>visualbasic</LanguageTag>
+        <PlatformTag>Windows</PlatformTag>
+        <PlatformTag>windows</PlatformTag>
+        <ProjectTypeTag>Console</ProjectTypeTag>
+        <ProjectTypeTag>console</ProjectTypeTag>
+      </TemplateData>
+    </VSTemplateHeader>
+  </VSTemplateContainer>
+  <VSTemplateContainer TemplateType="Project">
+    <RelativePathOnDisk>VisualBasic\1049\VbcConsoleApp.zip</RelativePathOnDisk>
+    <TemplateFileName>MyTemplate.vstemplate</TemplateFileName>
+    <VSTemplateHeader>
+      <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+        <TemplateID>Vbc.NativeApplication.1049</TemplateID>
+        <Name>VBC Native Application</Name>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <ProjectType>VisualBasic</ProjectType>
+        <SortOrder>10</SortOrder>
+        <CreateNewFolder>true</CreateNewFolder>
+        <DefaultName>VbcApp</DefaultName>
+        <ProvideDefaultName>true</ProvideDefaultName>
+        <LocationField>Enabled</LocationField>
+        <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+        <NumberOfParentCategoriesToRollUp>2</NumberOfParentCategoriesToRollUp>
+        <LanguageTag>VisualBasic</LanguageTag>
+        <LanguageTag>visualbasic</LanguageTag>
+        <PlatformTag>Windows</PlatformTag>
+        <PlatformTag>windows</PlatformTag>
+        <ProjectTypeTag>Console</ProjectTypeTag>
+        <ProjectTypeTag>console</ProjectTypeTag>
+      </TemplateData>
+    </VSTemplateHeader>
+  </VSTemplateContainer>
+</VSTemplateManifest>

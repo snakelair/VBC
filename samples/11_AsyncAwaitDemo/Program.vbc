@@ -1,0 +1,37 @@
+Module Program
+    Async Function ComputeAsync(id As Integer, delayMs As Integer) As Task(Of Integer)
+        Console.WriteLine("    [Task " & id & "] Started, yielding for " & delayMs & " ms...")
+        Await Task.Delay(delayMs)
+        Console.WriteLine("    [Task " & id & "] Completed.")
+        Return id * 10
+    End Function
+
+    Async Function GreetAsync(name As String) As Task(Of String)
+        Await Task.Delay(40)
+        Return "Hello, " & name & " from VBC Fiber!"
+    End Function
+
+    Async Sub Main()
+        Console.WriteLine("=== VBC Async / Await Demo (Stackful Fibers) ===")
+        Console.WriteLine("1. Spawning concurrent async tasks...")
+
+        Dim t1 = ComputeAsync(1, 60)
+        Dim t2 = ComputeAsync(2, 30)
+        Dim t3 = GreetAsync("Antigravity")
+
+        Console.WriteLine("2. Awaiting individual tasks...")
+        Dim res2 = Await t2
+        Console.WriteLine("   Task 2 finished first: " & res2)
+        Dim res1 = Await t1
+        Console.WriteLine("   Task 1 finished: " & res1)
+        Dim res3 = Await t3
+        Console.WriteLine("   Greeting result: " & res3)
+
+        Console.WriteLine("3. Testing Task.WhenAll with multiple concurrent tasks...")
+        Dim tasks = { ComputeAsync(3, 50), ComputeAsync(4, 20), ComputeAsync(5, 40) }
+        Await Task.WhenAll(tasks)
+        Console.WriteLine("   All concurrent tasks in batch finished!")
+
+        Console.WriteLine("=== All Async / Await tests passed successfully! ===")
+    End Sub
+End Module

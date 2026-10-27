@@ -1,0 +1,61 @@
+Imports System
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Bitwise & Hexadecimal Operators Test ===")
+
+        ' 1. Hexadecimal Literals
+        Dim hexVal1 As Integer = &HFF
+        Dim hexVal2 As Integer = &h0E1
+        Dim hexVal3 As Integer = 0x1A2B
+
+        Console.WriteLine("hexVal1 (&HFF) = " & hexVal1)
+        Console.WriteLine("hexVal2 (&h0E1) = " & hexVal2)
+        Console.WriteLine("hexVal3 (0x1A2B) = " & hexVal3)
+
+        ' 2. Bitwise Operators
+        Dim andRes = hexVal1 And &H0F
+        Console.WriteLine("&HFF And &H0F = " & andRes)
+
+        Dim orRes = &H10 Or &H01
+        Console.WriteLine("&H10 Or &H01 = " & orRes)
+
+        Dim xorRes = &HAA Xor &H55
+        Console.WriteLine("&HAA Xor &H55 = " & xorRes)
+
+        ' 3. Bit Shifts
+        Dim shiftLeft = 1 << 8
+        Console.WriteLine("1 << 8 = " & shiftLeft)
+
+        Dim shiftRight = 1024 >> 2
+        Console.WriteLine("1024 >> 2 = " & shiftRight)
+
+        ' 4. Short-Circuiting Logical Operators
+        Dim bool1 = True
+        Dim bool2 = False
+
+        If bool1 AndAlso Not bool2 Then
+            Console.WriteLine("AndAlso with Not evaluated correctly!")
+        End If
+
+        If bool2 OrElse bool1 Then
+            Console.WriteLine("OrElse evaluated correctly!")
+        End If
+
+        ' 5. JPEG Header Extraction Simulation
+        Dim b0 = &HFF
+        Dim b1 = &HD8
+        Dim b2 = &HFF
+        Dim b3 = &HE1
+
+        If b0 = &HFF And b1 = &HD8 Then
+            Console.WriteLine("Detected JPEG SOI marker (&HFFD8)!")
+        End If
+
+        If b2 = &HFF And b3 = &HE1 Then
+            Console.WriteLine("Detected EXIF APP1 marker (&HFFE1)!")
+        End If
+
+        Console.WriteLine("=== All Bitwise & Hex Tests Passed Successfully! ===")
+    End Sub
+End Module

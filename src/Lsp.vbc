@@ -1,0 +1,289 @@
+Imports System
+
+Module LspModule
+    Dim DocumentUri As String
+    Dim DocumentText As String
+
+    Sub RunLspServer()
+        Lsp.Init()
+
+        While True
+            Dim msg As String = Lsp.ReadMessage()
+            If msg.Length = 0 Then
+                Exit While
+            End If
+
+            Dim meth As String = Lsp.GetStr(msg, "method")
+            Dim id As Long = Lsp.GetInt(msg, "id")
+
+            If CaseInsensitiveEquals(meth, "initialize") Then
+                HandleInitialize(id)
+            ElseIf CaseInsensitiveEquals(meth, "initialized") Then
+                ' Notification, no reply needed
+            ElseIf CaseInsensitiveEquals(meth, "textDocument/didOpen") Then
+                HandleDidOpen(msg)
+            ElseIf CaseInsensitiveEquals(meth, "textDocument/didChange") Then
+                HandleDidChange(msg)
+            ElseIf CaseInsensitiveEquals(meth, "textDocument/completion") Then
+                HandleCompletion(id, msg)
+            ElseIf CaseInsensitiveEquals(meth, "textDocument/hover") Then
+                HandleHover(id, msg)
+            ElseIf CaseInsensitiveEquals(meth, "shutdown") Then
+                HandleShutdown(id)
+            ElseIf CaseInsensitiveEquals(meth, "exit") Then
+                Exit While
+            End If
+        End While
+    End Sub
+
+    Sub HandleInitialize(id As Long)
+        Dim res As String = "{""jsonrpc"":""2.0"",""id"":" & IntToStr(id) & ",""result"":{""capabilities"":{""textDocumentSync"":1,""completionProvider"":{""resolveProvider"":false,""triggerCharacters"":[""."",""("","" ""]},""hoverProvider"":true,""definitionProvider"":true},""serverInfo"":{""name"":""VBC Native Language Server"",""version"":""1.0.0""}}}"
+        Lsp.SendMessage(res)
+    End Sub
+
+    Sub HandleShutdown(id As Long)
+        Dim res As String = "{""jsonrpc"":""2.0"",""id"":" & IntToStr(id) & ",""result"":null}"
+        Lsp.SendMessage(res)
+    End Sub
+
+    Sub HandleDidOpen(msg As String)
+        DocumentUri = Lsp.GetStr(msg, "uri")
+        DocumentText = Lsp.GetStr(msg, "text")
+        PublishDiagnostics(DocumentUri, DocumentText)
+    End Sub
+
+    Sub HandleDidChange(msg As String)
+        DocumentUri = Lsp.GetStr(msg, "uri")
+        DocumentText = Lsp.GetStr(msg, "text")
+        PublishDiagnostics(DocumentUri, DocumentText)
+    End Sub
+
+    Sub PublishDiagnostics(uri As String, text As String)
+        If text.Length = 0 Then Return
+
+        ' 1. Tokenize with native lexer
+        Dim toks() As Token = TokenizeAll(text)
+
+        ' 2. Parse into native Arena AST with diagnostics
+        InitArena()
+        DiagInit(uri, True)
+        ParserInit(toks)
+        Dim rootId As Integer = ParseCompilationUnit()
+
+        ' 3. Publish real diagnostics to editor
+        Dim diagsJson As String = ""
+        For i = 0 To Diags.Length - 1
+            If i > 0 Then diagsJson = diagsJson & ","
+            Dim d As Diagnostic = Diags(i)
+            Dim lineIdx As Integer = If(d.Line > 0, d.Line - 1, 0)
+            Dim colIdx As Integer = If(d.Col > 0, d.Col - 1, 0)
+            diagsJson = diagsJson & "{"
+            diagsJson = diagsJson & """range"":{""start"":{""line"":" & IntToStr(lineIdx) & ",""character"":" & IntToStr(colIdx) & "},""end"":{""line"":" & IntToStr(lineIdx) & ",""character"":" & IntToStr(colIdx + 4) & "}},"
+            diagsJson = diagsJson & """severity"":" & If(CaseInsensitiveEquals(d.Severity, "error"), "1", "2") & ","
+            diagsJson = diagsJson & """source"":""vbc"","
+            diagsJson = diagsJson & """message"":""" & EscapeCString(d.Message) & """"
+            diagsJson = diagsJson & "}"
+        Next
+
+        Dim notif As String = "{""jsonrpc"":""2.0"",""method"":""textDocument/publishDiagnostics"",""params"":{""uri"":""" & uri & """,""diagnostics"":[" & diagsJson & "]}}"
+        Lsp.SendMessage(notif)
+    End Sub
+
+    Sub HandleCompletion(id As Long, msg As String)
+        Dim items As String = ""
+        items = items & "{""label"":""Module"",""kind"":14,""detail"":""Keyword 'Module' [C: Translation Unit / static functions]""},"
+        items = items & "{""label"":""Structure"",""kind"":14,""detail"":""Keyword 'Structure' [C: typedef struct Name { ... } Name;]""},"
+        items = items & "{""label"":""Class"",""kind"":14,""detail"":""Keyword 'Class' [C: typedef struct Name { const Name_VTable* _vtable; ... } Name;]""},"
+        items = items & "{""label"":""Interface"",""kind"":14,""detail"":""Keyword 'Interface' [C: Fat pointer { void* obj; const VTable* _vtable; }]""},"
+        items = items & "{""label"":""Implements"",""kind"":14,""detail"":""Keyword 'Implements' [C: Static interface table mapping]""},"
+        items = items & "{""label"":""Sub"",""kind"":14,""detail"":""Keyword 'Sub' [C: void func(vbc_stack_t* _stack, ...)]""},"
+        items = items & "{""label"":""Function"",""kind"":14,""detail"":""Keyword 'Function' [C: ReturnType func(vbc_stack_t* _stack, ...)]""},"
+        items = items & "{""label"":""Dim"",""kind"":14,""detail"":""Keyword 'Dim' [C: Stack-allocated local / struct field]""},"
+        items = items & "{""label"":""As"",""kind"":14,""detail"":""Keyword 'As' [C: type specifier]""},"
+        items = items & "{""label"":""ByVal"",""kind"":14,""detail"":""Keyword 'ByVal' [C: T arg]""},"
+        items = items & "{""label"":""ByRef"",""kind"":14,""detail"":""Keyword 'ByRef' [C: T* arg]""},"
+        items = items & "{""label"":""If"",""kind"":14,""detail"":""Keyword 'If' [C: if (...) / ternary null-coalescing ({ ... })]""},"
+        items = items & "{""label"":""Then"",""kind"":14,""detail"":""Keyword 'Then'""},"
+        items = items & "{""label"":""ElseIf"",""kind"":14,""detail"":""Keyword 'ElseIf'""},"
+        items = items & "{""label"":""Else"",""kind"":14,""detail"":""Keyword 'Else'""},"
+        items = items & "{""label"":""For"",""kind"":14,""detail"":""Keyword 'For' [C: for loop]""},"
+        items = items & "{""label"":""To"",""kind"":14,""detail"":""Keyword 'To'""},"
+        items = items & "{""label"":""Next"",""kind"":14,""detail"":""Keyword 'Next'""},"
+        items = items & "{""label"":""While"",""kind"":14,""detail"":""Keyword 'While' [C: while (...) { ... }]""},"
+        items = items & "{""label"":""End"",""kind"":14,""detail"":""Keyword 'End'""},"
+        items = items & "{""label"":""Return"",""kind"":14,""detail"":""Keyword 'Return' [C: return expr;]""},"
+        items = items & "{""label"":""Imports"",""kind"":14,""detail"":""Keyword 'Imports'""},"
+        items = items & "{""label"":""Integer"",""kind"":7,""detail"":""Type 'Integer' [C: int32_t] (32-bit signed int)""},"
+        items = items & "{""label"":""Long"",""kind"":7,""detail"":""Type 'Long' [C: int64_t] (64-bit signed int)""},"
+        items = items & "{""label"":""Short"",""kind"":7,""detail"":""Type 'Short' [C: int16_t] (16-bit signed int)""},"
+        items = items & "{""label"":""Byte"",""kind"":7,""detail"":""Type 'Byte' [C: uint8_t] (8-bit unsigned int)""},"
+        items = items & "{""label"":""String"",""kind"":7,""detail"":""Type 'String' [C: vbc_string_t (const char* ptr, int64_t len)]""},"
+        items = items & "{""label"":""Boolean"",""kind"":7,""detail"":""Type 'Boolean' [C: bool (int32_t)]""},"
+        items = items & "{""label"":""Double"",""kind"":7,""detail"":""Type 'Double' [C: double] (64-bit float)""},"
+        items = items & "{""label"":""Single"",""kind"":7,""detail"":""Type 'Single' [C: float] (32-bit float)""},"
+        items = items & "{""label"":""Object"",""kind"":7,""detail"":""Type 'Object' [C: void*]""},"
+        items = items & "{""label"":""Nullable"",""kind"":7,""detail"":""Type 'Nullable(Of T)' / 'T?' [C: struct { bool has_value; T value; }]""},"
+        items = items & "{""label"":""XDocument"",""kind"":7,""detail"":""Type 'XDocument' [C: vbc_xml_doc_t*] (XML Document DOM)""},"
+        items = items & "{""label"":""XElement"",""kind"":7,""detail"":""Type 'XElement' [C: vbc_xml_elem_t*] (XML Element + Axis)""},"
+        items = items & "{""label"":""XAttribute"",""kind"":7,""detail"":""Type 'XAttribute' [C: vbc_xml_attr_t*] (XML Attribute)""},"
+        items = items & "{""label"":""StringBuilder"",""kind"":7,""detail"":""Type 'StringBuilder' [C: vbc_string_builder_t]""},"
+        items = items & "{""label"":""Stopwatch"",""kind"":7,""detail"":""Type 'Stopwatch' [C: vbc_stopwatch_t] (Monotonic timer)""},"
+        items = items & "{""label"":""DateTime"",""kind"":7,""detail"":""Type 'DateTime' [C: vbc_datetime_t (int64_t ticks)]""},"
+        items = items & "{""label"":""TimeSpan"",""kind"":7,""detail"":""Type 'TimeSpan' [C: vbc_timespan_t (int64_t ticks)]""},"
+        items = items & "{""label"":""Guid"",""kind"":7,""detail"":""Type 'Guid' [C: vbc_guid_t (uint8_t[16])] (UUIDv4)""},"
+        items = items & "{""label"":""Math"",""kind"":9,""detail"":""Namespace 'Math' [C: <math.h>]""},"
+        items = items & "{""label"":""Path"",""kind"":9,""detail"":""Namespace 'Path' [C: vbc_bcl.h path functions]""},"
+        items = items & "{""label"":""File"",""kind"":9,""detail"":""Namespace 'File' [C: vbc_bcl.h file functions]""},"
+        items = items & "{""label"":""Directory"",""kind"":9,""detail"":""Namespace 'Directory' [C: vbc_bcl.h directory functions]""},"
+        items = items & "{""label"":""Environment"",""kind"":9,""detail"":""Namespace 'Environment' [C: vbc_bcl.h OS environment]""},"
+        items = items & "{""label"":""HttpClient"",""kind"":7,""detail"":""Class 'HttpClient' [C: vbc_http_client_t*]""},"
+        items = items & "{""label"":""HttpServer"",""kind"":7,""detail"":""Class 'HttpServer' [C: vbc_http_server_t*]""},"
+        items = items & "{""label"":""Console.WriteLine"",""kind"":3,""detail"":""Print to console [C: vbc_print_*(...)]"",""insertText"":""Console.WriteLine($0)""}"
+
+        Dim res As String = "{""jsonrpc"":""2.0"",""id"":" & IntToStr(id) & ",""result"":[" & items & "]}"
+        Lsp.SendMessage(res)
+    End Sub
+
+    Function GetWordAtPos(text As String, targetLine As Long, targetChar As Long) As String
+        If text.Length = 0 Or targetLine < 0 Or targetChar < 0 Then Return ""
+        Dim curLine As Long = 0
+        Dim i As Long = 0
+        Dim lineStart As Long = 0
+        While i < text.Length And curLine < targetLine
+            If text.ByteAt(i) = 10 Then
+                curLine = curLine + 1
+                lineStart = i + 1
+            End If
+            i = i + 1
+        End While
+
+        If curLine <> targetLine Then Return ""
+
+        Dim pos As Long = lineStart + targetChar
+        If pos >= text.Length Then pos = text.Length - 1
+        If pos < lineStart Then Return ""
+
+        Dim wStart As Long = pos
+        While wStart > lineStart
+            Dim ch As Integer = text.ByteAt(wStart - 1)
+            If (ch >= 65 And ch <= 90) Or (ch >= 97 And ch <= 122) Or (ch >= 48 And ch <= 57) Or ch = 95 Or ch = 63 Then
+                wStart = wStart - 1
+            Else
+                Exit While
+            End If
+        End While
+
+        Dim wEnd As Long = pos
+        While wEnd < text.Length
+            Dim ch As Integer = text.ByteAt(wEnd)
+            If (ch >= 65 And ch <= 90) Or (ch >= 97 And ch <= 122) Or (ch >= 48 And ch <= 57) Or ch = 95 Or ch = 63 Then
+                wEnd = wEnd + 1
+            Else
+                Exit While
+            End If
+        End While
+
+        If wEnd <= wStart Then Return ""
+        Return StringSub(text, wStart, wEnd - wStart)
+    End Function
+
+    Function GetCTypeHover(word As String) As String
+        If CaseInsensitiveEquals(word, "Integer") Then
+            Return "**Integer** [C: int32_t]\n\n32-bit signed integer in C99."
+        ElseIf CaseInsensitiveEquals(word, "Long") Then
+            Return "**Long** [C: int64_t]\n\n64-bit signed integer in C99."
+        ElseIf CaseInsensitiveEquals(word, "Short") Then
+            Return "**Short** [C: int16_t]\n\n16-bit signed integer in C99."
+        ElseIf CaseInsensitiveEquals(word, "Byte") Then
+            Return "**Byte** [C: uint8_t]\n\n8-bit unsigned integer in C99."
+        ElseIf CaseInsensitiveEquals(word, "SByte") Then
+            Return "**SByte** [C: int8_t]\n\n8-bit signed integer in C99."
+        ElseIf CaseInsensitiveEquals(word, "Single") Then
+            Return "**Single** [C: float]\n\nSingle-precision 32-bit floating point."
+        ElseIf CaseInsensitiveEquals(word, "Double") Then
+            Return "**Double** [C: double]\n\nDouble-precision 64-bit floating point."
+        ElseIf CaseInsensitiveEquals(word, "String") Then
+            Return "**String** [C: vbc_string_t (const char* ptr, int64_t len)]\n\nZero-GC linear Goose stack string slice."
+        ElseIf CaseInsensitiveEquals(word, "Boolean") Then
+            Return "**Boolean** [C: bool (int32_t)]\n\nBoolean flag (True / False)."
+        ElseIf CaseInsensitiveEquals(word, "Char") Then
+            Return "**Char** [C: char (int8_t)]\n\nSingle character in C99."
+        ElseIf CaseInsensitiveEquals(word, "Object") Then
+            Return "**Object** [C: void*]\n\nGeneric reference pointer."
+        ElseIf CaseInsensitiveEquals(word, "Void") Then
+            Return "**Void** [C: void]\n\nAbsence of a return value."
+        ElseIf CaseInsensitiveEquals(word, "Interface") Then
+            Return "**Interface** [C: vbc_iface_t { void* obj; const void* _vtable; }]\n\nFat-pointer dynamic interface dispatch."
+        ElseIf CaseInsensitiveEquals(word, "Implements") Then
+            Return "**Implements** [C: Static interface VTable mapping]\n\nBinds class methods to interface vtable slots."
+        ElseIf CaseInsensitiveEquals(word, "XDocument") Then
+            Return "**XDocument** [C: vbc_xml_doc_t*]\n\nNative XML Document DOM."
+        ElseIf CaseInsensitiveEquals(word, "XElement") Then
+            Return "**XElement** [C: vbc_xml_elem_t*]\n\nNative XML Element supporting XML Axis syntax (.<child>, .@attr, ...<descendant>)."
+        ElseIf CaseInsensitiveEquals(word, "XAttribute") Then
+            Return "**XAttribute** [C: vbc_xml_attr_t*]\n\nNative XML Attribute key-value pair."
+        ElseIf CaseInsensitiveEquals(word, "StringBuilder") Then
+            Return "**StringBuilder** [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\n\nMutable string buffer on Goose linear stack."
+        ElseIf CaseInsensitiveEquals(word, "Stopwatch") Then
+            Return "**Stopwatch** [C: vbc_stopwatch_t { int64_t start_ticks; int64_t elapsed_ticks; bool is_running; }]\n\nHigh-resolution monotonic timer."
+        ElseIf CaseInsensitiveEquals(word, "DateTime") Then
+            Return "**DateTime** [C: vbc_datetime_t (int64_t ticks)]\n\nTimestamp represented in 100ns ticks."
+        ElseIf CaseInsensitiveEquals(word, "TimeSpan") Then
+            Return "**TimeSpan** [C: vbc_timespan_t (int64_t ticks)]\n\nTime duration represented in 100ns ticks."
+        ElseIf CaseInsensitiveEquals(word, "Guid") Then
+            Return "**Guid** [C: vbc_guid_t (uint8_t bytes[16])]\n\n128-bit RFC 4122 UUIDv4 identifier."
+        ElseIf CaseInsensitiveEquals(word, "Math") Then
+            Return "**System.Math** [C: <math.h>]\n\nStandard C99 math primitives (Sin, Cos, Sqrt, Abs, Round, Min, Max, Pow)."
+        ElseIf CaseInsensitiveEquals(word, "Path") Then
+            Return "**System.IO.Path** [C: vbc_bcl.h path functions]\n\nCross-platform path manipulation functions."
+        ElseIf CaseInsensitiveEquals(word, "File") Then
+            Return "**System.IO.File** [C: vbc_bcl.h file functions]\n\nNative OS file I/O operations."
+        ElseIf CaseInsensitiveEquals(word, "Directory") Then
+            Return "**System.IO.Directory** [C: vbc_bcl.h directory functions]\n\nNative OS directory operations."
+        ElseIf CaseInsensitiveEquals(word, "Environment") Then
+            Return "**System.Environment** [C: vbc_bcl.h OS environment]\n\nOperating system environment properties."
+        ElseIf CaseInsensitiveEquals(word, "HttpClient") Then
+            Return "**HttpClient** [C: vbc_http_client_t*]\n\nZero-alloc non-blocking HTTP client."
+        ElseIf CaseInsensitiveEquals(word, "HttpServer") Then
+            Return "**HttpServer** [C: vbc_http_server_t*]\n\nHigh-performance native HTTP server."
+        ElseIf CaseInsensitiveEquals(word, "Dim") Then
+            Return "**Dim** [C: Stack-allocated local / struct field]\n\nDeclares variable storage."
+        ElseIf CaseInsensitiveEquals(word, "Sub") Then
+            Return "**Sub** [C: void func(vbc_stack_t* _stack, ...)]\n\nDeclares procedure returning void."
+        ElseIf CaseInsensitiveEquals(word, "Function") Then
+            Return "**Function** [C: ReturnType func(vbc_stack_t* _stack, ...)]\n\nDeclares procedure returning a value."
+        ElseIf CaseInsensitiveEquals(word, "Class") Then
+            Return "**Class** [C: typedef struct Name { const Name_VTable* _vtable; ... } Name;]\n\nReference type allocated on heap."
+        ElseIf CaseInsensitiveEquals(word, "Structure") Then
+            Return "**Structure** [C: typedef struct Name { ... } Name;]\n\nValue type allocated on stack."
+        ElseIf CaseInsensitiveEquals(word, "ByVal") Then
+            Return "**ByVal** [C: T arg]\n\nArgument passed by value."
+        ElseIf CaseInsensitiveEquals(word, "ByRef") Then
+            Return "**ByRef** [C: T* arg]\n\nArgument passed by pointer."
+        ElseIf CaseInsensitiveEquals(word, "If") Then
+            Return "**If** [C: if (...) / ternary null-coalescing ({ ... })]\n\nConditional branching or null-coalescing."
+        ElseIf word.Length > 1 And word.ByteAt(word.Length - 1) = 63 Then
+            Dim baseT As String = StringSub(word, 0, word.Length - 1)
+            Return "**" & word & "** [C: vbc_nullable_" & baseT & " { bool has_value; " & baseT & " value; }]\n\nNullable value type with .HasValue and .Value."
+        End If
+        Return "**VBC Native Language Server**: Pure Native Visual Basic C with Goose linear data stack."
+    End Function
+
+    Sub HandleHover(id As Long, msg As String)
+        Dim line As Long = Lsp.GetInt(msg, "line")
+        Dim character As Long = Lsp.GetInt(msg, "character")
+        Dim hoverText As String = ""
+        If line >= 0 And character >= 0 And DocumentText.Length > 0 Then
+            Dim word As String = GetWordAtPos(DocumentText, line, character)
+            If word.Length > 0 Then
+                hoverText = GetCTypeHover(word)
+            End If
+        End If
+        If hoverText.Length = 0 Then
+            hoverText = "**VBC Native Language Server**: Pure Native Visual Basic C with Goose linear data stack."
+        End If
+
+        Dim res As String = "{""jsonrpc"":""2.0"",""id"":" & IntToStr(id) & ",""result"":{""contents"":{""kind"":""markdown"",""value"":""" & hoverText & """}}}"
+        Lsp.SendMessage(res)
+    End Sub
+End Module

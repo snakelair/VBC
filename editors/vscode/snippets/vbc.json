@@ -1,0 +1,164 @@
+{
+  "Try Catch Block": {
+    "prefix": "try",
+    "body": [
+      "Try",
+      "    $0",
+      "Catch ex As Exception",
+      "    ",
+      "End Try"
+    ],
+    "description": "Try...Catch...End Try error handling block"
+  },
+  "Try Catch Finally Block": {
+    "prefix": "tryf",
+    "body": [
+      "Try",
+      "    $0",
+      "Catch ex As Exception",
+      "    ",
+      "Finally",
+      "    ",
+      "End Try"
+    ],
+    "description": "Try...Catch...Finally...End Try error handling block"
+  },
+  "If Block": {
+    "prefix": "if",
+    "body": [
+      "If ${1:condition} Then",
+      "    $0",
+      "End If"
+    ],
+    "description": "If...Then...End If conditional block"
+  },
+  "If Else Block": {
+    "prefix": "ifelse",
+    "body": [
+      "If ${1:condition} Then",
+      "    $1",
+      "Else",
+      "    $0",
+      "End If"
+    ],
+    "description": "If...Else...End If conditional block"
+  },
+  "For Next Loop": {
+    "prefix": "for",
+    "body": [
+      "For ${1:i} = ${2:0} To ${3:10}",
+      "    $0",
+      "Next"
+    ],
+    "description": "For...Next loop"
+  },
+  "For Each Next Loop": {
+    "prefix": "foreach",
+    "body": [
+      "For Each ${1:item} In ${2:collection}",
+      "    $0",
+      "Next"
+    ],
+    "description": "For Each...In...Next loop"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "While ${1:condition}",
+      "    $0",
+      "End While"
+    ],
+    "description": "While...End While loop"
+  },
+  "Select Case Block": {
+    "prefix": "select",
+    "body": [
+      "Select Case ${1:expression}",
+      "    Case ${2:value}",
+      "        $0",
+      "    Case Else",
+      "        ",
+      "End Select"
+    ],
+    "description": "Select Case pattern matching block"
+  },
+  "Sub Main": {
+    "prefix": "main",
+    "body": [
+      "Sub Main()",
+      "    $0",
+      "End Sub"
+    ],
+    "description": "Application entry point Sub Main"
+  },
+  "Sub Procedure": {
+    "prefix": "sub",
+    "body": [
+      "Sub ${1:Name}(${2:})",
+      "    $0",
+      "End Sub"
+    ],
+    "description": "Sub procedure declaration"
+  },
+  "Function Procedure": {
+    "prefix": "func",
+    "body": [
+      "Function ${1:Name}(${2:}) As ${3:Integer}",
+      "    $0",
+      "End Function"
+    ],
+    "description": "Function procedure declaration"
+  },
+  "Module Declaration": {
+    "prefix": "module",
+    "body": [
+      "Module ${1:Program}",
+      "    $0",
+      "End Module"
+    ],
+    "description": "Module declaration"
+  },
+  "Structure Declaration": {
+    "prefix": "struct",
+    "body": [
+      "Structure ${1:Name}",
+      "    $0",
+      "End Structure"
+    ],
+    "description": "Structure declaration"
+  },
+  "Class Declaration": {
+    "prefix": "class",
+    "body": [
+      "Class ${1:Name}",
+      "    $0",
+      "End Class"
+    ],
+    "description": "Class declaration"
+  },
+  "Console WriteLine": {
+    "prefix": "cw",
+    "body": [
+      "Console.WriteLine(${1:\"$0\"})"
+    ],
+    "description": "Print to console output"
+  },
+  "C Header Include": {
+    "prefix": "inc",
+    "body": [
+      "Include \"${1:header.h}\""
+    ],
+    "description": "Include native C header or file"
+  },
+  "HttpServer Quickstart": {
+    "prefix": "httpserver",
+    "body": [
+      "Dim server As New HttpServer(${1:8080})",
+      "server.Get(\"/\", Sub(req As HttpRequest, res As HttpResponse)",
+      "    res.SendText(\"${2:Hello from VBC!}\")",
+      "End Sub)",
+      "server.Start()"
+    ],
+    "description": "HttpServer boilerplate"
+  }
+}

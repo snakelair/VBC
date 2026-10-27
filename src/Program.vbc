@@ -1,0 +1,343 @@
+Imports System
+
+Module Program
+    Sub Main(args() As String)
+        If args.Length < 2 Then
+            Console.WriteLine("VBC Self-Hosted Compiler v1.0.0 (Pure Native - Zero .NET Dependency)")
+            Console.WriteLine("Usage:")
+            Console.WriteLine("  vbc compile <file.vbc> [-o <out.exe>] [--emit-c] [--json]")
+            Console.WriteLine("  vbc run <file.vbc>")
+            Console.WriteLine("  vbc test [samples_dir]")
+            Console.WriteLine("  vbc --check <file.vbc> [--json]")
+            Console.WriteLine("  vbc --dump-tokens <file.vbc>")
+            Console.WriteLine("  vbc --dump-ast <file.vbc>")
+            Console.WriteLine("  vbc --ai-spec")
+            Console.WriteLine("  vbc lsp")
+            Console.WriteLine("  vbc version")
+            Return
+        End If
+
+        Dim cmd As String = args(1)
+        If CaseInsensitiveEquals(cmd, "lsp") Then
+            RunLspServer()
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "--ai-spec") Or CaseInsensitiveEquals(cmd, "ai-spec") Then
+            PrintAiSpec()
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "version") Or CaseInsensitiveEquals(cmd, "--version") Or CaseInsensitiveEquals(cmd, "-v") Then
+            Console.WriteLine("VBC Compiler v1.0.0 (Self-Hosted Native Binary)")
+            Console.WriteLine("Architecture: C99 / Clang with Goose Linear Data Stack")
+            Console.WriteLine("Zero Garbage Collection, Zero Runtime Overhead, Zero .NET Dependency")
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "test") Then
+            Dim testDir As String = "samples"
+            If args.Length >= 3 Then
+                testDir = args(2)
+            End If
+            RunTestSuite(testDir)
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "--check") Or CaseInsensitiveEquals(cmd, "check") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc --check <file.vbc> [--json]")
+                Return
+            End If
+            Dim inputFile As String = args(2)
+            Dim isJson As Boolean = False
+            For i = 2 To args.Length - 1
+                If CaseInsensitiveEquals(args(i), "--json") Then
+                    isJson = True
+                ElseIf Not CaseInsensitiveEquals(args(i), "--check") And Not CaseInsensitiveEquals(args(i), "check") Then
+                    inputFile = args(i)
+                End If
+            Next
+            CheckSource(inputFile, isJson)
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "--dump-tokens") Or CaseInsensitiveEquals(cmd, "dump-tokens") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc --dump-tokens <file.vbc>")
+                Return
+            End If
+            DumpTokens(args(2))
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "--dump-ast") Or CaseInsensitiveEquals(cmd, "dump-ast") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc --dump-ast <file.vbc>")
+                Return
+            End If
+            DumpAst(args(2))
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "compile") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc compile <file.vbc>")
+                Return
+            End If
+            Dim inputFile As String = args(2)
+            Dim outputFile As String = "app.exe"
+            Dim emitC As Boolean = False
+            Dim jsonMode As Boolean = False
+
+            For i = 3 To args.Length - 1
+                If CaseInsensitiveEquals(args(i), "-o") And i + 1 < args.Length Then
+                    outputFile = args(i + 1)
+                ElseIf CaseInsensitiveEquals(args(i), "--emit-c") Then
+                    emitC = True
+                ElseIf CaseInsensitiveEquals(args(i), "--json") Then
+                    jsonMode = True
+                End If
+            Next
+
+            CompileSource(inputFile, outputFile, emitC, jsonMode)
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "run") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc run <file.vbc>")
+                Return
+            End If
+            Dim inputFile As String = args(2)
+            Dim tempExe As String = "temp_out.exe"
+            Dim ok As Boolean = CompileSource(inputFile, tempExe, False, False)
+            If ok Then
+                RunBinary(tempExe)
+            End If
+            Return
+        End If
+
+        ' If first argument after executable is a file, compile & run it directly
+        Dim fileToRun As String = args(1)
+        Dim defaultExe As String = "temp_out.exe"
+        If CompileSource(fileToRun, defaultExe, False, False) Then
+            RunBinary(defaultExe)
+        End If
+    End Sub
+
+    Sub PrintAiSpec()
+        Console.WriteLine("{")
+        Console.WriteLine("  ""language"": ""VBC"",")
+        Console.WriteLine("  ""version"": ""1.0.0"",")
+        Console.WriteLine("  ""architecture"": ""100% Native Self-Hosted Pure C99 Backend"",")
+        Console.WriteLine("  ""memoryModel"": ""Goose Linear Data Stack (linear bump allocator, O(1) scope reclamation, zero GC)"",")
+        Console.WriteLine("  ""primitives"": [""Integer"", ""Long"", ""Double"", ""Boolean"", ""Byte"", ""String""],")
+        Console.WriteLine("  ""typeConstructs"": [""Structure"", ""Class"", ""Interface"", ""T?"", ""Nullable(Of T)""],")
+        Console.WriteLine("  ""oopFeatures"": [""Inherits"", ""Overridable"", ""Overrides"", ""MyBase"", ""Me"", ""Sub New"", ""Using""],")
+        Console.WriteLine("  ""bclModules"": [""Console"", ""Math"", ""String"", ""Path"", ""File"", ""Directory"", ""GZip"", ""SHA256"", ""MD5"", ""RandomNumberGenerator"", ""Convert"", ""BitConverter"", ""Stopwatch"", ""DateTime"", ""TimeSpan"", ""StringBuilder"", ""Guid"", ""Environment"", ""HttpClient"", ""HttpServer"", ""FileSystemWatcher"", ""Dictionary(Of String, String)"", ""XDocument"", ""XElement""]")
+        Console.WriteLine("}")
+    End Sub
+
+    Function ReadSourceText(inputPath As String) As String
+        Dim src As String = ""
+        If Directory.Exists(inputPath) Then
+            Dim files() As String = Directory.GetFiles(inputPath, ".vbc")
+            If files.Length = 0 Then
+                Console.WriteLine("Error: No .vbc files found in directory: " & inputPath)
+                Return ""
+            End If
+            For i = 0 To files.Length - 1
+                Dim fileContent As String = File.ReadAllText(files(i))
+                src = src & fileContent & "\n"
+            Next
+        Else
+            src = File.ReadAllText(inputPath)
+            If src.Length = 0 Then
+                Console.WriteLine("Error: Could not read source file: " & inputPath)
+                Return ""
+            End If
+        End If
+        Return src
+    End Function
+
+    Sub DumpTokens(inputPath As String)
+        Dim src As String = ReadSourceText(inputPath)
+        If src.Length = 0 Then Return
+        Dim tokens() As Token = TokenizeAll(src)
+        Console.WriteLine("=== Token Stream (" & IntToStr(tokens.Length) & " tokens) ===")
+        For i = 0 To tokens.Length - 1
+            Dim t As Token = tokens(i)
+            Console.WriteLine("[" & IntToStr(i) & "] Line " & IntToStr(t.Line) & ":" & IntToStr(t.Col) & " Kind=" & GetTokenKindName(t.Kind) & " (" & IntToStr(t.Kind) & ") Text='" & t.Text & "'")
+        Next
+    End Sub
+
+    Sub DumpAst(inputPath As String)
+        Dim src As String = ReadSourceText(inputPath)
+        If src.Length = 0 Then Return
+        Dim tokens() As Token = TokenizeAll(src)
+        InitArena()
+        DiagInit(inputPath, False)
+        ParserInit(tokens)
+        Dim rootId As Integer = ParseCompilationUnit()
+        Console.WriteLine("=== Arena AST (" & IntToStr(Nodes.Length) & " nodes) ===")
+        DumpAstNode(rootId, "")
+    End Sub
+
+    Sub DumpAstNode(nId As Integer, indent As String)
+        If nId < 0 Or nId >= Nodes.Length Then Return
+        Dim n As AstNode = Nodes(nId)
+        Dim desc As String = indent & "Node[" & IntToStr(nId) & "] Kind=" & GetNodeKindName(n.Kind) & " (" & IntToStr(n.Kind) & ")"
+        If n.Name.Length > 0 Then desc = desc & " Name='" & n.Name & "'"
+        If n.TypeName.Length > 0 Then desc = desc & " Type='" & n.TypeName & "'"
+        If n.Op > 0 Then desc = desc & " Op=" & GetTokenKindName(n.Op)
+        If n.IntValue <> 0 Then desc = desc & " IntVal=" & IntToStr(n.IntValue)
+        If n.StringValue.Length > 0 Then desc = desc & " StrVal='" & n.StringValue & "'"
+        desc = desc & " Line=" & IntToStr(n.Line)
+        Console.WriteLine(desc)
+
+        Dim ch = n.FirstChild
+        While ch <> -1
+            DumpAstNode(ch, indent & "  ")
+            ch = Nodes(ch).NextSibling
+        End While
+    End Sub
+
+    Function CheckSource(inputPath As String, jsonMode As Boolean) As Boolean
+        Dim src As String = ReadSourceText(inputPath)
+        If src.Length = 0 Then Return False
+        Dim tokens() As Token = TokenizeAll(src)
+        InitArena()
+        DiagInit(inputPath, jsonMode)
+        ParserInit(tokens)
+        Dim rootId As Integer = ParseCompilationUnit()
+
+        If DiagErrorCount > 0 Then
+            If jsonMode Then
+                Console.WriteLine(GetDiagnosticsJson())
+            Else
+                Console.WriteLine("Syntax & AST check FAILED with " & IntToStr(DiagErrorCount) & " error(s): " & inputPath)
+            End If
+            Return False
+        Else
+            If jsonMode Then
+                Console.WriteLine("[]")
+            Else
+                Console.WriteLine("Syntax & AST check PASSED: " & inputPath & " (" & IntToStr(tokens.Length) & " tokens, " & IntToStr(Nodes.Length) & " AST nodes)")
+            End If
+            Return True
+        End If
+    End Function
+
+    Function CompileSource(inputPath As String, outputPath As String, emitC As Boolean, jsonMode As Boolean) As Boolean
+        Dim src As String = ReadSourceText(inputPath)
+        If src.Length = 0 Then Return False
+
+        ' 1. Tokenize
+        Dim tokens() As Token = TokenizeAll(src)
+
+        ' 2. Parse into Arena AST with Diagnostic Engine
+        InitArena()
+        DiagInit(inputPath, jsonMode)
+        ParserInit(tokens)
+        Dim rootId As Integer = ParseCompilationUnit()
+
+        If DiagErrorCount > 0 Then
+            If jsonMode Then
+                Console.WriteLine(GetDiagnosticsJson())
+            Else
+                Console.WriteLine("Compilation ABORTED: " & IntToStr(DiagErrorCount) & " syntax error(s) found in " & inputPath)
+            End If
+            Return False
+        End If
+
+        ' 3. Code Generation to C
+        SetCurrentSourceFile(inputPath)
+        Dim cCode As String = EmitCompilationUnitToC(rootId)
+
+        Dim cPath As String = outputPath & ".c"
+        File.WriteAllText(cPath, cCode)
+        If emitC Then
+            Console.WriteLine("Generated C code: " & cPath)
+        End If
+
+        ' 4. Native Driver (Clang)
+        Dim res As Integer = CompileCSource(cPath, outputPath)
+        If res <> 0 Then
+            Console.WriteLine("Clang compilation failed with exit code: " & IntToStr(res))
+            Return False
+        End If
+
+        Console.WriteLine("Compilation successful: " & outputPath)
+        Return True
+    End Function
+
+    Sub RunTestSuite(samplesDir As String)
+        Console.WriteLine("==================================================")
+        Console.WriteLine("VBC Native Test Runner (Zero .NET Dependency)")
+        Console.WriteLine("==================================================")
+        Console.WriteLine()
+
+        Dim testSamples() As String = ["01_HelloWorld", "02_MemoryEfficiency", "05_SelfHostingDemo", "06_VisualStudioStarter", "12_ClassesAndOop", "13_NamespacesAndConcurrency", "14_BitwiseAndHex", "15_DotNet10Namespaces", "16_BclComprehensive", "17_XmlLinqAndAxis", "18_Interfaces", "19_NullableAndNullCond"]
+
+        Dim passed As Integer = 0
+        Dim failed As Integer = 0
+
+        For i = 0 To testSamples.Length - 1
+            Dim sName As String = testSamples(i)
+            Dim sPath As String = samplesDir & "/" & sName & "/Program.vbc"
+            Console.WriteLine("[TEST " & IntToStr(i + 1) & "/" & IntToStr(testSamples.Length) & "] Testing " & sName & "...")
+            Dim tempExe As String = "temp_test.exe"
+            Dim compOk As Boolean = CompileSource(sPath, tempExe, False, False)
+            If compOk Then
+                Dim exitCode As Integer = RunBinary(tempExe)
+                If exitCode = 0 Then
+                    Console.WriteLine("  -> PASS (Exit code 0)")
+                    passed = passed + 1
+                Else
+                    Console.WriteLine("  -> FAIL (Execution exited with code " & IntToStr(exitCode) & ")")
+                    failed = failed + 1
+                End If
+            Else
+                Console.WriteLine("  -> FAIL (Compilation failed)")
+                failed = failed + 1
+            End If
+            Console.WriteLine()
+        Next
+
+        ' Negative tests: verify compiler diagnostic detection
+        Console.WriteLine("--- Running Negative Diagnostic Tests ---")
+        Dim negTests() As String = ["01_MissingThen", "02_UnclosedWhile", "03_MissingEndSub"]
+        For ni = 0 To negTests.Length - 1
+            Dim nName As String = negTests(ni)
+            Dim nPath As String = samplesDir & "/negative/" & nName & "/Program.vbc"
+            Console.WriteLine("[NEG TEST " & IntToStr(ni + 1) & "/" & IntToStr(negTests.Length) & "] Testing error detection in " & nName & "...")
+            DiagInit(nPath, True)
+            Dim nSrc As String = ReadSourceText(nPath)
+            If nSrc.Length > 0 Then
+                Dim nToks() As Token = TokenizeAll(nSrc)
+                InitArena()
+                ParserInit(nToks)
+                ParseCompilationUnit()
+                If DiagErrorCount > 0 Then
+                    Console.WriteLine("  -> PASS (Correctly detected " & IntToStr(DiagErrorCount) & " syntax error(s))")
+                    passed = passed + 1
+                Else
+                    Console.WriteLine("  -> FAIL (Expected syntax errors but none were reported)")
+                    failed = failed + 1
+                End If
+            Else
+                Console.WriteLine("  -> FAIL (Could not read file: " & nPath & ")")
+                failed = failed + 1
+            End If
+        Next
+
+        Console.WriteLine()
+        Console.WriteLine("==================================================")
+        Console.WriteLine("Test Summary: " & IntToStr(passed) & " passed, " & IntToStr(failed) & " failed")
+        Console.WriteLine("==================================================")
+        If failed = 0 Then
+            Console.WriteLine("All native VBC test suites PASSED successfully!")
+        End If
+    End Sub
+End Module

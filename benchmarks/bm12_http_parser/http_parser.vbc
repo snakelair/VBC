@@ -1,0 +1,16 @@
+Module Program
+    Sub Main()
+        Dim raw As String = "GET /api/v1/resource?id=123 HTTP/1.1\r\nHost: example.com\r\nAccept: application/json\r\n\r\n"
+        Dim totalLen As Integer = 0
+        For i As Integer = 1 To 200000
+            Dim sp1 As Integer = raw.IndexOf(" ", 0)
+            Dim method As String = raw.Substring(0, sp1)
+
+            Dim sp2 As Integer = raw.IndexOf(" ", sp1 + 1)
+            Dim path As String = raw.Substring(sp1 + 1, sp2 - sp1 - 1)
+
+            totalLen = totalLen + method.Length + path.Length
+        Next
+        Console.WriteLine(totalLen)
+    End Sub
+End Module

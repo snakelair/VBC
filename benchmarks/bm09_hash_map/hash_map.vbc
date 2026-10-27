@@ -1,0 +1,46 @@
+Module Program
+    Sub Main()
+        Dim cap As Integer = 1048576
+        Dim mask As Integer = 1048575
+        Dim keys(1048576) As Integer
+        Dim vals(1048576) As Integer
+
+        For i As Integer = 0 To cap - 1
+            keys(i) = -1
+        Next
+
+        ' Insert 500,000 keys
+        For i As Integer = 0 To 499999
+            Dim k As Integer = i
+            Dim v As Integer = i * 3
+            Dim h As Integer = (k * 265443576) Mod cap
+            If h < 0 Then
+                h = h + cap
+            End If
+            While keys(h) <> -1 AndAlso keys(h) <> k
+                h = (h + 1) Mod cap
+            End While
+            keys(h) = k
+            vals(h) = v
+        Next
+
+        ' Lookup 500,000 keys
+        Dim sum As Long = 0
+        For i As Integer = 0 To 499999
+            Dim k As Integer = i
+            Dim h As Integer = (k * 265443576) Mod cap
+            If h < 0 Then
+                h = h + cap
+            End If
+            While keys(h) <> -1
+                If keys(h) = k Then
+                    sum = sum + vals(h)
+                    Exit While
+                End If
+                h = (h + 1) Mod cap
+            End While
+        Next
+
+        Console.WriteLine(sum)
+    End Sub
+End Module

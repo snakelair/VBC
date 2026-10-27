@@ -1,0 +1,249 @@
+﻿Imports System
+
+Module ParserModule
+    Function GetPrecedence(k As Integer) As Integer
+        If k = TOK_ORELSE Then Return 1
+        If k = TOK_ANDALSO Then Return 2
+        If k = TOK_OR Then Return 3
+        If k = TOK_XOR Then Return 4
+        If k = TOK_AND Then Return 5
+        If k = TOK_EQUAL Or k = TOK_NOTEQUAL Or k = TOK_LESS Or k = TOK_LESSEQ Or k = TOK_GREATER Or k = TOK_GREATEREQ Then Return 6
+        If k = TOK_SHL Or k = TOK_SHR Then Return 7
+        If k = TOK_AMP Then Return 8
+        If k = TOK_PLUS Or k = TOK_MINUS Then Return 9
+        If k = TOK_STAR Or k = TOK_SLASH Or k = TOK_MOD Then Return 10
+        Return 0
+    End Function
+
+    Function ParseExpression() As Integer
+        Return ParseBinary(0)
+    End Function
+
+    Function ParseBinary(parentPrec As Integer) As Integer
+        Dim left = ParseUnary()
+
+        While True
+            Dim prec = GetPrecedence(CurrKind())
+            If prec = 0 Or prec <= parentPrec Then
+                Exit While
+            End If
+
+            Dim opTok As Token = ParserAdvance()
+            Dim right = ParseBinary(prec)
+            Dim binId = AllocNode(NODE_BINARY, opTok.Text, opTok.Line)
+            Nodes(binId).Op = opTok.Kind
+            AddChild(binId, left)
+            AddChild(binId, right)
+            left = binId
+        End While
+
+        Return left
+    End Function
+
+    Function ParseUnary() As Integer
+        If CurrKind() = TOK_MINUS Or CurrKind() = TOK_NOT Then
+            Dim opTok As Token = ParserAdvance()
+            Dim operand = ParseUnary()
+            Dim unId = AllocNode(NODE_UNARY, opTok.Text, opTok.Line)
+            Nodes(unId).Op = opTok.Kind
+            AddChild(unId, operand)
+            Return unId
+        End If
+        Return ParsePostfix()
+    End Function
+
+    Function ParsePostfix() As Integer
+        Dim expr = ParsePrimary()
+
+        While True
+            If CurrKind() = TOK_DOT Then
+                ParserAdvance()
+                Dim memberTok As Token = ParserAdvance() ' identifier or keyword
+                Dim memId = AllocNode(NODE_MEMBER, memberTok.Text, memberTok.Line)
+                AddChild(memId, expr)
+                expr = memId
+            ElseIf CurrKind() = TOK_QDOT Then
+                ParserAdvance()
+                Dim memberTok As Token = ParserAdvance()
+                Dim memId = AllocNode(NODE_NULL_COND_MEMBER, memberTok.Text, memberTok.Line)
+                AddChild(memId, expr)
+                expr = memId
+            ElseIf CurrKind() = TOK_QLPAREN Then
+                ParserAdvance()
+                Dim invId = AllocNode(NODE_NULL_COND_INDEX, "null_call", CurrLine())
+                AddChild(invId, expr)
+                While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                    Dim argId = ParseExpression()
+                    AddChild(invId, argId)
+                    If CurrKind() = TOK_COMMA Then
+                        ParserAdvance()
+                    Else
+                        Exit While
+                    End If
+                End While
+                ParserMatch(TOK_RPAREN)
+                expr = invId
+            ElseIf CurrKind() = TOK_XML_CHILD Then
+                Dim tok As Token = ParserAdvance()
+                Dim xmlNodeId = AllocNode(NODE_XML_CHILD, tok.Text, tok.Line)
+                AddChild(xmlNodeId, expr)
+                expr = xmlNodeId
+            ElseIf CurrKind() = TOK_XML_ATTR Then
+                Dim tok As Token = ParserAdvance()
+                Dim xmlNodeId = AllocNode(NODE_XML_ATTR, tok.Text, tok.Line)
+                AddChild(xmlNodeId, expr)
+                expr = xmlNodeId
+            ElseIf CurrKind() = TOK_XML_DESC Then
+                Dim tok As Token = ParserAdvance()
+                Dim xmlNodeId = AllocNode(NODE_XML_DESC, tok.Text, tok.Line)
+                AddChild(xmlNodeId, expr)
+                expr = xmlNodeId
+            ElseIf CurrKind() = TOK_LPAREN Then
+                ParserAdvance()
+                Dim invId = AllocNode(NODE_INVOKE, "call", CurrLine())
+                AddChild(invId, expr)
+
+                While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                    Dim argId = ParseExpression()
+                    AddChild(invId, argId)
+                    If CurrKind() = TOK_COMMA Then
+                        ParserAdvance()
+                    Else
+                        Exit While
+                    End If
+                End While
+                ParserMatch(TOK_RPAREN)
+                expr = invId
+            Else
+                Exit While
+            End If
+        End While
+
+        Return expr
+    End Function
+
+    Function ParsePrimary() As Integer
+        Dim k = CurrKind()
+        If k = TOK_INT Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, tok.Text, tok.Line)
+            Nodes(n).IntValue = tok.IntValue
+            Nodes(n).TypeName = "Integer"
+            Return n
+        ElseIf k = TOK_STR Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, tok.Text, tok.Line)
+            Nodes(n).StringValue = tok.Text
+            Nodes(n).TypeName = "String"
+            Return n
+        ElseIf k = TOK_TRUE Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, "True", tok.Line)
+            Nodes(n).IntValue = 1
+            Nodes(n).TypeName = "Boolean"
+            Return n
+        ElseIf k = TOK_FALSE Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, "False", tok.Line)
+            Nodes(n).IntValue = 0
+            Nodes(n).TypeName = "Boolean"
+            Return n
+        ElseIf k = TOK_LBRACKET Then
+            ' Array Literal [1, 2, 3]
+            ParserAdvance()
+            Dim arrId = AllocNode(NODE_ARRAY_LIT, "[]", CurrLine())
+            While CurrKind() <> TOK_RBRACKET And CurrKind() <> TOK_EOF
+                Dim elem = ParseExpression()
+                AddChild(arrId, elem)
+                If CurrKind() = TOK_COMMA Then
+                    ParserAdvance()
+                Else
+                    Exit While
+                End If
+            End While
+            ParserMatch(TOK_RBRACKET)
+            Return arrId
+        ElseIf k = TOK_LPAREN Then
+            ParserAdvance()
+            Dim e = ParseExpression()
+            ParserMatch(TOK_RPAREN)
+            Return e
+        ElseIf k = TOK_FROM Then
+            ' LINQ Query: From x In src [Where ...] Select ...
+            ParserAdvance()
+            Dim rVar As String = ParserMatch(TOK_IDENT).Text
+            ParserMatch(TOK_IN)
+            Dim srcExpr = ParseExpression()
+            Dim whereExpr = -1
+            If CurrKind() = TOK_WHERE Then
+                ParserAdvance()
+                whereExpr = ParseExpression()
+            End If
+            ParserMatch(TOK_SELECT)
+            Dim selExpr = ParseExpression()
+
+            Dim qId = AllocNode(NODE_QUERY, rVar, CurrLine())
+            AddChild(qId, srcExpr)
+            If whereExpr >= 0 Then AddChild(qId, whereExpr)
+            AddChild(qId, selExpr)
+            Return qId
+        ElseIf k = TOK_IF Then
+            ParserAdvance()
+            ParserMatch(TOK_LPAREN)
+            Dim firstPart = ParseExpression()
+            ParserMatch(TOK_COMMA)
+            Dim secondPart = ParseExpression()
+            Dim thirdPart = -1
+            If CurrKind() = TOK_COMMA Then
+                ParserAdvance()
+                thirdPart = ParseExpression()
+            End If
+            ParserMatch(TOK_RPAREN)
+            Dim ifExprId = AllocNode(NODE_IF_EXPR, "if_expr", CurrLine())
+            AddChild(ifExprId, firstPart)
+            AddChild(ifExprId, secondPart)
+            If thirdPart >= 0 Then AddChild(ifExprId, thirdPart)
+            Return ifExprId
+        ElseIf k = TOK_NOTHING Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, "NULL", tok.Line)
+            Nodes(n).TypeName = "Pointer"
+            Return n
+        ElseIf k = TOK_ME Then
+            Dim tok As Token = ParserAdvance()
+            Dim m = AllocNode(NODE_ME, "Me", tok.Line)
+            Return m
+        ElseIf k = TOK_MYBASE Then
+            Dim tok As Token = ParserAdvance()
+            Dim mb = AllocNode(NODE_MYBASE, "MyBase", tok.Line)
+            Return mb
+        ElseIf k = TOK_NEW Then
+            Dim tok As Token = ParserAdvance()
+            Dim typeName As String = ParseTypeNameEx(False)
+            Dim newId = AllocNode(NODE_NEW, typeName, tok.Line)
+            If CurrKind() = TOK_LPAREN Then
+                ParserAdvance()
+                While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                    Dim argId = ParseExpression()
+                    If argId >= 0 Then AddChild(newId, argId)
+                    If CurrKind() = TOK_COMMA Then
+                        ParserAdvance()
+                    Else
+                        Exit While
+                    End If
+                End While
+                ParserMatch(TOK_RPAREN)
+            End If
+            Return newId
+        ElseIf k = TOK_IDENT Then
+            Dim tok As Token = ParserAdvance()
+            Dim id = AllocNode(NODE_IDENT, tok.Text, tok.Line)
+            Return id
+        Else
+            Dim tok As Token = ParserAdvance()
+            Dim errId = AllocNode(NODE_LITERAL, "0", tok.Line)
+            Return errId
+        End If
+    End Function
+End Module
+End Module

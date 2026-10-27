@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="VbcExtension.f8a7e089-9a7c-4742-83b5-4b360b9381ea" Version="1.0.0" Language="en-US" Publisher="VBC" />
+    <DisplayName>VBC Language Support</DisplayName>
+    <Description xml:space="preserve">Visual Basic C (VBC) language extension for Visual Studio with IntelliSense and Goose data stack memory model.</Description>
+    <MoreInfo>https://github.com/aardappel/goose</MoreInfo>
+    <License></License>
+    <Icon></Icon>
+    <PreviewImage></PreviewImage>
+    <Tags>vbc, visual basic, intellisense, lsp, goose</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 19.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[17.0, 19.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0, 19.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" Version="[4.7.2,)" />
+  </Dependencies>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0, 19.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="VbcExtension" Path="|VbcExtension|" />
+  </Assets>
+</PackageManifest>

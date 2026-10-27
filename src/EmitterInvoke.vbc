@@ -1,0 +1,668 @@
+﻿Imports System
+
+Module EmitterModule
+    Function EmitInvoke(eId As Integer) As String
+            Dim calleeNode = Nodes(eId).FirstChild
+            If Nodes(calleeNode).Kind = NODE_NULL_COND_MEMBER Then
+                Dim targetNode = Nodes(calleeNode).FirstChild
+                Dim targetStr = EmitExpr(targetNode)
+                Dim memberName = Nodes(calleeNode).Name
+                Dim targetType = GetExprTypeName(targetNode)
+                If targetType.Length > 0 Then targetType = ResolveTypeName(targetType)
+
+                If IsNullableType(targetType) Then
+                    If CaseInsensitiveEquals(memberName, "ToString") Then
+                        Return "({ " & MapCType(targetType) & " _t = " & targetStr & "; (_t.has_value ? vbc_i64_to_str(_stack, (int64_t)_t.value) : vbc_str_empty()); })"
+                    ElseIf CaseInsensitiveEquals(memberName, "GetValueOrDefault") Then
+                        Dim defArg = Nodes(calleeNode).NextSibling
+                        Dim defStr = If(defArg >= 0, EmitExpr(defArg), "0")
+                        Return "({ " & MapCType(targetType) & " _t = " & targetStr & "; (_t.has_value ? _t.value : " & defStr & "); })"
+                    End If
+                ElseIf IsInterfaceType(targetType) Then
+                    Dim callArgs = "_stack, _t.obj"
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    While arg <> -1
+                        callArgs = callArgs & ", " & EmitExpr(arg)
+                        arg = Nodes(arg).NextSibling
+                    End While
+                    Dim retType = "Integer"
+                    Dim ifNode = FindInterfaceNode(targetType)
+                    If ifNode >= 0 Then
+                        Dim ch = Nodes(ifNode).FirstChild
+                        While ch <> -1
+                            If CaseInsensitiveEquals(Nodes(ch).Name, memberName) Then retType = Nodes(ch).TypeName
+                            ch = Nodes(ch).NextSibling
+                        End While
+                    End If
+                    Dim defVal = GetTypeDefaultValue(retType)
+                    Return "({ Vbc_" & MangleName(targetType) & " _t = " & targetStr & "; (_t.obj != NULL ? _t._vtable->" & memberName & "(" & callArgs & ") : " & defVal & "); })"
+                ElseIf IsClassType(targetType) Then
+                    Dim declClass = FindClassMethodDeclaringClass(targetType, memberName)
+                    Dim callArgs = "_stack, ((Vbc_" & MangleName(declClass) & "*)_t)"
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    While arg <> -1
+                        callArgs = callArgs & ", " & EmitExpr(arg)
+                        arg = Nodes(arg).NextSibling
+                    End While
+                    Dim retType = "Integer"
+                    Dim mNode = FindClassMethod(targetType, memberName)
+                    If mNode >= 0 Then retType = Nodes(mNode).TypeName
+                    Dim defVal = GetTypeDefaultValue(retType)
+                    Return "({ Vbc_" & MangleName(targetType) & "* _t = " & targetStr & "; (_t != NULL ? Vbc_" & MangleName(declClass) & "_" & memberName & "(" & callArgs & ") : " & defVal & "); })"
+                ElseIf CaseInsensitiveEquals(targetType, "String") Then
+                    If CaseInsensitiveEquals(memberName, "ToString") Then
+                        Return targetStr
+                    ElseIf CaseInsensitiveEquals(memberName, "ToUpper") Then
+                        Return "({ vbc_string_t _t = " & targetStr & "; (_t.data != NULL ? vbc_str_to_upper(_stack, _t) : vbc_str_empty()); })"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToLower") Then
+                        Return "({ vbc_string_t _t = " & targetStr & "; (_t.data != NULL ? vbc_str_to_lower(_stack, _t) : vbc_str_empty()); })"
+                    End If
+                End If
+            End If
+
+            If Nodes(calleeNode).Kind = NODE_MEMBER Then
+                Dim targetNode = Nodes(calleeNode).FirstChild
+                Dim targetStr = EmitExpr(targetNode)
+                Dim memberName = Nodes(calleeNode).Name
+                Dim targetType = GetExprTypeName(targetNode)
+                If targetType.Length > 0 Then
+                    targetType = ResolveTypeName(targetType)
+                End If
+
+                If Nodes(targetNode).Kind = NODE_MYBASE Then
+                    If currentEnclosingClass.Length > 0 Then
+                        Dim cId = FindClassNode(currentEnclosingClass)
+                        If cId >= 0 And Nodes(cId).TypeName.Length > 0 Then
+                            Dim baseClass As String = ResolveTypeName(Nodes(cId).TypeName)
+                            Dim argsList = "_stack, ((Vbc_" & MangleName(baseClass) & "*)Me)"
+                            Dim arg = Nodes(calleeNode).NextSibling
+                            While arg <> -1
+                                argsList = argsList & ", " & EmitExpr(arg)
+                                arg = Nodes(arg).NextSibling
+                            End While
+                            If CaseInsensitiveEquals(memberName, "New") Then
+                                Return "Vbc_" & MangleName(baseClass) & "__ctor(" & argsList & ")"
+                            Else
+                                Return "Vbc_" & MangleName(baseClass) & "_" & memberName & "(" & argsList & ")"
+                            End If
+                        End If
+                    End If
+                End If
+
+                If IsInterfaceType(targetType) Then
+                    Dim callArgs = "_stack, " & targetStr & ".obj"
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    While arg <> -1
+                        callArgs = callArgs & ", " & EmitExpr(arg)
+                        arg = Nodes(arg).NextSibling
+                    End While
+                    Return "(" & targetStr & "._vtable->" & memberName & "(" & callArgs & "))"
+                End If
+
+                If IsNullableType(targetType) Then
+                    If CaseInsensitiveEquals(memberName, "GetValueOrDefault") Then
+                        Dim defArg = Nodes(calleeNode).NextSibling
+                        Dim defStr = If(defArg >= 0, EmitExpr(defArg), "0")
+                        Return "(" & targetStr & ".has_value ? " & targetStr & ".value : " & defStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToString") Then
+                        Return "(" & targetStr & ".has_value ? vbc_i64_to_str(_stack, (int64_t)" & targetStr & ".value) : vbc_str_empty())"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetType, "XDocument") Or CaseInsensitiveEquals(targetType, "XElement") Then
+                    If CaseInsensitiveEquals(memberName, "ToString") Then
+                        Return "vbc_xml_to_string(_stack, (vbc_xml_node_t*)(" & targetStr & "))"
+                    ElseIf CaseInsensitiveEquals(memberName, "Elements") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim tagStr = If(p1 >= 0, "(" & EmitExpr(p1) & ").data", "NULL")
+                        Return "vbc_xml_element_get_elements(_stack, (vbc_xml_node_t*)(" & targetStr & "), " & tagStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Descendants") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim tagStr = If(p1 >= 0, "(" & EmitExpr(p1) & ").data", "NULL")
+                        Return "vbc_xml_element_get_descendants(_stack, (vbc_xml_node_t*)(" & targetStr & "), " & tagStr & ")"
+                    End If
+                End If
+
+                If IsClassType(targetType) Then
+                    If ClassHasVirtualMethod(targetType, memberName) Then
+                        Dim rootNode = GetRootClassNode(FindClassNode(targetType))
+                        Dim rootName = Nodes(rootNode).Name
+                        Dim callArgs = "_stack, (void*)" & targetStr
+                        Dim arg = Nodes(calleeNode).NextSibling
+                        While arg <> -1
+                            callArgs = callArgs & ", " & EmitExpr(arg)
+                            arg = Nodes(arg).NextSibling
+                        End While
+                        Return "(((const Vbc_" & MangleName(rootName) & "_VTable*)((Vbc_" & MangleName(rootName) & "*)" & targetStr & ")->_vtable)->" & memberName & "(" & callArgs & "))"
+                    Else
+                        Dim declClass As String = FindClassMethodDeclaringClass(targetType, memberName)
+                        Dim callArgs = "_stack, ((Vbc_" & MangleName(declClass) & "*)" & targetStr & ")"
+                        Dim arg = Nodes(calleeNode).NextSibling
+                        While arg <> -1
+                            callArgs = callArgs & ", " & EmitExpr(arg)
+                            arg = Nodes(arg).NextSibling
+                        End While
+                        Return "Vbc_" & MangleName(declClass) & "_" & memberName & "(" & callArgs & ")"
+                    End If
+                End If
+
+                If IsStructureType(targetType) Then
+                    Dim thisPtr As String = If(CaseInsensitiveEquals(targetStr, "Me"), "Me", "&" & targetStr)
+                    Dim callArgs = "_stack, " & thisPtr
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    While arg <> -1
+                        callArgs = callArgs & ", " & EmitExpr(arg)
+                        arg = Nodes(arg).NextSibling
+                    End While
+                    Return "Vbc_" & MangleName(targetType) & "_" & memberName & "(" & callArgs & ")"
+                End If
+
+                If CaseInsensitiveEquals(targetType, "Dictionary_Of_String_String") Or CaseInsensitiveEquals(targetType, "System.Collections.Generic.Dictionary_Of_String_String") Then
+                    If CaseInsensitiveEquals(memberName, "add") Or CaseInsensitiveEquals(memberName, "set") Then
+                        Dim kArg = Nodes(calleeNode).NextSibling
+                        Dim vArg = Nodes(kArg).NextSibling
+                        Return "vbc_dict_set(_stack, " & targetStr & ", " & EmitExpr(kArg) & ", " & EmitExpr(vArg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "get") Or CaseInsensitiveEquals(memberName, "item") Then
+                        Dim kArg = Nodes(calleeNode).NextSibling
+                        Return "vbc_dict_get(" & targetStr & ", " & EmitExpr(kArg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "containskey") Then
+                        Dim kArg = Nodes(calleeNode).NextSibling
+                        Return "vbc_dict_contains(" & targetStr & ", " & EmitExpr(kArg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "count") Then
+                        Return "vbc_dict_count(" & targetStr & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetType, "Bitmap") Or CaseInsensitiveEquals(targetType, "System.Drawing.Bitmap") Then
+                    If CaseInsensitiveEquals(memberName, "Resize") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_image_resize(_stack, &" & targetStr & ", " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "RotateFlip") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Return "vbc_image_rotate_flip(&" & targetStr & ", " & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToJpegBytes") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim qStr = If(p1 >= 0, EmitExpr(p1), "80")
+                        Return "vbc_image_to_jpeg_bytes(_stack, &" & targetStr & ", " & qStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Save") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Dim qStr = If(p2 >= 0, EmitExpr(p2), "80")
+                        Return "vbc_image_save_jpeg(&" & targetStr & ", " & EmitExpr(p1) & ", " & qStr & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetType, "FileSystemWatcher") Or CaseInsensitiveEquals(targetType, "System.IO.FileSystemWatcher") Then
+                    If CaseInsensitiveEquals(memberName, "Start") Then
+                        Return "vbc_fs_watcher_start(&" & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "HasChanges") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim tStr = If(p1 >= 0, EmitExpr(p1), "100")
+                        Return "vbc_fs_watcher_has_changes(&" & targetStr & ", " & tStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Stop") Then
+                        Return "vbc_fs_watcher_stop(&" & targetStr & ")"
+                    End If
+                End If
+
+                Dim dotted As String = GetDottedPath(targetNode)
+                If dotted.Length > 0 Then
+                    Dim staticType As String = ResolveTypeName(dotted)
+                    If FindClassNode(staticType) >= 0 Or FindStructNode(staticType) >= 0 Or FindModuleNode(staticType) >= 0 Then
+                        Dim callArgs = "_stack"
+                        Dim arg = Nodes(calleeNode).NextSibling
+                        While arg <> -1
+                            callArgs = callArgs & ", " & EmitExpr(arg)
+                            arg = Nodes(arg).NextSibling
+                        End While
+                        Return "Vbc_" & MangleName(staticType) & "_" & memberName & "(" & callArgs & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "console") Or CaseInsensitiveEquals(targetStr, "System.Console") Or CaseInsensitiveEquals(dotted, "System.Console") Then
+                    If CaseInsensitiveEquals(memberName, "writeline") Or CaseInsensitiveEquals(memberName, "print") Then
+                        Dim argNode = Nodes(calleeNode).NextSibling
+                        If argNode >= 0 Then
+                            Dim argStr = EmitExpr(argNode)
+                            Return "vbc_println(" & argStr & ")"
+                        Else
+                            Return "puts("""")"
+                        End If
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "file") Or CaseInsensitiveEquals(targetStr, "System.IO.File") Or CaseInsensitiveEquals(dotted, "System.IO.File") Then
+                    If CaseInsensitiveEquals(memberName, "readalltext") Then
+                        Dim pathStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                        Return "vbc_file_read_all_text(_stack, " & pathStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "writealltext") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_file_write_all_text(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "directory") Or CaseInsensitiveEquals(targetStr, "System.IO.Directory") Or CaseInsensitiveEquals(dotted, "System.IO.Directory") Then
+                    If CaseInsensitiveEquals(memberName, "exists") Then
+                        Dim pathStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                        Return "vbc_dir_exists(" & pathStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "getfiles") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        If p2 >= 0 Then
+                            Return "vbc_dir_get_files(_stack, " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                        Else
+                            Return "vbc_dir_get_files(_stack, " & EmitExpr(p1) & ", vbc_str_lit("".vbc""))"
+                        End If
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "process") Or CaseInsensitiveEquals(targetStr, "System.Diagnostics.Process") Or CaseInsensitiveEquals(dotted, "System.Diagnostics.Process") Then
+                    If CaseInsensitiveEquals(memberName, "execute") Then
+                        Dim cmdStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                        Return "vbc_process_execute(" & cmdStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "compilec") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_compile_c(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "thread") Or CaseInsensitiveEquals(targetStr, "System.Threading.Thread") Or CaseInsensitiveEquals(dotted, "System.Threading.Thread") Then
+                    If CaseInsensitiveEquals(memberName, "sleep") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Return "vbc_thread_sleep(" & EmitExpr(p1) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "SHA256") Or CaseInsensitiveEquals(targetStr, "System.Security.Cryptography.SHA256") Or CaseInsensitiveEquals(dotted, "System.Security.Cryptography.SHA256") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "HashData") Then
+                        Return "vbc_sha256_hash_data(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    ElseIf CaseInsensitiveEquals(memberName, "HashDataToHexString") Then
+                        Return "vbc_sha256_hash_to_hex(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "MD5") Or CaseInsensitiveEquals(targetStr, "System.Security.Cryptography.MD5") Or CaseInsensitiveEquals(dotted, "System.Security.Cryptography.MD5") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "HashData") Then
+                        Return "vbc_md5_hash_data(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    ElseIf CaseInsensitiveEquals(memberName, "HashDataToHexString") Then
+                        Return "vbc_md5_hash_to_hex(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "RandomNumberGenerator") Or CaseInsensitiveEquals(targetStr, "System.Security.Cryptography.RandomNumberGenerator") Or CaseInsensitiveEquals(dotted, "System.Security.Cryptography.RandomNumberGenerator") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "GetBytes") Then
+                        Return "vbc_crypto_get_random_bytes(_stack, " & EmitExpr(arg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "GetHexString") Then
+                        Return "vbc_crypto_to_hex_string(_stack, vbc_crypto_get_random_bytes(_stack, " & EmitExpr(arg) & ").data, " & EmitExpr(arg) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Convert") Or CaseInsensitiveEquals(targetStr, "System.Convert") Or CaseInsensitiveEquals(dotted, "System.Convert") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "ToHexString") Then
+                        Return "vbc_crypto_to_hex_string(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    ElseIf CaseInsensitiveEquals(memberName, "FromHexString") Then
+                        Return "vbc_crypto_from_hex_string(_stack, " & EmitExpr(arg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToBase64String") Then
+                        Return "vbc_crypto_to_base64_string(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    ElseIf CaseInsensitiveEquals(memberName, "FromBase64String") Then
+                        Return "vbc_crypto_from_base64_string(_stack, " & EmitExpr(arg) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "BitConverter") Or CaseInsensitiveEquals(targetStr, "System.BitConverter") Or CaseInsensitiveEquals(dotted, "System.BitConverter") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = Nodes(p1).NextSibling
+                    Dim p3 = Nodes(p2).NextSibling
+                    If CaseInsensitiveEquals(memberName, "ToUInt16") Then
+                        Return "vbc_bitconverter_to_uint16((const uint8_t*)(" & EmitExpr(p1) & ").data, (" & EmitExpr(p1) & ").len, " & EmitExpr(p2) & ", " & EmitExpr(p3) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToUInt32") Then
+                        Return "vbc_bitconverter_to_uint32((const uint8_t*)(" & EmitExpr(p1) & ").data, (" & EmitExpr(p1) & ").len, " & EmitExpr(p2) & ", " & EmitExpr(p3) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "GZip") Or CaseInsensitiveEquals(targetStr, "System.IO.Compression.GZip") Or CaseInsensitiveEquals(dotted, "System.IO.Compression.GZip") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "Compress") Then
+                        Return "vbc_gzip_compress(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    ElseIf CaseInsensitiveEquals(memberName, "Decompress") Then
+                        Return "vbc_gzip_decompress(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Bitmap") Or CaseInsensitiveEquals(targetStr, "System.Drawing.Bitmap") Or CaseInsensitiveEquals(dotted, "System.Drawing.Bitmap") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "FromFile") Then
+                        Return "vbc_image_load_from_file(_stack, " & EmitExpr(arg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "FromBytes") Then
+                        Return "vbc_image_load_from_bytes(_stack, (const uint8_t*)(" & EmitExpr(arg) & ").data, (" & EmitExpr(arg) & ").len)"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "FileSystemWatcher") Or CaseInsensitiveEquals(targetStr, "System.IO.FileSystemWatcher") Or CaseInsensitiveEquals(dotted, "System.IO.FileSystemWatcher") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = Nodes(p1).NextSibling
+                    If CaseInsensitiveEquals(memberName, "Create") Then
+                        Return "vbc_fs_watcher_create(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "lsp") Then
+                    If CaseInsensitiveEquals(memberName, "init") Then
+                        Return "vbc_lsp_init()"
+                    ElseIf CaseInsensitiveEquals(memberName, "readmessage") Then
+                        Return "vbc_lsp_read_msg(_stack)"
+                    ElseIf CaseInsensitiveEquals(memberName, "sendmessage") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Return "vbc_lsp_send_msg(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "getstr") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_json_get_str(_stack, " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "getint") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_json_get_int(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                ' Slice methods: .Add, .Push
+                If CaseInsensitiveEquals(memberName, "add") Or CaseInsensitiveEquals(memberName, "push") Then
+                    Dim valStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                    Return "({ __typeof__(" & valStr & ") _item = (" & valStr & "); if ((" & targetStr & ").elem_size == 0) (" & targetStr & ").elem_size = sizeof(_item); vbc_slice_push(_stack, &" & targetStr & ", &_item); })"
+                End If
+
+                If CaseInsensitiveEquals(memberName, "substring") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = Nodes(p1).NextSibling
+                    Return "vbc_str_substring(_stack, " & targetStr & ", " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                End If
+                If CaseInsensitiveEquals(memberName, "byteat") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Return "vbc_str_byte_at(" & targetStr & ", " & EmitExpr(p1) & ")"
+                End If
+
+                If CaseInsensitiveEquals(targetType, "String") Or IsStringExpr(targetNode) Then
+                    If CaseInsensitiveEquals(memberName, "StartsWith") Then
+                        Return "vbc_str_starts_with(" & targetStr & ", " & EmitExpr(Nodes(calleeNode).NextSibling) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "EndsWith") Then
+                        Return "vbc_str_ends_with(" & targetStr & ", " & EmitExpr(Nodes(calleeNode).NextSibling) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Contains") Then
+                        Return "vbc_str_contains(" & targetStr & ", " & EmitExpr(Nodes(calleeNode).NextSibling) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "IndexOf") Then
+                        Return "vbc_str_index_of(" & targetStr & ", " & EmitExpr(Nodes(calleeNode).NextSibling) & ", 0)"
+                    ElseIf CaseInsensitiveEquals(memberName, "LastIndexOf") Then
+                        Return "vbc_str_last_index_of(" & targetStr & ", " & EmitExpr(Nodes(calleeNode).NextSibling) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Trim") Then
+                        Return "vbc_str_trim(_stack, " & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "TrimStart") Then
+                        Return "vbc_str_trim_start(_stack, " & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "TrimEnd") Then
+                        Return "vbc_str_trim_end(_stack, " & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToLower") Then
+                        Return "vbc_str_to_lower(_stack, " & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToUpper") Then
+                        Return "vbc_str_to_upper(_stack, " & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Replace") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_str_replace(_stack, " & targetStr & ", " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Split") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Return "vbc_str_split(_stack, " & targetStr & ", " & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "PadLeft") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Dim chStr = If(p2 >= 0, EmitExpr(p2), "' '")
+                        Return "vbc_str_pad_left(_stack, " & targetStr & ", " & EmitExpr(p1) & ", " & chStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "PadRight") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Dim chStr = If(p2 >= 0, EmitExpr(p2), "' '")
+                        Return "vbc_str_pad_right(_stack, " & targetStr & ", " & EmitExpr(p1) & ", " & chStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToString") Then
+                        Return targetStr
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "String") Or CaseInsensitiveEquals(targetStr, "System.String") Then
+                    If CaseInsensitiveEquals(memberName, "Join") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_str_join(_stack, " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Math") Or CaseInsensitiveEquals(targetStr, "System.Math") Or CaseInsensitiveEquals(dotted, "System.Math") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = If(p1 >= 0, Nodes(p1).NextSibling, -1)
+                    Dim p3 = If(p2 >= 0, Nodes(p2).NextSibling, -1)
+                    If CaseInsensitiveEquals(memberName, "Abs") Then
+                        Dim t = GetExprTypeName(p1)
+                        If CaseInsensitiveEquals(t, "Double") Or CaseInsensitiveEquals(t, "Single") Then
+                            Return "vbc_math_abs_d(" & EmitExpr(p1) & ")"
+                        Else
+                            Return "vbc_math_abs_i(" & EmitExpr(p1) & ")"
+                        End If
+                    ElseIf CaseInsensitiveEquals(memberName, "Min") Then
+                        Dim t = GetExprTypeName(p1)
+                        If CaseInsensitiveEquals(t, "Double") Or CaseInsensitiveEquals(t, "Single") Then
+                            Return "vbc_math_min_d(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                        Else
+                            Return "vbc_math_min_i(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                        End If
+                    ElseIf CaseInsensitiveEquals(memberName, "Max") Then
+                        Dim t = GetExprTypeName(p1)
+                        If CaseInsensitiveEquals(t, "Double") Or CaseInsensitiveEquals(t, "Single") Then
+                            Return "vbc_math_max_d(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                        Else
+                            Return "vbc_math_max_i(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                        End If
+                    ElseIf CaseInsensitiveEquals(memberName, "Clamp") Then
+                        Dim t = GetExprTypeName(p1)
+                        If CaseInsensitiveEquals(t, "Double") Or CaseInsensitiveEquals(t, "Single") Then
+                            Return "vbc_math_clamp_d(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ", " & EmitExpr(p3) & ")"
+                        Else
+                            Return "vbc_math_clamp_i(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ", " & EmitExpr(p3) & ")"
+                        End If
+                    ElseIf CaseInsensitiveEquals(memberName, "Floor") Then Return "vbc_math_floor(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Ceiling") Then Return "vbc_math_ceiling(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Round") Then Return "vbc_math_round(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Truncate") Then Return "vbc_math_truncate(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Sign") Then Return "vbc_math_sign(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Sqrt") Then Return "vbc_math_sqrt(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Pow") Then Return "vbc_math_pow(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Exp") Then Return "vbc_math_exp(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Log") Then Return "vbc_math_log(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Log10") Then Return "vbc_math_log10(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Sin") Then Return "vbc_math_sin(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Cos") Then Return "vbc_math_cos(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Tan") Then Return "vbc_math_tan(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Asin") Then Return "vbc_math_asin(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Acos") Then Return "vbc_math_acos(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Atan") Then Return "vbc_math_atan(" & EmitExpr(p1) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Atan2") Then Return "vbc_math_atan2(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "XDocument") Or CaseInsensitiveEquals(targetStr, "System.Xml.Linq.XDocument") Or CaseInsensitiveEquals(dotted, "System.Xml.Linq.XDocument") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "Parse") Then
+                        Return "vbc_xml_parse(_stack, " & EmitExpr(arg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Load") Then
+                        Return "vbc_xml_parse(_stack, vbc_file_read_all_text(_stack, " & EmitExpr(arg) & "))"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "XElement") Or CaseInsensitiveEquals(targetStr, "System.Xml.Linq.XElement") Or CaseInsensitiveEquals(dotted, "System.Xml.Linq.XElement") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "Parse") Then
+                        Return "vbc_xml_get_root(vbc_xml_parse(_stack, " & EmitExpr(arg) & "))"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "TimeSpan") Or CaseInsensitiveEquals(targetStr, "System.TimeSpan") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "FromSeconds") Then Return "vbc_timespan_from_seconds(" & EmitExpr(arg) & ")"
+                    If CaseInsensitiveEquals(memberName, "FromMilliseconds") Then Return "vbc_timespan_from_milliseconds(" & EmitExpr(arg) & ")"
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Stopwatch") Or CaseInsensitiveEquals(targetStr, "System.Diagnostics.Stopwatch") Then
+                    If CaseInsensitiveEquals(memberName, "StartNew") Then Return "vbc_stopwatch_start_new()"
+                End If
+
+                If CaseInsensitiveEquals(targetType, "Stopwatch") Then
+                    If CaseInsensitiveEquals(memberName, "Stop") Then Return "vbc_stopwatch_stop(&" & targetStr & ")"
+                    If CaseInsensitiveEquals(memberName, "Restart") Then Return "vbc_stopwatch_restart(&" & targetStr & ")"
+                End If
+
+                If CaseInsensitiveEquals(targetType, "DateTime") Then
+                    If CaseInsensitiveEquals(memberName, "ToString") Then Return "vbc_datetime_to_string(_stack, " & targetStr & ", vbc_str_empty())"
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Path") Or CaseInsensitiveEquals(targetStr, "System.IO.Path") Or CaseInsensitiveEquals(dotted, "System.IO.Path") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = If(p1 >= 0, Nodes(p1).NextSibling, -1)
+                    If CaseInsensitiveEquals(memberName, "Combine") Then Return "vbc_path_combine(_stack, " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    If CaseInsensitiveEquals(memberName, "GetFileName") Then Return "vbc_path_get_file_name(_stack, " & EmitExpr(p1) & ")"
+                    If CaseInsensitiveEquals(memberName, "GetExtension") Then Return "vbc_path_get_extension(_stack, " & EmitExpr(p1) & ")"
+                    If CaseInsensitiveEquals(memberName, "GetDirectoryName") Then Return "vbc_path_get_directory_name(_stack, " & EmitExpr(p1) & ")"
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Guid") Or CaseInsensitiveEquals(targetStr, "System.Guid") Or CaseInsensitiveEquals(dotted, "System.Guid") Then
+                    If CaseInsensitiveEquals(memberName, "NewGuid") Then Return "vbc_guid_new_guid(_stack)"
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "Environment") Or CaseInsensitiveEquals(targetStr, "System.Environment") Or CaseInsensitiveEquals(dotted, "System.Environment") Then
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    If CaseInsensitiveEquals(memberName, "GetEnvironmentVariable") Then Return "vbc_env_get_variable(_stack, " & EmitExpr(arg) & ")"
+                End If
+
+                If CaseInsensitiveEquals(targetType, "StringBuilder") Or CaseInsensitiveEquals(targetType, "System.Text.StringBuilder") Then
+                    If CaseInsensitiveEquals(memberName, "Append") Then
+                        Dim arg = Nodes(calleeNode).NextSibling
+                        Return "vbc_sb_append(&" & targetStr & ", " & EmitExpr(arg) & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "AppendLine") Then
+                        Dim arg = Nodes(calleeNode).NextSibling
+                        Dim argStr = If(arg >= 0, EmitExpr(arg), "vbc_str_empty()")
+                        Return "vbc_sb_append_line(&" & targetStr & ", " & argStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "Clear") Then
+                        Return "vbc_sb_clear(&" & targetStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "ToString") Then
+                        Return "vbc_sb_to_string(&" & targetStr & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "File") Or CaseInsensitiveEquals(targetStr, "System.IO.File") Or CaseInsensitiveEquals(dotted, "System.IO.File") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = If(p1 >= 0, Nodes(p1).NextSibling, -1)
+                    Dim p3 = If(p2 >= 0, Nodes(p2).NextSibling, -1)
+                    If CaseInsensitiveEquals(memberName, "Delete") Then Return "vbc_file_delete(" & EmitExpr(p1) & ")"
+                    If CaseInsensitiveEquals(memberName, "Copy") Then
+                        Dim ovrStr = If(p3 >= 0, EmitExpr(p3), "true")
+                        Return "vbc_file_copy(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ", " & ovrStr & ")"
+                    End If
+                    If CaseInsensitiveEquals(memberName, "ReadAllBytes") Then Return "vbc_file_read_all_bytes(_stack, " & EmitExpr(p1) & ")"
+                    If CaseInsensitiveEquals(memberName, "WriteAllBytes") Then Return "vbc_file_write_all_bytes(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                End If
+            End If
+
+            ' Regular function call or slice indexing: Nodes(i), p_Tokens(i), words(i), ...
+            Dim fnName = EmitExpr(calleeNode)
+
+            If currentEnclosingClass.Length > 0 And FindClassMethod(currentEnclosingClass, fnName) >= 0 Then
+                If ClassHasVirtualMethod(currentEnclosingClass, fnName) Then
+                    Dim rootNode = GetRootClassNode(FindClassNode(currentEnclosingClass))
+                    Dim rootName = Nodes(rootNode).Name
+                    Dim callArgs = "_stack, (void*)Me"
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    While arg <> -1
+                        callArgs = callArgs & ", " & EmitExpr(arg)
+                        arg = Nodes(arg).NextSibling
+                    End While
+                    Return "(((const Vbc_" & rootName & "_VTable*)((Vbc_" & rootName & "*)Me)->_vtable)->" & fnName & "(" & callArgs & "))"
+                Else
+                    Dim declClass As String = FindClassMethodDeclaringClass(currentEnclosingClass, fnName)
+                    Dim callArgs = "_stack, ((Vbc_" & declClass & "*)Me)"
+                    Dim arg = Nodes(calleeNode).NextSibling
+                    While arg <> -1
+                        callArgs = callArgs & ", " & EmitExpr(arg)
+                        arg = Nodes(arg).NextSibling
+                    End While
+                    Return "Vbc_" & declClass & "_" & fnName & "(" & callArgs & ")"
+                End If
+            ElseIf currentEnclosingStruct.Length > 0 And FindStructMethod(currentEnclosingStruct, fnName) >= 0 Then
+                Dim callArgs = "_stack, Me"
+                Dim arg = Nodes(calleeNode).NextSibling
+                While arg <> -1
+                    callArgs = callArgs & ", " & EmitExpr(arg)
+                    arg = Nodes(arg).NextSibling
+                End While
+                Return "Vbc_" & currentEnclosingStruct & "_" & fnName & "(" & callArgs & ")"
+            End If
+
+            For li = 0 To currentLocals.Length - 1
+                If CaseInsensitiveEquals(currentLocals(li).Name, fnName) And currentLocals(li).TypeName.Length > 2 And CaseInsensitiveEquals(currentLocals(li).TypeName.Substring(currentLocals(li).TypeName.Length - 2, 2), "()") Then
+                    Dim elemT As String = currentLocals(li).TypeName.Substring(0, currentLocals(li).TypeName.Length - 2)
+                    Dim elemCT = MapCType(elemT)
+                    Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                    Return "(*((" & elemCT & "*)vbc_slice_get(&" & fnName & ", " & idxStr & ")))"
+                End If
+            Next
+            If CaseInsensitiveEquals(fnName, "Nodes") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((Vbc_AstNode*)vbc_slice_get(&Nodes, " & idxStr & ")))"
+            End If
+            If CaseInsensitiveEquals(fnName, "p_Tokens") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((Vbc_Token*)vbc_slice_get(&p_Tokens, " & idxStr & ")))"
+            End If
+            If CaseInsensitiveEquals(fnName, "tokens") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((Vbc_Token*)vbc_slice_get(&tokens, " & idxStr & ")))"
+            End If
+            If CaseInsensitiveEquals(fnName, "args") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((vbc_string_t*)vbc_slice_get(&args, " & idxStr & ")))"
+            End If
+
+            Dim fnId = FindFunctionNode(fnName)
+            Dim paramNode = If(fnId >= 0, Nodes(fnId).FirstChild, -1)
+            Dim argsStr = "_stack"
+            Dim arg = Nodes(calleeNode).NextSibling
+            While arg <> -1
+                Dim argStr = EmitExpr(arg)
+                If paramNode >= 0 And Nodes(paramNode).Kind = NODE_PARAM Then
+                    Dim pType = Nodes(paramNode).TypeName
+                    Dim aType = GetExprTypeName(arg)
+                    If IsClassType(pType) And IsClassType(aType) And Not CaseInsensitiveEquals(pType, aType) Then
+                        argStr = "((Vbc_" & pType & "*)" & argStr & ")"
+                    ElseIf IsInterfaceType(pType) And IsClassType(aType) Then
+                        argStr = "(Vbc_" & MangleName(pType) & "){ .obj = (void*)(" & argStr & "), ._vtable = &_vbc_" & MangleName(aType) & "_" & MangleName(pType) & "_vtable }"
+                    ElseIf IsNullableType(pType) And Not IsNullableType(aType) Then
+                        If CaseInsensitiveEquals(argStr, "0") Or CaseInsensitiveEquals(argStr, "NULL") Then
+                            argStr = "(" & MapCType(pType) & "){0}"
+                        Else
+                            argStr = "(" & MapCType(pType) & "){ .has_value = true, .value = (" & argStr & ") }"
+                        End If
+                    End If
+                    paramNode = Nodes(paramNode).NextSibling
+                End If
+                If (CaseInsensitiveEquals(fnName, "LexerPeek") Or CaseInsensitiveEquals(fnName, "LexerPeekOffset") Or CaseInsensitiveEquals(fnName, "LexerAdvance") Or CaseInsensitiveEquals(fnName, "LexerNextToken")) And Nodes(arg).Kind = NODE_IDENT Then
+                    If Not CaseInsensitiveEquals(argStr, "lex") Then
+                        argStr = "&" & argStr
+                    End If
+                End If
+                argsStr = argsStr & ", " & argStr
+                arg = Nodes(arg).NextSibling
+            End While
+            Dim resolvedFn As String = ResolveTypeName(fnName)
+            Return "Vbc_" & MangleName(resolvedFn) & "(" & argsStr & ")"
+
+    End Function
+End Module

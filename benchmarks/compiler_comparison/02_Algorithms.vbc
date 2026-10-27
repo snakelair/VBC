@@ -1,0 +1,44 @@
+Imports System
+
+Module Algorithms
+    Function Fib(n As Integer) As Integer
+        If n <= 1 Then Return n
+        Return Fib(n - 1) + Fib(n - 2)
+    End Function
+
+    Function Gcd(a As Integer, b As Integer) As Integer
+        While b <> 0
+            Dim t = b
+            b = a Mod b
+            a = t
+        End While
+        Return a
+    End Function
+
+    Function IsPrime(n As Integer) As Boolean
+        If n < 2 Then Return False
+        Dim i = 2
+        While i * i <= n
+            If n Mod i = 0 Then Return False
+            i = i + 1
+        End While
+        Return True
+    End Function
+
+    Function CountPrimes(limit As Integer) As Integer
+        Dim count = 0
+        For i = 2 To limit
+            If IsPrime(i) Then count = count + 1
+        Next
+        Return count
+    End Function
+
+    Sub Main()
+        Dim f = Fib(15)
+        Dim g = Gcd(105, 252)
+        Dim p = CountPrimes(1000)
+        Console.WriteLine(f)
+        Console.WriteLine(g)
+        Console.WriteLine(p)
+    End Sub
+End Module

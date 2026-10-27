@@ -1,0 +1,56 @@
+Imports System
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC LINQ & For Each Showcase ===")
+
+        ' 1. Array declaration
+        Dim numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        ' 2. For Each loop
+        Console.WriteLine("Original numbers via For Each:")
+        For Each n In numbers
+            Console.WriteLine(n)
+        Next
+
+        ' 3. LINQ Query Syntax: From ... Where ... Select
+        Console.WriteLine("Evens multiplied by 10 (LINQ Query Syntax):")
+        Dim evens = From n In numbers Where n Mod 2 = 0 Select n * 10
+        For Each x In evens
+            Console.WriteLine(x)
+        Next
+
+        ' 4. Aggregate Query Syntax: Into Sum()
+        Dim totalSum = Aggregate n In numbers Into Sum()
+        Console.WriteLine("Total sum:")
+        Console.WriteLine(totalSum)
+
+        ' 5. Aggregate Query Syntax: Into Count() with Where
+        Dim evenCount = Aggregate n In numbers Where n Mod 2 = 0 Into Count()
+        Console.WriteLine("Even count:")
+        Console.WriteLine(evenCount)
+
+        ' 6. LINQ Method Syntax: .Where().Select().Sum()
+        Dim methodSum = numbers.Where(Function(x) x > 5).Select(Function(x) x * 2).Sum()
+        Console.WriteLine("Sum of (x > 5) * 2 via Method Syntax:")
+        Console.WriteLine(methodSum)
+
+        ' 7. LINQ Method Syntax: .Count() and .Any()
+        Dim hasOverEight = numbers.Any(Function(x) x > 8)
+        Console.WriteLine("Any > 8:")
+        Console.WriteLine(hasOverEight)
+
+        Dim firstEven = numbers.First(Function(x) x Mod 2 = 0)
+        Console.WriteLine("First even:")
+        Console.WriteLine(firstEven)
+
+        ' 8. Take and Skip
+        Console.WriteLine("Take 3:")
+        Dim top3 = numbers.Take(3)
+        For Each t In top3
+            Console.WriteLine(t)
+        Next
+
+        Console.WriteLine("LINQ tests completed successfully!")
+    End Sub
+End Module

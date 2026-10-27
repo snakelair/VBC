@@ -1,0 +1,82 @@
+{
+  "name": "vbc-language-support",
+  "displayName": "VBC Language Support",
+  "description": "Visual Basic C (VBC) language support with IntelliSense and Goose data stack memory model",
+  "version": "1.0.0",
+  "license": "MIT",
+  "publisher": "vbc",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "vbc",
+        "aliases": [
+          "VBC",
+          "vbc"
+        ],
+        "extensions": [
+          ".vbc"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "vbc"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "vbc",
+        "scopeName": "source.vbc",
+        "path": "./syntaxes/vbc.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "vbc",
+        "path": "./snippets/vbc.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "vbc.compile",
+        "title": "VBC: Compile to Native Executable"
+      },
+      {
+        "command": "vbc.run",
+        "title": "VBC: Run Program"
+      },
+      {
+        "command": "vbc.debug",
+        "title": "VBC: Start Debugging (F5 / Native Debug)"
+      },
+      {
+        "command": "vbc.restartLsp",
+        "title": "VBC: Restart Language Server"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,15 @@
+Module Program
+    Function FormatToken(i As Integer) As String
+        Dim s As String = "id_" & i
+        Return s
+    End Function
+
+    Sub Main()
+        Dim totalLen As Integer = 0
+        For i As Integer = 1 To 5000000
+            Dim tok As String = FormatToken(i)
+            totalLen = totalLen + tok.Length
+        Next
+        Console.WriteLine(totalLen)
+    End Sub
+End Module

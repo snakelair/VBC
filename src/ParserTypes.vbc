@@ -1,0 +1,406 @@
+﻿Imports System
+
+Module ParserModule
+    Sub ParseNamespace(parentId As Integer)
+        ParserMatch(TOK_NAMESPACE)
+        Dim nsName As String = ParserMatch(TOK_IDENT).Text
+        While CurrKind() = TOK_DOT
+            ParserAdvance()
+            nsName = nsName & "." & ParserMatch(TOK_IDENT).Text
+        End While
+        SkipSeparators()
+
+        Dim oldNs As String = p_CurrentNamespace
+        If oldNs.Length > 0 Then
+            p_CurrentNamespace = oldNs & "." & nsName
+        Else
+            p_CurrentNamespace = nsName
+        End If
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            If CurrKind() = TOK_PUBLIC Or CurrKind() = TOK_PRIVATE Or CurrKind() = TOK_PROTECTED Then
+                ParserAdvance()
+            End If
+            If CurrKind() = TOK_MODULE Then
+                Dim modId = ParseModule()
+                AddChild(parentId, modId)
+            ElseIf CurrKind() = TOK_STRUCTURE Then
+                Dim structId = ParseStructure()
+                AddChild(parentId, structId)
+            ElseIf CurrKind() = TOK_CLASS Then
+                Dim classId = ParseClass()
+                AddChild(parentId, classId)
+            ElseIf CurrKind() = TOK_INTERFACE Then
+                Dim ifaceId = ParseInterface()
+                AddChild(parentId, ifaceId)
+            ElseIf CurrKind() = TOK_NAMESPACE Then
+                ParseNamespace(parentId)
+            ElseIf CurrKind() = TOK_SUB Then
+                Dim fnId = ParseFunction(True)
+                If Not CaseInsensitiveEquals(Nodes(fnId).Name, "main") Then
+                    Nodes(fnId).Name = p_CurrentNamespace & "." & Nodes(fnId).Name
+                End If
+                AddChild(parentId, fnId)
+            ElseIf CurrKind() = TOK_FUNCTION Then
+                Dim fnId = ParseFunction(False)
+                If Not CaseInsensitiveEquals(Nodes(fnId).Name, "main") Then
+                    Nodes(fnId).Name = p_CurrentNamespace & "." & Nodes(fnId).Name
+                End If
+                AddChild(parentId, fnId)
+            Else
+                ReportWarning(CurrLine(), 0, "skipping unexpected token in namespace: " & CurrText())
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_NAMESPACE Then ParserAdvance()
+        p_CurrentNamespace = oldNs
+    End Sub
+
+    Function ParseModule() As Integer
+        ParserMatch(TOK_MODULE)
+        Dim modName As String = ParserMatch(TOK_IDENT).Text
+        If p_CurrentNamespace.Length > 0 Then
+            modName = p_CurrentNamespace & "." & modName
+        End If
+        Dim modId = AllocNode(NODE_MODULE, modName, CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            If CurrKind() = TOK_PUBLIC Or CurrKind() = TOK_PRIVATE Or CurrKind() = TOK_PROTECTED Then
+                ParserAdvance()
+            End If
+            If CurrKind() = TOK_STRUCTURE Then
+                Dim sId = ParseStructure()
+                AddChild(modId, sId)
+            ElseIf CurrKind() = TOK_CLASS Then
+                Dim cId = ParseClass()
+                AddChild(modId, cId)
+            ElseIf CurrKind() = TOK_INTERFACE Then
+                Dim ifaceId = ParseInterface()
+                AddChild(modId, ifaceId)
+            ElseIf CurrKind() = TOK_SUB Then
+                Dim fnId = ParseFunction(True)
+                If Not CaseInsensitiveEquals(Nodes(fnId).Name, "main") Then
+                    Nodes(fnId).Name = modName & "." & Nodes(fnId).Name
+                End If
+                AddChild(modId, fnId)
+            ElseIf CurrKind() = TOK_FUNCTION Then
+                Dim fnId = ParseFunction(False)
+                If Not CaseInsensitiveEquals(Nodes(fnId).Name, "main") Then
+                    Nodes(fnId).Name = modName & "." & Nodes(fnId).Name
+                End If
+                AddChild(modId, fnId)
+            ElseIf CurrKind() = TOK_DIM Or CurrKind() = TOK_CONST Or CurrKind() = TOK_IDENT Then
+                Dim varId = ParseVariableDeclaration()
+                AddChild(modId, varId)
+            Else
+                ReportWarning(CurrLine(), 0, "skipping token in module: " & CurrText())
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_MODULE Then ParserAdvance()
+        Return modId
+    End Function
+
+    Function ParseStructure() As Integer
+        ParserMatch(TOK_STRUCTURE)
+        Dim sName As String = ParserMatch(TOK_IDENT).Text
+        If p_CurrentNamespace.Length > 0 Then
+            sName = p_CurrentNamespace & "." & sName
+        End If
+        Dim sId = AllocNode(NODE_STRUCTURE, sName, CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            While CurrKind() = TOK_PUBLIC Or CurrKind() = TOK_PRIVATE Or CurrKind() = TOK_PROTECTED
+                ParserAdvance()
+            End While
+
+            If CurrKind() = TOK_SUB Or CurrKind() = TOK_FUNCTION Then
+                Dim isSub = (CurrKind() = TOK_SUB)
+                Dim fnId = ParseFunction(isSub)
+                If CaseInsensitiveEquals(Nodes(fnId).Name, "New") Then
+                    Nodes(fnId).IntValue = 8
+                End If
+                AddChild(sId, fnId)
+            ElseIf CurrKind() = TOK_DIM Or CurrKind() = TOK_IDENT Then
+                If CurrKind() = TOK_DIM Then ParserAdvance()
+                Dim fldName As String = ParserMatch(TOK_IDENT).Text
+                Dim fldType As String = "Integer"
+                If CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    fldType = ParseTypeName()
+                End If
+                Dim fldId = AllocNode(NODE_FIELD, fldName, CurrLine())
+                Nodes(fldId).TypeName = fldType
+                AddChild(sId, fldId)
+            Else
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_STRUCTURE Then ParserAdvance()
+        Return sId
+    End Function
+
+    Function ParseClass() As Integer
+        ParserMatch(TOK_CLASS)
+        Dim cName As String = ParserMatch(TOK_IDENT).Text
+        If p_CurrentNamespace.Length > 0 Then
+            cName = p_CurrentNamespace & "." & cName
+        End If
+        Dim baseClass As String = ""
+        Dim implIfaces As String = ""
+        If CurrKind() = TOK_INHERITS Then
+            ParserAdvance()
+            baseClass = ParseTypeName()
+        End If
+        If CurrKind() = TOK_IMPLEMENTS Then
+            ParserAdvance()
+            implIfaces = ParseTypeName()
+            While CurrKind() = TOK_COMMA
+                ParserAdvance()
+                implIfaces = implIfaces & "," & ParseTypeName()
+            End While
+        End If
+        Dim cId = AllocNode(NODE_CLASS, cName, CurrLine())
+        Nodes(cId).TypeName = baseClass
+        Nodes(cId).StringValue = implIfaces
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim isOverridable = False
+            Dim isOverrides = False
+            While CurrKind() = TOK_PUBLIC Or CurrKind() = TOK_PRIVATE Or CurrKind() = TOK_PROTECTED Or CurrKind() = TOK_OVERRIDABLE Or CurrKind() = TOK_OVERRIDES
+                If CurrKind() = TOK_OVERRIDABLE Then isOverridable = True
+                If CurrKind() = TOK_OVERRIDES Then isOverrides = True
+                ParserAdvance()
+            End While
+
+            If CurrKind() = TOK_IMPLEMENTS Then
+                ParserAdvance()
+                Dim ifName = ParseTypeName()
+                If implIfaces.Length > 0 Then
+                    implIfaces = implIfaces & "," & ifName
+                Else
+                    implIfaces = ifName
+                End If
+                While CurrKind() = TOK_COMMA
+                    ParserAdvance()
+                    implIfaces = implIfaces & "," & ParseTypeName()
+                End While
+                Nodes(cId).StringValue = implIfaces
+            ElseIf CurrKind() = TOK_SUB Or CurrKind() = TOK_FUNCTION Then
+                Dim isSub = (CurrKind() = TOK_SUB)
+                Dim fnId = ParseFunction(isSub)
+                Dim flags = 0
+                If isOverridable Then flags = flags + 2
+                If isOverrides Then flags = flags + 4
+                If CaseInsensitiveEquals(Nodes(fnId).Name, "New") Then flags = flags + 8
+                Nodes(fnId).IntValue = flags
+                AddChild(cId, fnId)
+            ElseIf CurrKind() = TOK_DIM Or CurrKind() = TOK_IDENT Then
+                If CurrKind() = TOK_DIM Then ParserAdvance()
+                Dim fldName As String = ParserMatch(TOK_IDENT).Text
+                Dim fldType As String = "Integer"
+                If CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    fldType = ParseTypeName()
+                End If
+                Dim fldId = AllocNode(NODE_FIELD, fldName, CurrLine())
+                Nodes(fldId).TypeName = fldType
+                AddChild(cId, fldId)
+            Else
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_CLASS Then ParserAdvance()
+        Return cId
+    End Function
+
+    Function ParseInterface() As Integer
+        ParserMatch(TOK_INTERFACE)
+        Dim iName As String = ParserMatch(TOK_IDENT).Text
+        If p_CurrentNamespace.Length > 0 Then
+            iName = p_CurrentNamespace & "." & iName
+        End If
+        Dim ifaceId = AllocNode(NODE_INTERFACE, iName, CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            While CurrKind() = TOK_PUBLIC Or CurrKind() = TOK_PRIVATE Or CurrKind() = TOK_PROTECTED
+                ParserAdvance()
+            End While
+
+            If CurrKind() = TOK_SUB Or CurrKind() = TOK_FUNCTION Then
+                Dim isSub = (CurrKind() = TOK_SUB)
+                Dim fnId = ParseInterfaceMethod(isSub)
+                AddChild(ifaceId, fnId)
+            Else
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_INTERFACE Then ParserAdvance()
+        Return ifaceId
+    End Function
+
+    Function ParseInterfaceMethod(isSub As Boolean) As Integer
+        Dim nodeKind = If(isSub, NODE_SUB, NODE_FUNCTION)
+        If isSub Then
+            ParserMatch(TOK_SUB)
+        Else
+            ParserMatch(TOK_FUNCTION)
+        End If
+
+        Dim fnName As String = ParserMatch(TOK_IDENT).Text
+        Dim fnId = AllocNode(nodeKind, fnName, CurrLine())
+        Dim retType As String = If(isSub, "void", "Integer")
+
+        If CurrKind() = TOK_LPAREN Then
+            ParserAdvance()
+            While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                Dim isByRef As Boolean = False
+                If CurrKind() = TOK_BYVAL Then
+                    ParserAdvance()
+                ElseIf CurrKind() = TOK_BYREF Then
+                    ParserAdvance()
+                    isByRef = True
+                End If
+                Dim pName As String = ParserMatch(TOK_IDENT).Text
+                Dim pType As String = "Integer"
+                If CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    pType = ParseTypeName()
+                End If
+                Dim pId = AllocNode(NODE_PARAM, pName, CurrLine())
+                Nodes(pId).TypeName = pType
+                Nodes(pId).IntValue = If(isByRef, 1, 0)
+                AddChild(fnId, pId)
+                If CurrKind() = TOK_COMMA Then
+                    ParserAdvance()
+                Else
+                    Exit While
+                End If
+            End While
+            ParserMatch(TOK_RPAREN)
+        End If
+
+        If Not isSub And CurrKind() = TOK_AS Then
+            ParserAdvance()
+            retType = ParseTypeName()
+        End If
+        Nodes(fnId).TypeName = retType
+        Return fnId
+    End Function
+
+    Function ParseFunction(isSub As Boolean) As Integer
+        Dim nodeKind = If(isSub, NODE_SUB, NODE_FUNCTION)
+        If isSub Then
+            ParserMatch(TOK_SUB)
+        Else
+            ParserMatch(TOK_FUNCTION)
+        End If
+
+        Dim fnName As String = ""
+        If CurrKind() = TOK_NEW Then
+            fnName = ParserAdvance().Text
+        Else
+            fnName = ParserMatch(TOK_IDENT).Text
+        End If
+        Dim fnId = AllocNode(nodeKind, fnName, CurrLine())
+
+        ' Parameter list (...)
+        If CurrKind() = TOK_LPAREN Then
+            ParserAdvance()
+            While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                Dim isByRef As Boolean = False
+                If CurrKind() = TOK_BYVAL Then
+                    ParserAdvance()
+                ElseIf CurrKind() = TOK_BYREF Then
+                    ParserAdvance()
+                    isByRef = True
+                End If
+
+                Dim pName As String = ParserMatch(TOK_IDENT).Text
+                Dim pType As String = "Integer"
+                If CurrKind() = TOK_LPAREN And PeekKind(1) = TOK_RPAREN Then
+                    ' Array syntax: p() As String
+                    ParserAdvance()
+                    ParserAdvance()
+                    If CurrKind() = TOK_AS Then
+                        ParserAdvance()
+                        pType = ParseTypeName() & "()"
+                    End If
+                ElseIf CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    pType = ParseTypeName()
+                End If
+
+                Dim paramId = AllocNode(NODE_PARAM, pName, CurrLine())
+                Nodes(paramId).TypeName = pType
+                Nodes(paramId).IntValue = If(isByRef, 1, 0)
+                AddChild(fnId, paramId)
+
+                If CurrKind() = TOK_COMMA Then
+                    ParserAdvance()
+                Else
+                    Exit While
+                End If
+            End While
+            ParserMatch(TOK_RPAREN)
+        End If
+
+        ' Return type for Function
+        If Not isSub And CurrKind() = TOK_AS Then
+            ParserAdvance()
+            Dim retType As String = ParseTypeName()
+            Nodes(fnId).TypeName = retType
+        ElseIf isSub Then
+            Nodes(fnId).TypeName = "void"
+        End If
+
+        If CurrKind() = TOK_IMPLEMENTS Then
+            ParserAdvance()
+            Dim implTarget As String = ParseTypeName()
+            While CurrKind() = TOK_COMMA
+                ParserAdvance()
+                implTarget = implTarget & "," & ParseTypeName()
+            End While
+        End If
+
+        SkipSeparators()
+
+        ' Body statements
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim stmtId = ParseStatement()
+            If stmtId >= 0 Then
+                AddChild(fnId, stmtId)
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If isSub And CurrKind() = TOK_SUB Then
+            ParserAdvance()
+        ElseIf Not isSub And CurrKind() = TOK_FUNCTION Then
+            ParserAdvance()
+        End If
+
+        Return fnId
+    End Function
+
+End Module

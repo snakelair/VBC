@@ -1,0 +1,303 @@
+﻿Imports System
+
+Module EmitterModule
+    Function ResolveTypeName(tName As String) As String
+        If tName.Length = 0 Then Return ""
+        For i = 0 To Nodes.Length - 1
+            If (Nodes(i).Kind = NODE_CLASS Or Nodes(i).Kind = NODE_STRUCTURE Or Nodes(i).Kind = NODE_MODULE Or Nodes(i).Kind = NODE_FUNCTION Or Nodes(i).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(i).Name, tName) Then
+                Return Nodes(i).Name
+            End If
+        Next
+        For ni = 0 To p_ImportedNamespaces.Length - 1
+            Dim cand As String = p_ImportedNamespaces(ni) & "." & tName
+            For i = 0 To Nodes.Length - 1
+                If (Nodes(i).Kind = NODE_CLASS Or Nodes(i).Kind = NODE_STRUCTURE Or Nodes(i).Kind = NODE_MODULE Or Nodes(i).Kind = NODE_FUNCTION Or Nodes(i).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(i).Name, cand) Then
+                    Return Nodes(i).Name
+                End If
+            Next
+        Next
+        For mi = 0 To Nodes.Length - 1
+            If Nodes(mi).Kind = NODE_MODULE Then
+                Dim candMod As String = Nodes(mi).Name & "." & tName
+                For i = 0 To Nodes.Length - 1
+                    If (Nodes(i).Kind = NODE_FUNCTION Or Nodes(i).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(i).Name, candMod) Then
+                        Return Nodes(i).Name
+                    End If
+                Next
+            End If
+        Next
+        Return tName
+    End Function
+
+    Function IsClassType(tName As String) As Boolean
+        If tName.Length = 0 Then Return False
+        Dim resolved As String = ResolveTypeName(tName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_CLASS And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+
+    Function IsStructureType(tName As String) As Boolean
+        If tName.Length = 0 Then Return False
+        Dim resolved As String = ResolveTypeName(tName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_STRUCTURE And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+
+    Function FindClassNode(cName As String) As Integer
+        Dim resolved As String = ResolveTypeName(cName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_CLASS And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return i
+            End If
+        Next
+        Return -1
+    End Function
+
+    Function FindStructNode(sName As String) As Integer
+        Dim resolved As String = ResolveTypeName(sName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_STRUCTURE And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return i
+            End If
+        Next
+        Return -1
+    End Function
+
+    Function FindModuleNode(mName As String) As Integer
+        Dim resolved As String = ResolveTypeName(mName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_MODULE And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return i
+            End If
+        Next
+        Return -1
+    End Function
+
+    Function IsInterfaceType(tName As String) As Boolean
+        If tName.Length = 0 Then Return False
+        Dim resolved As String = ResolveTypeName(tName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_INTERFACE And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return True
+            End If
+        Next
+        Return False
+    End Function
+
+    Function FindInterfaceNode(iName As String) As Integer
+        Dim resolved As String = ResolveTypeName(iName)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_INTERFACE And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return i
+            End If
+        Next
+        Return -1
+    End Function
+
+    Function IsNullableType(tName As String) As Boolean
+        If tName.Length >= 12 And CaseInsensitiveEquals(tName.Substring(0, 12), "Nullable_Of_") Then Return True
+        If tName.Length > 0 And tName.Substring(tName.Length - 1, 1) = "?" Then Return True
+        Return False
+    End Function
+
+    Function ClassImplementsInterface(cId As Integer, ifaceName As String) As Boolean
+        Dim impls As String = Nodes(cId).StringValue
+        If impls.Length = 0 Then Return False
+        Dim resolvedTarget As String = ResolveTypeName(ifaceName)
+        Dim curr As String = ""
+        For i = 0 To impls.Length - 1
+            Dim ch As String = impls.Substring(i, 1)
+            If ch = "," Then
+                If CaseInsensitiveEquals(ResolveTypeName(curr), resolvedTarget) Then Return True
+                curr = ""
+            Else
+                curr = curr & ch
+            End If
+        Next
+        If curr.Length > 0 And CaseInsensitiveEquals(ResolveTypeName(curr), resolvedTarget) Then Return True
+        Return False
+    End Function
+
+    Function ClassOrBaseImplementsInterface(cId As Integer, ifaceName As String) As Boolean
+        Dim curr = cId
+        While curr >= 0
+            If ClassImplementsInterface(curr, ifaceName) Then Return True
+            If Nodes(curr).TypeName.Length > 0 Then
+                curr = FindClassNode(Nodes(curr).TypeName)
+            Else
+                Exit While
+            End If
+        End While
+        Return False
+    End Function
+
+    Function GetRootClassNode(cId As Integer) As Integer
+        Dim curr = cId
+        While curr >= 0 And Nodes(curr).TypeName.Length > 0
+            Dim baseNode = FindClassNode(Nodes(curr).TypeName)
+            If baseNode < 0 Then Exit While
+            curr = baseNode
+        End While
+        Return curr
+    End Function
+
+    Function ClassHasVirtualMethods(cId As Integer) As Boolean
+        Dim root = GetRootClassNode(cId)
+        For i = 0 To Nodes.Length - 1
+            If Nodes(i).Kind = NODE_CLASS And GetRootClassNode(i) = root Then
+                Dim ch = Nodes(i).FirstChild
+                While ch <> -1
+                    If (Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB) And (Nodes(ch).IntValue = 2 Or Nodes(ch).IntValue = 4 Or Nodes(ch).IntValue = 6) Then
+                        Return True
+                    End If
+                    ch = Nodes(ch).NextSibling
+                End While
+            End If
+        Next
+        Return False
+    End Function
+
+    Function FindFieldDeclaringClass(cName As String, fldName As String) As String
+        Dim currNode = FindClassNode(cName)
+        While currNode >= 0
+            Dim ch = Nodes(currNode).FirstChild
+            While ch <> -1
+                If Nodes(ch).Kind = NODE_FIELD And CaseInsensitiveEquals(Nodes(ch).Name, fldName) Then
+                    Return Nodes(currNode).Name
+                End If
+                ch = Nodes(ch).NextSibling
+            End While
+            If Nodes(currNode).TypeName.Length > 0 Then
+                currNode = FindClassNode(Nodes(currNode).TypeName)
+            Else
+                Exit While
+            End If
+        End While
+        Return cName
+    End Function
+
+    Function FindClassMethod(cName As String, mName As String) As Integer
+        Dim currNode = FindClassNode(cName)
+        While currNode >= 0
+            Dim ch = Nodes(currNode).FirstChild
+            While ch <> -1
+                If (Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(ch).Name, mName) Then
+                    Return ch
+                End If
+                ch = Nodes(ch).NextSibling
+            End While
+            If Nodes(currNode).TypeName.Length > 0 Then
+                currNode = FindClassNode(Nodes(currNode).TypeName)
+            Else
+                Exit While
+            End If
+        End While
+        Return -1
+    End Function
+
+    Function FindClassMethodDeclaringClass(cName As String, mName As String) As String
+        Dim currNode = FindClassNode(cName)
+        While currNode >= 0
+            Dim ch = Nodes(currNode).FirstChild
+            While ch <> -1
+                If (Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(ch).Name, mName) Then
+                    Return Nodes(currNode).Name
+                End If
+                ch = Nodes(ch).NextSibling
+            End While
+            If Nodes(currNode).TypeName.Length > 0 Then
+                currNode = FindClassNode(Nodes(currNode).TypeName)
+            Else
+                Exit While
+            End If
+        End While
+        Return cName
+    End Function
+
+    Function ClassHasVirtualMethod(cName As String, mName As String) As Boolean
+        Dim mNode = FindClassMethod(cName, mName)
+        If mNode >= 0 Then
+            Return (Nodes(mNode).IntValue = 2 Or Nodes(mNode).IntValue = 4 Or Nodes(mNode).IntValue = 6)
+        End If
+        Return False
+    End Function
+
+    Function FindStructMethod(sName As String, mName As String) As Integer
+        Dim sId = FindStructNode(sName)
+        If sId < 0 Then Return -1
+        Dim ch = Nodes(sId).FirstChild
+        While ch <> -1
+            If (Nodes(ch).Kind = NODE_FUNCTION Or Nodes(ch).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(ch).Name, mName) Then
+                Return ch
+            End If
+            ch = Nodes(ch).NextSibling
+        End While
+        Return -1
+    End Function
+
+    Function FindStructField(sName As String, fName As String) As Integer
+        Dim sId = FindStructNode(sName)
+        If sId < 0 Then Return -1
+        Dim ch = Nodes(sId).FirstChild
+        While ch <> -1
+            If Nodes(ch).Kind = NODE_FIELD And CaseInsensitiveEquals(Nodes(ch).Name, fName) Then
+                Return ch
+            End If
+            ch = Nodes(ch).NextSibling
+        End While
+        Return -1
+    End Function
+
+    Function FindClassField(cName As String, fName As String) As Integer
+        Dim currNode = FindClassNode(cName)
+        While currNode >= 0
+            Dim ch = Nodes(currNode).FirstChild
+            While ch <> -1
+                If Nodes(ch).Kind = NODE_FIELD And CaseInsensitiveEquals(Nodes(ch).Name, fName) Then
+                    Return ch
+                End If
+                ch = Nodes(ch).NextSibling
+            End While
+            If Nodes(currNode).TypeName.Length > 0 Then
+                currNode = FindClassNode(Nodes(currNode).TypeName)
+            Else
+                Exit While
+            End If
+        End While
+        Return -1
+    End Function
+
+    Function FindFunctionNode(fnName As String) As Integer
+        Dim resolved As String = ResolveTypeName(fnName)
+        For i = 0 To Nodes.Length - 1
+            If (Nodes(i).Kind = NODE_FUNCTION Or Nodes(i).Kind = NODE_SUB) And CaseInsensitiveEquals(Nodes(i).Name, resolved) Then
+                Return i
+            End If
+        Next
+        Return -1
+    End Function
+
+    Function GetDottedPath(nId As Integer) As String
+        If nId < 0 Then Return ""
+        Dim k = Nodes(nId).Kind
+        If k = NODE_IDENT Then
+            Return Nodes(nId).Name
+        ElseIf k = NODE_MEMBER Then
+            Dim prefix As String = GetDottedPath(Nodes(nId).FirstChild)
+            If prefix.Length > 0 Then
+                Return prefix & "." & Nodes(nId).Name
+            Else
+                Return Nodes(nId).Name
+            End If
+        End If
+        Return ""
+    End Function
+End Module

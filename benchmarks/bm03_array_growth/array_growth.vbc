@@ -1,0 +1,13 @@
+Module Program
+    Sub Main()
+        Dim arr() As Integer = []
+        For i As Integer = 0 To 1999999
+            arr.Add(i)
+        Next
+        Dim sum As Long = 0
+        For i As Integer = 0 To 1999999
+            sum = sum + arr(i)
+        Next
+        Console.WriteLine(sum)
+    End Sub
+End Module

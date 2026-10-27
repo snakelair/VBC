@@ -1,0 +1,14 @@
+Imports System
+
+Module DriverModule
+    Function CompileCSource(cFilePath As String, exeFilePath As String) As Integer
+        Dim exitCode As Integer = Process.CompileC(cFilePath, exeFilePath)
+        Return exitCode
+    End Function
+
+    Function RunBinary(exeFilePath As String) As Integer
+        Dim cmd As String = """" & exeFilePath & """"
+        Dim exitCode As Integer = Process.Execute(cmd)
+        Return exitCode
+    End Function
+End Module

@@ -1,0 +1,53 @@
+Imports System
+
+Public Class Person
+    Public Name As String
+
+    Public Function GetGreeting() As String
+        Return "Hello, " & Name
+    End Function
+End Class
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Pillar 5: Nullable(Of T) & Null-Conditional Demo ===")
+
+        ' 1. Nullable Value Types
+        Console.WriteLine("1. Testing Nullable Value Types (Integer?):")
+        Dim x As Integer? = 42
+        Dim y As Integer? = Nothing
+
+        Console.WriteLine("   x.HasValue: " & If(x.HasValue, "True", "False"))
+        Console.WriteLine("   x.Value: " & x.Value)
+        Console.WriteLine("   y.HasValue: " & If(y.HasValue, "True", "False"))
+
+        ' 2. Binary If(a, b) Null-Coalescing
+        Console.WriteLine("2. Testing Binary If(a, b) Null-Coalescing:")
+        Dim rx As Integer = If(x, 100)
+        Dim ry As Integer = If(y, 100)
+        Console.WriteLine("   If(x, 100) = " & rx)
+        Console.WriteLine("   If(y, 100) = " & ry)
+
+        ' 3. Null-conditional member access (?.)
+        Console.WriteLine("3. Testing Null-Conditional Member Access (?.):")
+        Dim p1 As Person = New Person()
+        p1.Name = "Alice"
+        Dim p2 As Person = Nothing
+
+        Dim n1 As String = p1?.Name
+        Dim n2 As String = p2?.Name
+        Console.WriteLine("   p1?.Name = " & n1)
+        Console.WriteLine("   p2?.Name = " & If(n2.Length = 0, "(null/empty)", n2))
+
+        Dim g1 As String = p1?.GetGreeting()
+        Dim g2 As String = p2?.GetGreeting()
+        Console.WriteLine("   p1?.GetGreeting() = " & g1)
+        Console.WriteLine("   p2?.GetGreeting() = " & If(g2.Length = 0, "(null/empty)", g2))
+
+        ' 4. Combined ?. with binary If
+        Dim safeName As String = If(p2?.Name, "Default Guest")
+        Console.WriteLine("   If(p2?.Name, 'Default Guest') = " & safeName)
+
+        Console.WriteLine("=== All Nullable & Null-Conditional Tests Passed! ===")
+    End Sub
+End Module

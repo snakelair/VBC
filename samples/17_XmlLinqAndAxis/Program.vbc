@@ -1,0 +1,48 @@
+Imports System
+Imports System.Xml.Linq
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Pillar 3: XML DOM & XML Axis Syntax Demo ===")
+
+        Dim xmlText As String = "<catalog><book id=""bk101""><title>Native VBC Guide</title><author>DeepMind</author><price>49.99</price></book><book id=""bk102""><title>Goose Linear Allocator</title><author>Antigravity</author><price>29.95</price></book></catalog>"
+
+        ' 1. Parse XML into XDocument
+        Dim doc As XDocument = XDocument.Parse(xmlText)
+        Console.WriteLine("1. Parsed XML Document successfully.")
+
+        ' 2. Child axis query: doc.<catalog>
+        Dim catalog As XElement = doc.<catalog>
+        Console.WriteLine("2. Root catalog element: " & catalog.Name)
+
+        ' 3. Child axis and attribute axis: catalog.<book>.@id
+        Dim firstBook As XElement = catalog.<book>
+        Dim bookId As String = firstBook.@id
+        Console.WriteLine("3. First book ID attribute (.@id): " & bookId)
+
+        ' 4. Sub-element values: book.<title>.Value and book.<author>.Value
+        Dim titleElem As XElement = firstBook.<title>
+        Dim authorElem As XElement = firstBook.<author>
+        Dim priceElem As XElement = firstBook.<price>
+        Console.WriteLine("4. Book Details:")
+        Console.WriteLine("   Title: " & titleElem.Value)
+        Console.WriteLine("   Author: " & authorElem.Value)
+        Console.WriteLine("   Price: $" & priceElem.Value)
+
+        ' 5. Descendants query: doc...<book>
+        Dim books() As XElement = doc...<book>
+        Console.WriteLine("5. Total books found via doc...<book>: " & books.Length)
+        For i = 0 To books.Length - 1
+            Dim b As XElement = books(i)
+            Dim bTitle As XElement = b.<title>
+            Console.WriteLine("   Book [" & b.@id & "]: " & bTitle.Value)
+        Next
+
+        ' 6. Serialization: ToString()
+        Dim serialized As String = firstBook.ToString()
+        Console.WriteLine("6. Serialized Book XML:")
+        Console.WriteLine("   " & serialized)
+
+        Console.WriteLine("=== All XML DOM & Axis Syntax Tests Passed! ===")
+    End Sub
+End Module

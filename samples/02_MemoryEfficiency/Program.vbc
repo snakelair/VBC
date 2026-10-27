@@ -1,0 +1,20 @@
+Module Program
+    Function FormatItem(id As Integer) As String
+        Dim text As String = "item_" & id
+        Return text
+    End Function
+
+    Sub Main()
+        Console.WriteLine("Starting VBC Data Stack Benchmark (1,000,000 bump allocations)...")
+        
+        Dim totalLen As Integer = 0
+        For i As Integer = 1 To 1000000
+            Dim s As String = FormatItem(i)
+            totalLen = totalLen + s.Length
+        Next
+
+        Console.WriteLine("Completed 1,000,000 allocations successfully!")
+        Console.WriteLine("Total string length processed:")
+        Console.WriteLine(totalLen)
+    End Sub
+End Module

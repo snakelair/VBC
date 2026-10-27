@@ -1,0 +1,14 @@
+Module Program
+    Function Recurse(depth As Integer) As Integer
+        If depth <= 0 Then
+            Return 0
+        End If
+        Dim s As String = "step_" & depth
+        Return s.Length + Recurse(depth - 1)
+    End Function
+
+    Sub Main()
+        Dim total As Integer = Recurse(30000)
+        Console.WriteLine(total)
+    End Sub
+End Module

@@ -1,0 +1,10 @@
+[$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}\Extensions]
+"vbc"=dword:00000032
+
+[$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}\Extensions]
+"vbc"=dword:00000032
+
+[$RootKey$\Default Editors\vbc]
+@="{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+"Custom"="{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+"Type"=dword:00000001

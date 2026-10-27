@@ -1,0 +1,32 @@
+{
+  "comments": {
+    "lineComment": "'"
+  },
+  "brackets": [
+    ["(", ")"],
+    ["[", "]"],
+    ["{", "}"]
+  ],
+  "autoClosingPairs": [
+    { "open": "(", "close": ")" },
+    { "open": "[", "close": "]" },
+    { "open": "{", "close": "}" },
+    { "open": "\"", "close": "\"", "notIn": ["string"] }
+  ],
+  "surroundingPairs": [
+    ["(", ")"],
+    ["[", "]"],
+    ["{", "}"],
+    ["\"", "\""]
+  ],
+  "folding": {
+    "markers": {
+      "start": "^\\s*#Region\\b",
+      "end": "^\\s*#End Region\\b"
+    }
+  },
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*(Module|Structure|Class|Sub|Function|If|For|While|Do|Select|Try|Catch|Finally)\\b.*$",
+    "decreaseIndentPattern": "^\\s*(End\\s+(Module|Structure|Class|Sub|Function|If|While|Select|Try)|Next|Loop|Else|ElseIf|Catch|Finally)\\b.*$"
+  }
+}

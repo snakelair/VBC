@@ -1,0 +1,13 @@
+Module Program
+    Sub Main()
+        Dim totalLen As Integer = 0
+        For i As Integer = 1 To 50000
+            Dim s As String = "base"
+            For j As Integer = 1 To 10
+                s = s & "_chunk"
+            Next
+            totalLen = totalLen + s.Length
+        Next
+        Console.WriteLine(totalLen)
+    End Sub
+End Module

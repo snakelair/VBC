@@ -1,0 +1,3759 @@
+Imports System
+
+Module StressModule
+    Function Compute_0(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_1(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_2(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_3(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_4(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_5(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_6(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_7(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_8(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_9(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_10(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_11(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_12(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_13(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_14(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_15(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_16(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_17(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_18(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_19(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_20(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_21(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_22(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_23(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_24(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_25(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_26(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_27(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_28(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_29(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_30(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_31(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_32(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_33(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_34(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_35(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_36(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_37(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_38(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_39(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_40(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_41(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_42(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_43(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_44(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_45(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_46(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_47(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_48(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_49(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_50(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_51(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_52(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_53(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_54(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_55(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_56(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_57(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_58(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_59(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_60(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_61(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_62(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_63(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_64(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_65(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_66(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_67(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_68(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_69(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_70(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_71(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_72(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_73(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_74(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_75(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_76(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_77(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_78(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_79(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_80(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_81(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_82(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_83(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_84(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_85(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_86(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_87(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_88(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_89(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_90(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_91(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_92(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_93(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_94(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_95(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_96(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_97(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_98(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_99(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_100(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_101(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_102(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_103(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_104(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_105(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_106(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_107(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_108(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_109(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_110(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_111(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_112(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_113(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_114(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_115(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_116(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_117(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_118(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_119(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_120(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_121(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_122(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_123(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_124(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_125(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_126(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_127(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_128(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_129(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_130(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_131(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_132(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_133(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_134(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_135(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_136(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_137(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_138(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_139(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_140(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_141(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_142(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_143(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_144(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_145(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_146(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_147(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_148(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_149(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_150(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_151(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_152(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_153(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_154(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_155(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_156(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_157(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_158(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_159(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_160(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_161(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_162(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_163(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_164(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_165(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_166(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_167(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_168(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_169(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_170(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_171(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_172(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_173(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_174(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_175(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_176(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_177(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_178(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_179(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_180(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_181(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_182(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_183(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_184(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_185(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_186(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_187(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_188(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_189(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_190(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_191(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_192(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_193(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_194(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_195(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_196(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_197(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_198(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_199(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_200(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_201(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_202(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_203(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_204(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_205(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_206(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_207(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_208(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_209(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_210(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_211(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_212(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_213(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_214(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_215(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_216(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_217(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_218(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_219(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_220(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_221(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_222(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_223(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_224(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_225(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_226(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_227(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_228(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_229(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_230(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_231(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_232(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_233(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 13 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_234(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 14 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_235(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 15 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_236(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 16 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_237(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 17 + b * 4 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_238(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 1 + b * 5 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_239(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 2 + b * 6 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_240(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 3 + b * 7 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 2
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_241(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 4 + b * 8 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 3
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_242(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 5 + b * 9 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 4
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_243(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 6 + b * 10 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 5
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_244(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 7 + b * 11 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 6
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_245(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 8 + b * 12 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 7
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_246(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 9 + b * 13 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 8
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_247(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 10 + b * 1 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 9
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_248(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 11 + b * 2 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 10
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+    Function Compute_249(a As Integer, b As Integer, c As Integer) As Integer
+        Dim r1 = a * 12 + b * 3 - c
+        Dim r2 = (r1 * 3) / 2 + (a Mod 7)
+        If r2 > 100 Then
+            r2 = r2 - 50
+        Else
+            r2 = r2 + 25
+        End If
+        Dim sum = 0
+        For j = 0 To 11
+            sum = sum + j * r2
+        Next
+        Return sum + r1
+    End Function
+
+    Sub Main()
+        Dim total As Long = 0
+        total = total + Compute_0(0, 0, 5)
+        total = total + Compute_1(1, 2, 6)
+        total = total + Compute_2(2, 4, 7)
+        total = total + Compute_3(3, 6, 8)
+        total = total + Compute_4(4, 8, 9)
+        total = total + Compute_5(5, 10, 10)
+        total = total + Compute_6(6, 12, 11)
+        total = total + Compute_7(7, 14, 12)
+        total = total + Compute_8(8, 16, 13)
+        total = total + Compute_9(9, 18, 14)
+        total = total + Compute_10(10, 20, 15)
+        total = total + Compute_11(11, 22, 16)
+        total = total + Compute_12(12, 24, 17)
+        total = total + Compute_13(13, 26, 18)
+        total = total + Compute_14(14, 28, 19)
+        total = total + Compute_15(15, 30, 20)
+        total = total + Compute_16(16, 32, 21)
+        total = total + Compute_17(17, 34, 22)
+        total = total + Compute_18(18, 36, 23)
+        total = total + Compute_19(19, 38, 24)
+        total = total + Compute_20(20, 40, 25)
+        total = total + Compute_21(21, 42, 26)
+        total = total + Compute_22(22, 44, 27)
+        total = total + Compute_23(23, 46, 28)
+        total = total + Compute_24(24, 48, 29)
+        total = total + Compute_25(25, 50, 30)
+        total = total + Compute_26(26, 52, 31)
+        total = total + Compute_27(27, 54, 32)
+        total = total + Compute_28(28, 56, 33)
+        total = total + Compute_29(29, 58, 34)
+        total = total + Compute_30(30, 60, 35)
+        total = total + Compute_31(31, 62, 36)
+        total = total + Compute_32(32, 64, 37)
+        total = total + Compute_33(33, 66, 38)
+        total = total + Compute_34(34, 68, 39)
+        total = total + Compute_35(35, 70, 40)
+        total = total + Compute_36(36, 72, 41)
+        total = total + Compute_37(37, 74, 42)
+        total = total + Compute_38(38, 76, 43)
+        total = total + Compute_39(39, 78, 44)
+        total = total + Compute_40(40, 80, 45)
+        total = total + Compute_41(41, 82, 46)
+        total = total + Compute_42(42, 84, 47)
+        total = total + Compute_43(43, 86, 48)
+        total = total + Compute_44(44, 88, 49)
+        total = total + Compute_45(45, 90, 50)
+        total = total + Compute_46(46, 92, 51)
+        total = total + Compute_47(47, 94, 52)
+        total = total + Compute_48(48, 96, 53)
+        total = total + Compute_49(49, 98, 54)
+        total = total + Compute_50(50, 100, 55)
+        total = total + Compute_51(51, 102, 56)
+        total = total + Compute_52(52, 104, 57)
+        total = total + Compute_53(53, 106, 58)
+        total = total + Compute_54(54, 108, 59)
+        total = total + Compute_55(55, 110, 60)
+        total = total + Compute_56(56, 112, 61)
+        total = total + Compute_57(57, 114, 62)
+        total = total + Compute_58(58, 116, 63)
+        total = total + Compute_59(59, 118, 64)
+        total = total + Compute_60(60, 120, 65)
+        total = total + Compute_61(61, 122, 66)
+        total = total + Compute_62(62, 124, 67)
+        total = total + Compute_63(63, 126, 68)
+        total = total + Compute_64(64, 128, 69)
+        total = total + Compute_65(65, 130, 70)
+        total = total + Compute_66(66, 132, 71)
+        total = total + Compute_67(67, 134, 72)
+        total = total + Compute_68(68, 136, 73)
+        total = total + Compute_69(69, 138, 74)
+        total = total + Compute_70(70, 140, 75)
+        total = total + Compute_71(71, 142, 76)
+        total = total + Compute_72(72, 144, 77)
+        total = total + Compute_73(73, 146, 78)
+        total = total + Compute_74(74, 148, 79)
+        total = total + Compute_75(75, 150, 80)
+        total = total + Compute_76(76, 152, 81)
+        total = total + Compute_77(77, 154, 82)
+        total = total + Compute_78(78, 156, 83)
+        total = total + Compute_79(79, 158, 84)
+        total = total + Compute_80(80, 160, 85)
+        total = total + Compute_81(81, 162, 86)
+        total = total + Compute_82(82, 164, 87)
+        total = total + Compute_83(83, 166, 88)
+        total = total + Compute_84(84, 168, 89)
+        total = total + Compute_85(85, 170, 90)
+        total = total + Compute_86(86, 172, 91)
+        total = total + Compute_87(87, 174, 92)
+        total = total + Compute_88(88, 176, 93)
+        total = total + Compute_89(89, 178, 94)
+        total = total + Compute_90(90, 180, 95)
+        total = total + Compute_91(91, 182, 96)
+        total = total + Compute_92(92, 184, 97)
+        total = total + Compute_93(93, 186, 98)
+        total = total + Compute_94(94, 188, 99)
+        total = total + Compute_95(95, 190, 100)
+        total = total + Compute_96(96, 192, 101)
+        total = total + Compute_97(97, 194, 102)
+        total = total + Compute_98(98, 196, 103)
+        total = total + Compute_99(99, 198, 104)
+        total = total + Compute_100(100, 200, 105)
+        total = total + Compute_101(101, 202, 106)
+        total = total + Compute_102(102, 204, 107)
+        total = total + Compute_103(103, 206, 108)
+        total = total + Compute_104(104, 208, 109)
+        total = total + Compute_105(105, 210, 110)
+        total = total + Compute_106(106, 212, 111)
+        total = total + Compute_107(107, 214, 112)
+        total = total + Compute_108(108, 216, 113)
+        total = total + Compute_109(109, 218, 114)
+        total = total + Compute_110(110, 220, 115)
+        total = total + Compute_111(111, 222, 116)
+        total = total + Compute_112(112, 224, 117)
+        total = total + Compute_113(113, 226, 118)
+        total = total + Compute_114(114, 228, 119)
+        total = total + Compute_115(115, 230, 120)
+        total = total + Compute_116(116, 232, 121)
+        total = total + Compute_117(117, 234, 122)
+        total = total + Compute_118(118, 236, 123)
+        total = total + Compute_119(119, 238, 124)
+        total = total + Compute_120(120, 240, 125)
+        total = total + Compute_121(121, 242, 126)
+        total = total + Compute_122(122, 244, 127)
+        total = total + Compute_123(123, 246, 128)
+        total = total + Compute_124(124, 248, 129)
+        total = total + Compute_125(125, 250, 130)
+        total = total + Compute_126(126, 252, 131)
+        total = total + Compute_127(127, 254, 132)
+        total = total + Compute_128(128, 256, 133)
+        total = total + Compute_129(129, 258, 134)
+        total = total + Compute_130(130, 260, 135)
+        total = total + Compute_131(131, 262, 136)
+        total = total + Compute_132(132, 264, 137)
+        total = total + Compute_133(133, 266, 138)
+        total = total + Compute_134(134, 268, 139)
+        total = total + Compute_135(135, 270, 140)
+        total = total + Compute_136(136, 272, 141)
+        total = total + Compute_137(137, 274, 142)
+        total = total + Compute_138(138, 276, 143)
+        total = total + Compute_139(139, 278, 144)
+        total = total + Compute_140(140, 280, 145)
+        total = total + Compute_141(141, 282, 146)
+        total = total + Compute_142(142, 284, 147)
+        total = total + Compute_143(143, 286, 148)
+        total = total + Compute_144(144, 288, 149)
+        total = total + Compute_145(145, 290, 150)
+        total = total + Compute_146(146, 292, 151)
+        total = total + Compute_147(147, 294, 152)
+        total = total + Compute_148(148, 296, 153)
+        total = total + Compute_149(149, 298, 154)
+        total = total + Compute_150(150, 300, 155)
+        total = total + Compute_151(151, 302, 156)
+        total = total + Compute_152(152, 304, 157)
+        total = total + Compute_153(153, 306, 158)
+        total = total + Compute_154(154, 308, 159)
+        total = total + Compute_155(155, 310, 160)
+        total = total + Compute_156(156, 312, 161)
+        total = total + Compute_157(157, 314, 162)
+        total = total + Compute_158(158, 316, 163)
+        total = total + Compute_159(159, 318, 164)
+        total = total + Compute_160(160, 320, 165)
+        total = total + Compute_161(161, 322, 166)
+        total = total + Compute_162(162, 324, 167)
+        total = total + Compute_163(163, 326, 168)
+        total = total + Compute_164(164, 328, 169)
+        total = total + Compute_165(165, 330, 170)
+        total = total + Compute_166(166, 332, 171)
+        total = total + Compute_167(167, 334, 172)
+        total = total + Compute_168(168, 336, 173)
+        total = total + Compute_169(169, 338, 174)
+        total = total + Compute_170(170, 340, 175)
+        total = total + Compute_171(171, 342, 176)
+        total = total + Compute_172(172, 344, 177)
+        total = total + Compute_173(173, 346, 178)
+        total = total + Compute_174(174, 348, 179)
+        total = total + Compute_175(175, 350, 180)
+        total = total + Compute_176(176, 352, 181)
+        total = total + Compute_177(177, 354, 182)
+        total = total + Compute_178(178, 356, 183)
+        total = total + Compute_179(179, 358, 184)
+        total = total + Compute_180(180, 360, 185)
+        total = total + Compute_181(181, 362, 186)
+        total = total + Compute_182(182, 364, 187)
+        total = total + Compute_183(183, 366, 188)
+        total = total + Compute_184(184, 368, 189)
+        total = total + Compute_185(185, 370, 190)
+        total = total + Compute_186(186, 372, 191)
+        total = total + Compute_187(187, 374, 192)
+        total = total + Compute_188(188, 376, 193)
+        total = total + Compute_189(189, 378, 194)
+        total = total + Compute_190(190, 380, 195)
+        total = total + Compute_191(191, 382, 196)
+        total = total + Compute_192(192, 384, 197)
+        total = total + Compute_193(193, 386, 198)
+        total = total + Compute_194(194, 388, 199)
+        total = total + Compute_195(195, 390, 200)
+        total = total + Compute_196(196, 392, 201)
+        total = total + Compute_197(197, 394, 202)
+        total = total + Compute_198(198, 396, 203)
+        total = total + Compute_199(199, 398, 204)
+        total = total + Compute_200(200, 400, 205)
+        total = total + Compute_201(201, 402, 206)
+        total = total + Compute_202(202, 404, 207)
+        total = total + Compute_203(203, 406, 208)
+        total = total + Compute_204(204, 408, 209)
+        total = total + Compute_205(205, 410, 210)
+        total = total + Compute_206(206, 412, 211)
+        total = total + Compute_207(207, 414, 212)
+        total = total + Compute_208(208, 416, 213)
+        total = total + Compute_209(209, 418, 214)
+        total = total + Compute_210(210, 420, 215)
+        total = total + Compute_211(211, 422, 216)
+        total = total + Compute_212(212, 424, 217)
+        total = total + Compute_213(213, 426, 218)
+        total = total + Compute_214(214, 428, 219)
+        total = total + Compute_215(215, 430, 220)
+        total = total + Compute_216(216, 432, 221)
+        total = total + Compute_217(217, 434, 222)
+        total = total + Compute_218(218, 436, 223)
+        total = total + Compute_219(219, 438, 224)
+        total = total + Compute_220(220, 440, 225)
+        total = total + Compute_221(221, 442, 226)
+        total = total + Compute_222(222, 444, 227)
+        total = total + Compute_223(223, 446, 228)
+        total = total + Compute_224(224, 448, 229)
+        total = total + Compute_225(225, 450, 230)
+        total = total + Compute_226(226, 452, 231)
+        total = total + Compute_227(227, 454, 232)
+        total = total + Compute_228(228, 456, 233)
+        total = total + Compute_229(229, 458, 234)
+        total = total + Compute_230(230, 460, 235)
+        total = total + Compute_231(231, 462, 236)
+        total = total + Compute_232(232, 464, 237)
+        total = total + Compute_233(233, 466, 238)
+        total = total + Compute_234(234, 468, 239)
+        total = total + Compute_235(235, 470, 240)
+        total = total + Compute_236(236, 472, 241)
+        total = total + Compute_237(237, 474, 242)
+        total = total + Compute_238(238, 476, 243)
+        total = total + Compute_239(239, 478, 244)
+        total = total + Compute_240(240, 480, 245)
+        total = total + Compute_241(241, 482, 246)
+        total = total + Compute_242(242, 484, 247)
+        total = total + Compute_243(243, 486, 248)
+        total = total + Compute_244(244, 488, 249)
+        total = total + Compute_245(245, 490, 250)
+        total = total + Compute_246(246, 492, 251)
+        total = total + Compute_247(247, 494, 252)
+        total = total + Compute_248(248, 496, 253)
+        total = total + Compute_249(249, 498, 254)
+        Console.WriteLine(total)
+    End Sub
+End Module

@@ -1,0 +1,310 @@
+Imports System
+
+Module LexerModule
+    Structure Lexer
+        Dim Source As String
+        Dim SrcLen As Long
+        Dim Pos As Long
+        Dim Line As Integer
+        Dim Col As Integer
+    End Structure
+
+    Function LexerNew(source As String) As Lexer
+        Dim res As Lexer
+        res.Source = source
+        res.SrcLen = source.Length
+        res.Pos = 0
+        res.Line = 1
+        res.Col = 1
+        Return res
+    End Function
+
+    Function LexerPeek(ByRef lex As Lexer) As Integer
+        If lex.Pos >= lex.SrcLen Then
+            Return 0
+        End If
+        Return lex.Source.ByteAt(lex.Pos)
+    End Function
+
+    Function LexerPeekOffset(ByRef lex As Lexer, offset As Long) As Integer
+        Dim p = lex.Pos + offset
+        If p >= lex.SrcLen Then
+            Return 0
+        End If
+        Return lex.Source.ByteAt(p)
+    End Function
+
+    Function LexerAdvance(ByRef lex As Lexer) As Integer
+        If lex.Pos >= lex.SrcLen Then
+            Return 0
+        End If
+        Dim ch = lex.Source.ByteAt(lex.Pos)
+        lex.Pos = lex.Pos + 1
+        If ch = 10 Then
+            lex.Line = lex.Line + 1
+            lex.Col = 1
+        Else
+            lex.Col = lex.Col + 1
+        End If
+        Return ch
+    End Function
+
+    Function LexerNextToken(ByRef lex As Lexer) As Token
+        While lex.Pos < lex.SrcLen
+            Dim ch = LexerPeek(lex)
+
+            ' Skip whitespace (except newline)
+            If ch = 32 Or ch = 9 Or ch = 13 Then
+                LexerAdvance(lex)
+                Continue While
+            End If
+
+            ' Newline
+            If ch = 10 Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                LexerAdvance(lex)
+                Return MakeToken(TOK_NEWLINE, "\n", startLine, startCol)
+            End If
+
+            ' Colon statement separator
+            If ch = 58 Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                LexerAdvance(lex)
+                Return MakeToken(TOK_COLON, ":", startLine, startCol)
+            End If
+
+            ' Comments: single quote ' or Rem or //
+            If ch = 39 Or (ch = 47 And LexerPeekOffset(lex, 1) = 47) Then
+                While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 10
+                    LexerAdvance(lex)
+                End While
+                Continue While
+            End If
+
+            ' Hex numbers in VB style: &HFF or &h10
+            If ch = 38 Then
+                Dim nextC = LexerPeekOffset(lex, 1)
+                If nextC = 72 Or nextC = 104 Then ' H or h
+                    Dim startLine = lex.Line
+                    Dim startCol = lex.Col
+                    Dim startPos = lex.Pos
+                    LexerAdvance(lex) ' skip &
+                    LexerAdvance(lex) ' skip H/h
+                    Dim intVal As Long = 0
+                    While lex.Pos < lex.SrcLen And IsHexDigit(LexerPeek(lex))
+                        Dim hd = HexDigitVal(LexerAdvance(lex))
+                        intVal = intVal * 16 + hd
+                    End While
+                    Dim numText As String = lex.Source.Substring(startPos, lex.Pos - startPos)
+                    Dim tok As Token = MakeToken(TOK_INT, numText, startLine, startCol)
+                    tok.IntValue = intVal
+                    Return tok
+                End If
+            End If
+
+            ' Numbers (decimal or 0x hex)
+            If IsDigit(ch) Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                Dim startPos = lex.Pos
+                Dim intVal As Long = 0
+
+                If ch = 48 And (LexerPeekOffset(lex, 1) = 120 Or LexerPeekOffset(lex, 1) = 88) Then ' 0x or 0X
+                    LexerAdvance(lex) ' skip 0
+                    LexerAdvance(lex) ' skip x/X
+                    While lex.Pos < lex.SrcLen And IsHexDigit(LexerPeek(lex))
+                        Dim hd = HexDigitVal(LexerAdvance(lex))
+                        intVal = intVal * 16 + hd
+                    End While
+                Else
+                    While lex.Pos < lex.SrcLen And IsDigit(LexerPeek(lex))
+                        Dim d = LexerAdvance(lex) - 48
+                        intVal = intVal * 10 + d
+                    End While
+                End If
+
+                Dim numText As String = lex.Source.Substring(startPos, lex.Pos - startPos)
+                Dim tok As Token = MakeToken(TOK_INT, numText, startLine, startCol)
+                tok.IntValue = intVal
+                Return tok
+            End If
+
+            ' Strings: "..."
+            If ch = 34 Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                LexerAdvance(lex) ' skip opening quote
+                Dim startPos = lex.Pos
+                Dim hasEscape = False
+
+                While lex.Pos < lex.SrcLen
+                    Dim c = LexerPeek(lex)
+                    If c = 10 Or c = 0 Then
+                        Exit While
+                    End If
+                    If c = 34 Then
+                        LexerAdvance(lex)
+                        If LexerPeek(lex) = 34 Then
+                            hasEscape = True
+                            LexerAdvance(lex)
+                        Else
+                            Exit While
+                        End If
+                    Else
+                        LexerAdvance(lex)
+                    End If
+                End While
+
+                Dim rawStr As String = lex.Source.Substring(startPos, lex.Pos - 1 - startPos)
+                Dim strVal As String = rawStr
+                If hasEscape Then
+                    strVal = ReplaceDoubleQuotes(rawStr)
+                End If
+
+                Return MakeToken(TOK_STR, strVal, startLine, startCol)
+            End If
+
+            ' Identifiers and Keywords
+            If IsAlphaOrUnderscore(ch) Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                Dim startPos = lex.Pos
+
+                While lex.Pos < lex.SrcLen And IsAlphaNumOrUnderscore(LexerPeek(lex))
+                    LexerAdvance(lex)
+                End While
+
+                Dim idText As String = lex.Source.Substring(startPos, lex.Pos - startPos)
+
+                ' Check for Rem comment
+                If CaseInsensitiveEquals(idText, "rem") Then
+                    While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 10
+                        LexerAdvance(lex)
+                    End While
+                    Continue While
+                End If
+
+                Dim kind = LookupKeyword(idText)
+                Return MakeToken(kind, idText, startLine, startCol)
+            End If
+
+            ' Operators and Punctuators
+            Dim opLine = lex.Line
+            Dim opCol = lex.Col
+            Dim c = LexerAdvance(lex)
+
+            If c = 40 Then Return MakeToken(TOK_LPAREN, "(", opLine, opCol)
+            If c = 41 Then Return MakeToken(TOK_RPAREN, ")", opLine, opCol)
+            If c = 91 Then Return MakeToken(TOK_LBRACKET, "[", opLine, opCol)
+            If c = 93 Then Return MakeToken(TOK_RBRACKET, "]", opLine, opCol)
+            If c = 44 Then Return MakeToken(TOK_COMMA, ",", opLine, opCol)
+            If c = 46 Then ' .
+                If LexerPeek(lex) = 60 Then ' .<tag>
+                    LexerAdvance(lex) ' skip <
+                    Dim startName = lex.Pos
+                    While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 62 And LexerPeek(lex) <> 10
+                        LexerAdvance(lex)
+                    End While
+                    Dim tag = lex.Source.Substring(startName, lex.Pos - startName)
+                    If LexerPeek(lex) = 62 Then LexerAdvance(lex) ' skip >
+                    Return MakeToken(TOK_XML_CHILD, tag, opLine, opCol)
+                ElseIf LexerPeek(lex) = 64 Then ' .@attr or .@@attr
+                    LexerAdvance(lex) ' skip @
+                    If LexerPeek(lex) = 64 Then LexerAdvance(lex) ' skip 2nd @
+                    Dim startAttr = lex.Pos
+                    While lex.Pos < lex.SrcLen And IsAlphaNumOrUnderscore(LexerPeek(lex))
+                        LexerAdvance(lex)
+                    End While
+                    Dim attr = lex.Source.Substring(startAttr, lex.Pos - startAttr)
+                    Return MakeToken(TOK_XML_ATTR, attr, opLine, opCol)
+                ElseIf lex.Pos + 2 < lex.SrcLen And lex.Source.Substring(lex.Pos, 3) = "..<" Then ' ...<tag>
+                    LexerAdvance(lex) ' skip 2nd dot
+                    LexerAdvance(lex) ' skip 3rd dot
+                    LexerAdvance(lex) ' skip <
+                    Dim startDesc = lex.Pos
+                    While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 62 And LexerPeek(lex) <> 10
+                        LexerAdvance(lex)
+                    End While
+                    Dim dtag = lex.Source.Substring(startDesc, lex.Pos - startDesc)
+                    If LexerPeek(lex) = 62 Then LexerAdvance(lex) ' skip >
+                    Return MakeToken(TOK_XML_DESC, dtag, opLine, opCol)
+                ElseIf lex.Pos + 1 < lex.SrcLen And lex.Source.Substring(lex.Pos, 2) = ".<" Then ' ..<tag>
+                    LexerAdvance(lex) ' skip 2nd dot
+                    LexerAdvance(lex) ' skip <
+                    Dim startDesc = lex.Pos
+                    While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 62 And LexerPeek(lex) <> 10
+                        LexerAdvance(lex)
+                    End While
+                    Dim dtag = lex.Source.Substring(startDesc, lex.Pos - startDesc)
+                    If LexerPeek(lex) = 62 Then LexerAdvance(lex) ' skip >
+                    Return MakeToken(TOK_XML_DESC, dtag, opLine, opCol)
+                Else
+                    Return MakeToken(TOK_DOT, ".", opLine, opCol)
+                End If
+            End If
+
+            If c = 63 Then ' ?
+                If LexerPeek(lex) = 46 Then ' ?.
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_QDOT, "?.", opLine, opCol)
+                ElseIf LexerPeek(lex) = 40 Then ' ?(
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_QLPAREN, "?(", opLine, opCol)
+                Else
+                    Return MakeToken(TOK_QUESTION, "?", opLine, opCol)
+                End If
+            End If
+            If c = 43 Then Return MakeToken(TOK_PLUS, "+", opLine, opCol)
+            If c = 45 Then Return MakeToken(TOK_MINUS, "-", opLine, opCol)
+            If c = 42 Then Return MakeToken(TOK_STAR, "*", opLine, opCol)
+            If c = 47 Then Return MakeToken(TOK_SLASH, "/", opLine, opCol)
+            If c = 38 Then Return MakeToken(TOK_AMP, "&", opLine, opCol)
+
+            If c = 61 Then Return MakeToken(TOK_EQUAL, "=", opLine, opCol)
+
+            If c = 60 Then ' <
+                If LexerPeek(lex) = 60 Then ' <<
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_SHL, "<<", opLine, opCol)
+                ElseIf LexerPeek(lex) = 62 Then ' <>
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_NOTEQUAL, "<>", opLine, opCol)
+                ElseIf LexerPeek(lex) = 61 Then ' <=
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_LESSEQ, "<=", opLine, opCol)
+                Else
+                    Return MakeToken(TOK_LESS, "<", opLine, opCol)
+                End If
+            End If
+
+            If c = 62 Then ' >
+                If LexerPeek(lex) = 62 Then ' >>
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_SHR, ">>", opLine, opCol)
+                ElseIf LexerPeek(lex) = 61 Then ' >=
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_GREATEREQ, ">=", opLine, opCol)
+                Else
+                    Return MakeToken(TOK_GREATER, ">", opLine, opCol)
+                End If
+            End If
+        End While
+
+        Return MakeToken(TOK_EOF, "", lex.Line, lex.Col)
+    End Function
+
+    Function TokenizeAll(source As String) As Token()
+        Dim curLex As Lexer = LexerNew(source)
+        Dim tokens() As Token
+        While True
+            Dim tok As Token = LexerNextToken(curLex)
+            tokens.Add(tok)
+            If tok.Kind = TOK_EOF Then
+                Exit While
+            End If
+        End While
+        Return tokens
+    End Function
+End Module

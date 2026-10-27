@@ -1,0 +1,25 @@
+Module Program
+    Sub Main()
+        Dim limit As Integer = 10000000
+        Dim isPrime(10000001) As Byte
+        For i As Integer = 2 To limit
+            isPrime(i) = 1
+        Next
+        For p As Integer = 2 To 3162
+            If isPrime(p) = 1 Then
+                Dim k As Integer = p * p
+                While k <= limit
+                    isPrime(k) = 0
+                    k = k + p
+                End While
+            End If
+        Next
+        Dim count As Integer = 0
+        For i As Integer = 2 To limit
+            If isPrime(i) = 1 Then
+                count = count + 1
+            End If
+        Next
+        Console.WriteLine(count)
+    End Sub
+End Module

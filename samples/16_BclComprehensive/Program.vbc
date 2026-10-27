@@ -1,0 +1,102 @@
+Imports System
+Imports System.IO
+Imports System.Text
+Imports System.Diagnostics
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Pillar 1: Comprehensive BCL Demo ===")
+
+        ' 1. System.Math
+        Console.WriteLine("1. Testing System.Math:")
+        Dim absVal As Integer = Math.Abs(-42)
+        Dim maxVal As Integer = Math.Max(10, 20)
+        Dim minVal As Integer = Math.Min(10, 20)
+        Dim sqrtVal As Double = Math.Sqrt(64.0)
+        Dim powVal As Double = Math.Pow(2.0, 8.0)
+        Dim roundVal As Double = Math.Round(3.7)
+        Dim piVal As Double = Math.PI
+
+        Console.WriteLine("   Abs(-42) = " & absVal)
+        Console.WriteLine("   Max(10, 20) = " & maxVal)
+        Console.WriteLine("   Min(10, 20) = " & minVal)
+        Console.WriteLine("   Sqrt(64) = " & sqrtVal)
+        Console.WriteLine("   Pow(2, 8) = " & powVal)
+        Console.WriteLine("   Round(3.7) = " & roundVal)
+        Console.WriteLine("   PI > 3.14: " & If(piVal > 3.14, "True", "False"))
+
+        ' 2. System.String
+        Console.WriteLine("2. Testing System.String:")
+        Dim s As String = "  Native VBC Compiler  "
+        Dim trimmed As String = s.Trim()
+        Dim upper As String = trimmed.ToUpper()
+        Dim lower As String = trimmed.ToLower()
+        Dim replaced As String = trimmed.Replace("VBC", "Visual Basic")
+        Dim hasVbc As Boolean = trimmed.Contains("VBC")
+        Dim startsWithNative As Boolean = trimmed.StartsWith("Native")
+        Dim endsWithCompiler As Boolean = trimmed.EndsWith("Compiler")
+
+        Console.WriteLine("   Trimmed: '" & trimmed & "'")
+        Console.WriteLine("   Upper: " & upper)
+        Console.WriteLine("   Lower: " & lower)
+        Console.WriteLine("   Replaced: " & replaced)
+        Console.WriteLine("   Contains('VBC'): " & If(hasVbc, "True", "False"))
+        Console.WriteLine("   StartsWith('Native'): " & If(startsWithNative, "True", "False"))
+        Console.WriteLine("   EndsWith('Compiler'): " & If(endsWithCompiler, "True", "False"))
+
+        ' 3. System.DateTime & System.TimeSpan
+        Console.WriteLine("3. Testing DateTime & TimeSpan:")
+        Dim now As DateTime = DateTime.Now
+        Console.WriteLine("   Current Year: " & now.Year)
+        Console.WriteLine("   DateTime.ToString: " & now.ToString())
+
+        Dim ts As TimeSpan = TimeSpan.FromSeconds(5.5)
+        Dim totalMs As Double = ts.TotalMilliseconds
+        Console.WriteLine("   TimeSpan 5.5s in ms: " & totalMs)
+
+        ' 4. System.Diagnostics.Stopwatch
+        Console.WriteLine("4. Testing Stopwatch:")
+        Dim sw As Stopwatch = Stopwatch.StartNew()
+        Dim sum As Integer = 0
+        For i = 1 To 1000000
+            sum = sum + 1
+        Next
+        sw.Stop()
+        Console.WriteLine("   Stopwatch elapsed ms: " & sw.ElapsedMilliseconds)
+
+        ' 5. System.IO.Path
+        Console.WriteLine("5. Testing Path:")
+        Dim comb As String = Path.Combine("C:/VBC/src", "Program.vbc")
+        Dim fname As String = Path.GetFileName(comb)
+        Dim ext As String = Path.GetExtension(comb)
+        Dim dname As String = Path.GetDirectoryName(comb)
+        Console.WriteLine("   Combine: " & comb)
+        Console.WriteLine("   FileName: " & fname)
+        Console.WriteLine("   Extension: " & ext)
+        Console.WriteLine("   DirectoryName: " & dname)
+
+        ' 6. System.Text.StringBuilder
+        Console.WriteLine("6. Testing StringBuilder:")
+        Dim sb As New StringBuilder()
+        sb.Append("Fast, ")
+        sb.Append("zero-allocation, ")
+        sb.AppendLine("deterministic native memory!")
+        Dim built As String = sb.ToString()
+        Console.WriteLine("   StringBuilder Result: " & built.Trim())
+
+        ' 7. System.Guid
+        Console.WriteLine("7. Testing Guid:")
+        Dim g As String = Guid.NewGuid()
+        Console.WriteLine("   Guid NewGuid: " & g)
+        Console.WriteLine("   Guid Length: " & g.Length)
+
+        ' 8. System.Environment
+        Console.WriteLine("8. Testing Environment:")
+        Dim procs As Integer = Environment.ProcessorCount
+        Dim ticks As Long = Environment.TickCount64
+        Console.WriteLine("   Processor Count: " & procs)
+        Console.WriteLine("   TickCount64 > 0: " & If(ticks > 0, "True", "False"))
+
+        Console.WriteLine("=== All BCL Tests Passed Successfully! ===")
+    End Sub
+End Module

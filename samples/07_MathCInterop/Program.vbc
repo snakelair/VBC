@@ -1,0 +1,28 @@
+Include <math.h>
+Include Math = <math.h>
+Include <stdio.h>
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== VBC Native C Interoperability Demo ===")
+
+        ' 1. Direct C call: sqrt(...)
+        Dim a = sqrt(16.0)
+        Console.WriteLine("Direct sqrt(16.0) = " & a)
+
+        ' 2. Aliased namespace C call: Math.sqrt(...)
+        Dim b As Double = Math.sqrt(25.0)
+        Console.WriteLine("Math.sqrt(25.0) = " & b)
+
+        ' 3. Direct C math call: pow(...)
+        Dim c = pow(2.0, 8.0)
+        Console.WriteLine("Direct pow(2.0, 8.0) = " & c)
+
+        ' 4. String auto-marshaling to C: puts(...)
+        puts("Hello directly from C puts()!")
+
+        ' 5. Built-in C compiler function without includes: c.popcount(...)
+        Dim bits = c.popcount(15)
+        Console.WriteLine("c.popcount(15) = " & bits)
+    End Sub
+End Module

@@ -1,0 +1,227 @@
+Imports System
+
+Module Common
+    Structure SourceSpan
+        Dim StartLine As Integer
+        Dim StartCol As Integer
+        Dim EndLine As Integer
+        Dim EndCol As Integer
+    End Structure
+
+    Function StringLength(s As String) As Long
+        Return s.Length
+    End Function
+
+    Function StringByte(s As String, idx As Long) As Integer
+        Return s.ByteAt(idx)
+    End Function
+
+    Function StringSub(s As String, start As Long, len As Long) As String
+        Return s.Substring(start, len)
+    End Function
+
+    Function StringEquals(a As String, b As String) As Boolean
+        Return CaseInsensitiveEquals(a, b)
+    End Function
+
+    Function IsDigit(ch As Integer) As Boolean
+        Return ch >= 48 And ch <= 57
+    End Function
+
+    Function IsHexDigit(ch As Integer) As Boolean
+        Return (ch >= 48 And ch <= 57) Or (ch >= 65 And ch <= 70) Or (ch >= 97 And ch <= 102)
+    End Function
+
+    Function HexDigitVal(ch As Integer) As Integer
+        If ch >= 48 And ch <= 57 Then Return ch - 48
+        If ch >= 65 And ch <= 70 Then Return ch - 65 + 10
+        If ch >= 97 And ch <= 102 Then Return ch - 97 + 10
+        Return 0
+    End Function
+
+    Function IsAlpha(ch As Integer) As Boolean
+        Return (ch >= 65 And ch <= 90) Or (ch >= 97 And ch <= 122)
+    End Function
+
+    Function IsAlphaOrUnderscore(ch As Integer) As Boolean
+        Return IsAlpha(ch) Or ch = 95
+    End Function
+
+    Function IsAlphaNumOrUnderscore(ch As Integer) As Boolean
+        Return IsAlpha(ch) Or IsDigit(ch) Or ch = 95
+    End Function
+
+    Function IsWhitespace(ch As Integer) As Boolean
+        Return ch = 32 Or ch = 9 Or ch = 13 Or ch = 10
+    End Function
+
+    Function ToLowerChar(ch As Integer) As Integer
+        If ch >= 65 And ch <= 90 Then
+            Return ch + 32
+        End If
+        Return ch
+    End Function
+
+    Function CaseInsensitiveEquals(a As String, b As String) As Boolean
+        If a.Length <> b.Length Then
+            Return False
+        End If
+        Dim len = a.Length
+        For i = 0 To len - 1
+            Dim ca = ToLowerChar(a.ByteAt(i))
+            Dim cb = ToLowerChar(b.ByteAt(i))
+            If ca <> cb Then
+                Return False
+            End If
+        Next
+        Return True
+    End Function
+
+    Function EscapeCString(str As String) As String
+        If str.Length = 0 Then Return ""
+        Dim res As String = ""
+        Dim i = 0
+        While i < str.Length
+            Dim ch = str.ByteAt(i)
+            If ch = 92 And i + 1 < str.Length Then
+                Dim nextC = str.ByteAt(i + 1)
+                If nextC = 110 Or nextC = 114 Or nextC = 116 Or nextC = 48 Or nextC = 92 Or nextC = 34 Then
+                    res = res & str.Substring(i, 2)
+                    i = i + 2
+                    Continue While
+                End If
+            End If
+            If ch = 92 Then
+                res = res & "\\" & "\\"
+            ElseIf ch = 34 Then
+                res = res & "\\" & """"
+            ElseIf ch = 13 Then
+                res = res & "\\" & "r"
+            ElseIf ch = 10 Then
+                res = res & "\\" & "n"
+            ElseIf ch = 9 Then
+                res = res & "\\" & "t"
+            Else
+                res = res & str.Substring(i, 1)
+            End If
+            i = i + 1
+        End While
+        Return res
+    End Function
+
+    Function ReplaceDoubleQuotes(s As String) As String
+        Dim res As String = ""
+        Dim i = 0
+        While i < s.Length
+            If s.ByteAt(i) = 34 And i + 1 < s.Length Then
+                If s.ByteAt(i + 1) = 34 Then
+                    res = res & """"
+                    i = i + 2
+                    Continue While
+                End If
+            End If
+            res = res & s.Substring(i, 1)
+            i = i + 1
+        End While
+        Return res
+    End Function
+
+    Function NormalizePath(str As String) As String
+        Dim res As String = ""
+        For i = 0 To str.Length - 1
+            If str.ByteAt(i) = 92 Then
+                res = res & "/"
+            Else
+                res = res & str.Substring(i, 1)
+            End If
+        Next
+        Return res
+    End Function
+
+    Function IntToStr(n As Long) As String
+        Return "" & n
+    End Function
+
+    Function ReplaceChar(s As String, oldChar As Integer, newChar As String) As String
+        Dim res As String = ""
+        For i = 0 To s.Length - 1
+            If s.ByteAt(i) = oldChar Then
+                res = res & newChar
+            Else
+                res = res & s.Substring(i, 1)
+            End If
+        Next
+        Return res
+    End Function
+
+    Function MangleName(name As String) As String
+        Return ReplaceChar(name, 46, "_")
+    End Function
+
+    Structure Diagnostic
+        Dim FilePath As String
+        Dim Line As Integer
+        Dim Col As Integer
+        Dim Severity As String
+        Dim Message As String
+    End Structure
+
+    Dim Diags() As Diagnostic
+    Dim DiagErrorCount As Integer
+    Dim DiagWarningCount As Integer
+    Dim DiagCurrentFile As String
+    Dim DiagJsonOutput As Boolean
+
+    Sub DiagInit(filePath As String, jsonMode As Boolean)
+        Diags = []
+        DiagErrorCount = 0
+        DiagWarningCount = 0
+        DiagCurrentFile = filePath
+        DiagJsonOutput = jsonMode
+    End Sub
+
+    Sub ReportError(line As Integer, col As Integer, msg As String)
+        Dim d As Diagnostic
+        d.FilePath = DiagCurrentFile
+        d.Line = line
+        d.Col = col
+        d.Severity = "error"
+        d.Message = msg
+        Diags.Add(d)
+        DiagErrorCount = DiagErrorCount + 1
+        If Not DiagJsonOutput Then
+            Console.WriteLine(DiagCurrentFile & ":" & IntToStr(line) & ":" & IntToStr(col) & ": error: " & msg)
+        End If
+    End Sub
+
+    Sub ReportWarning(line As Integer, col As Integer, msg As String)
+        Dim d As Diagnostic
+        d.FilePath = DiagCurrentFile
+        d.Line = line
+        d.Col = col
+        d.Severity = "warning"
+        d.Message = msg
+        Diags.Add(d)
+        DiagWarningCount = DiagWarningCount + 1
+        If Not DiagJsonOutput Then
+            Console.WriteLine(DiagCurrentFile & ":" & IntToStr(line) & ":" & IntToStr(col) & ": warning: " & msg)
+        End If
+    End Sub
+
+    Function GetDiagnosticsJson() As String
+        Dim json As String = "["
+        For i = 0 To Diags.Length - 1
+            If i > 0 Then json = json & ","
+            Dim d As Diagnostic = Diags(i)
+            json = json & "{"
+            json = json & """file"":""" & EscapeCString(d.FilePath) & ""","
+            json = json & """line"":" & IntToStr(d.Line) & ","
+            json = json & """col"":" & IntToStr(d.Col) & ","
+            json = json & """severity"":""" & d.Severity & ""","
+            json = json & """message"":""" & EscapeCString(d.Message) & """"
+            json = json & "}"
+        Next
+        json = json & "]"
+        Return json
+    End Function
+End Module

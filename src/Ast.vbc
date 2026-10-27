@@ -1,0 +1,205 @@
+Imports System
+
+Module AstConstants
+    ' AST Node Kind Constants (with AI field contracts):
+    ' NODE_UNIT: Root compilation unit (Children = top-level Modules, Structures, Classes, Interfaces)
+    ' NODE_MODULE: Module container (Name = module name, Children = subroutines, functions, types, fields)
+    ' NODE_STRUCTURE: Value type structure (Name = struct name, Children = fields, methods, constructors)
+    ' NODE_FIELD: Field declaration (Name = field name, TypeName = type, FirstChild = optional default init)
+    ' NODE_FUNCTION: Function (Name = func name, TypeName = return type, Children = params then body)
+    ' NODE_SUB: Subroutine (Name = sub name, TypeName = Void, Children = params then body)
+    ' NODE_PARAM: Parameter (Name = param name, TypeName = type, IntValue = 1 if ByRef else 0)
+    ' NODE_VARDECL: Variable decl (Name = var name, TypeName = type, FirstChild = optional init expr)
+    ' NODE_ASSIGN: Assignment (FirstChild = target, SecondChild = value expr)
+    ' NODE_IF: If statement (FirstChild = condition, NextSibling = then-block, NextSibling = optional elseif/else)
+    ' NODE_FOR: For loop (Name = loop var, FirstChild = start, Next = end, Next = step, Next = body)
+    ' NODE_FOREACH: For Each loop (Name = iter var, FirstChild = collection expr, Next = body)
+    ' NODE_WHILE: While loop (FirstChild = condition, Next = body)
+    ' NODE_RETURN: Return statement (FirstChild = optional return expr)
+    ' NODE_EXPR_STMT: Standalone expression statement (FirstChild = expr)
+    ' NODE_BINARY: Binary operator (Op = TOK_* operator, FirstChild = left, Next = right)
+    ' NODE_UNARY: Unary operator (Op = TOK_* operator, FirstChild = operand)
+    ' NODE_INVOKE: Function/method invocation (FirstChild = callee, NextSibling... = args)
+    ' NODE_MEMBER: Member access (Name = member name, FirstChild = target expr)
+    ' NODE_LITERAL: Literal constant (TypeName = type, IntValue/StringValue = payload)
+    ' NODE_IDENT: Identifier reference (Name = identifier name)
+    ' NODE_ARRAY_LIT: Array literal [a, b] (Children = element exprs)
+    ' NODE_QUERY: LINQ query (FirstChild = from/where/select clauses)
+    ' NODE_BLOCK: Statement block (Children = statements)
+    ' NODE_ELSEIF: ElseIf branch (FirstChild = condition, Next = body block)
+    ' NODE_IF_EXPR: Ternary If expression (FirstChild = cond, Next = true-val, Next = false-val)
+    ' NODE_CONTINUE: Continue loop statement
+    ' NODE_CLASS: Reference type class (Name = class name, TypeName = base class, Children = members)
+    ' NODE_USING: RAII Using block (Name = var name, FirstChild = init expr, Next = body block)
+    ' NODE_ME: Me keyword (this/self reference pointer)
+    ' NODE_MYBASE: MyBase keyword (base class pointer)
+    ' NODE_NEW: Constructor instantiation (TypeName = type name, Children = constructor args)
+    ' NODE_NAMESPACE: Namespace scope (Name = namespace path)
+    ' NODE_TRY: Exception handling block (FirstChild = try, Next = catch blocks, Next = optional finally)
+    ' NODE_SYNCLOCK: Monitor lock block (FirstChild = lock object, Next = body block)
+    ' NODE_INTERFACE: Interface contract (Name = interface name, Children = method prototypes)
+    ' NODE_IMPLEMENTS: Interface implements clause (Name = interface name)
+    ' NODE_NULL_COND_MEMBER: Null-conditional member access (?.)
+    ' NODE_NULL_COND_INDEX: Null-conditional index access (?(...))
+    ' NODE_XML_CHILD: XML child axis (.<name>)
+    ' NODE_XML_ATTR: XML attribute axis (.@name)
+    ' NODE_XML_DESC: XML descendant axis (...<name>)
+
+    Const NODE_UNIT As Integer = 1
+    Const NODE_MODULE As Integer = 2
+    Const NODE_STRUCTURE As Integer = 3
+    Const NODE_FIELD As Integer = 4
+    Const NODE_FUNCTION As Integer = 5
+    Const NODE_SUB As Integer = 6
+    Const NODE_PARAM As Integer = 7
+    Const NODE_VARDECL As Integer = 8
+    Const NODE_ASSIGN As Integer = 9
+    Const NODE_IF As Integer = 10
+    Const NODE_FOR As Integer = 11
+    Const NODE_FOREACH As Integer = 12
+    Const NODE_WHILE As Integer = 13
+    Const NODE_RETURN As Integer = 14
+    Const NODE_EXPR_STMT As Integer = 15
+    Const NODE_BINARY As Integer = 16
+    Const NODE_UNARY As Integer = 17
+    Const NODE_INVOKE As Integer = 18
+    Const NODE_MEMBER As Integer = 19
+    Const NODE_LITERAL As Integer = 20
+    Const NODE_IDENT As Integer = 21
+    Const NODE_ARRAY_LIT As Integer = 22
+    Const NODE_QUERY As Integer = 23
+    Const NODE_BLOCK As Integer = 24
+    Const NODE_ELSEIF As Integer = 25
+    Const NODE_IF_EXPR As Integer = 26
+    Const NODE_CONTINUE As Integer = 27
+    Const NODE_CLASS As Integer = 28
+    Const NODE_USING As Integer = 29
+    Const NODE_ME As Integer = 30
+    Const NODE_MYBASE As Integer = 31
+    Const NODE_NEW As Integer = 32
+    Const NODE_NAMESPACE As Integer = 33
+    Const NODE_TRY As Integer = 34
+    Const NODE_SYNCLOCK As Integer = 35
+    Const NODE_INTERFACE As Integer = 36
+    Const NODE_IMPLEMENTS As Integer = 37
+    Const NODE_NULL_COND_MEMBER As Integer = 38
+    Const NODE_NULL_COND_INDEX As Integer = 39
+    Const NODE_XML_CHILD As Integer = 40
+    Const NODE_XML_ATTR As Integer = 41
+    Const NODE_XML_DESC As Integer = 42
+
+    Function GetNodeKindName(kind As Integer) As String
+        If kind = NODE_UNIT Then Return "NODE_UNIT"
+        If kind = NODE_MODULE Then Return "NODE_MODULE"
+        If kind = NODE_STRUCTURE Then Return "NODE_STRUCTURE"
+        If kind = NODE_FIELD Then Return "NODE_FIELD"
+        If kind = NODE_FUNCTION Then Return "NODE_FUNCTION"
+        If kind = NODE_SUB Then Return "NODE_SUB"
+        If kind = NODE_PARAM Then Return "NODE_PARAM"
+        If kind = NODE_VARDECL Then Return "NODE_VARDECL"
+        If kind = NODE_ASSIGN Then Return "NODE_ASSIGN"
+        If kind = NODE_IF Then Return "NODE_IF"
+        If kind = NODE_FOR Then Return "NODE_FOR"
+        If kind = NODE_FOREACH Then Return "NODE_FOREACH"
+        If kind = NODE_WHILE Then Return "NODE_WHILE"
+        If kind = NODE_RETURN Then Return "NODE_RETURN"
+        If kind = NODE_EXPR_STMT Then Return "NODE_EXPR_STMT"
+        If kind = NODE_BINARY Then Return "NODE_BINARY"
+        If kind = NODE_UNARY Then Return "NODE_UNARY"
+        If kind = NODE_INVOKE Then Return "NODE_INVOKE"
+        If kind = NODE_MEMBER Then Return "NODE_MEMBER"
+        If kind = NODE_LITERAL Then Return "NODE_LITERAL"
+        If kind = NODE_IDENT Then Return "NODE_IDENT"
+        If kind = NODE_ARRAY_LIT Then Return "NODE_ARRAY_LIT"
+        If kind = NODE_QUERY Then Return "NODE_QUERY"
+        If kind = NODE_BLOCK Then Return "NODE_BLOCK"
+        If kind = NODE_ELSEIF Then Return "NODE_ELSEIF"
+        If kind = NODE_IF_EXPR Then Return "NODE_IF_EXPR"
+        If kind = NODE_CONTINUE Then Return "NODE_CONTINUE"
+        If kind = NODE_CLASS Then Return "NODE_CLASS"
+        If kind = NODE_USING Then Return "NODE_USING"
+        If kind = NODE_ME Then Return "NODE_ME"
+        If kind = NODE_MYBASE Then Return "NODE_MYBASE"
+        If kind = NODE_NEW Then Return "NODE_NEW"
+        If kind = NODE_NAMESPACE Then Return "NODE_NAMESPACE"
+        If kind = NODE_TRY Then Return "NODE_TRY"
+        If kind = NODE_SYNCLOCK Then Return "NODE_SYNCLOCK"
+        If kind = NODE_INTERFACE Then Return "NODE_INTERFACE"
+        If kind = NODE_IMPLEMENTS Then Return "NODE_IMPLEMENTS"
+        If kind = NODE_NULL_COND_MEMBER Then Return "NODE_NULL_COND_MEMBER"
+        If kind = NODE_NULL_COND_INDEX Then Return "NODE_NULL_COND_INDEX"
+        If kind = NODE_XML_CHILD Then Return "NODE_XML_CHILD"
+        If kind = NODE_XML_ATTR Then Return "NODE_XML_ATTR"
+        If kind = NODE_XML_DESC Then Return "NODE_XML_DESC"
+        Return "UNKNOWN_NODE"
+    End Function
+End Module
+
+Module AstArenaModule
+    Structure AstNode
+        Dim Kind As Integer
+        Dim Name As String
+        Dim TypeName As String
+        Dim Op As Integer
+        Dim IntValue As Long
+        Dim StringValue As String
+        Dim FirstChild As Integer
+        Dim NextSibling As Integer
+        Dim ChildCount As Integer
+        Dim Line As Integer
+    End Structure
+
+    Dim Nodes() As AstNode
+
+    Function InitArena() As Integer
+        Nodes = []
+        Return 0
+    End Function
+
+    Function AllocNode(kind As Integer, name As String, line As Integer) As Integer
+        Dim n As AstNode
+        n.Kind = kind
+        n.Name = name
+        n.TypeName = ""
+        n.Op = 0
+        n.IntValue = 0
+        n.StringValue = ""
+        n.FirstChild = -1
+        n.NextSibling = -1
+        n.ChildCount = 0
+        n.Line = line
+
+        Dim id = Nodes.Length
+        Nodes.Add(n)
+        Return id
+    End Function
+
+    Sub AddChild(parentId As Integer, childId As Integer)
+        If parentId < 0 Or childId < 0 Then Return
+        If parentId >= Nodes.Length Or childId >= Nodes.Length Then Return
+
+        If Nodes(parentId).FirstChild = -1 Then
+            Nodes(parentId).FirstChild = childId
+        Else
+            Dim curr = Nodes(parentId).FirstChild
+            While Nodes(curr).NextSibling <> -1
+                curr = Nodes(curr).NextSibling
+            End While
+            Nodes(curr).NextSibling = childId
+        End If
+
+        Nodes(parentId).ChildCount = Nodes(parentId).ChildCount + 1
+    End Sub
+
+    Function GetChildAt(parentId As Integer, index As Integer) As Integer
+        If parentId < 0 Or parentId >= Nodes.Length Then Return -1
+        Dim curr = Nodes(parentId).FirstChild
+        Dim i = 0
+        While curr <> -1
+            If i = index Then Return curr
+            curr = Nodes(curr).NextSibling
+            i = i + 1
+        End While
+        Return -1
+    End Function
+End Module

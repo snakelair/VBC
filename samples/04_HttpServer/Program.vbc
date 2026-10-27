@@ -1,0 +1,20 @@
+Module Program
+    Sub HandleHome(req As HttpRequest, res As HttpResponse)
+        Console.WriteLine("Server received GET request at: " & req.Path)
+        res.SendHtml("<h1>Welcome to VBC HTTP Server</h1><p>Running on native data stacks!</p>")
+    End Sub
+
+    Sub HandleApi(req As HttpRequest, res As HttpResponse)
+        res.SendJson("{""status"":""ok"",""message"":""Hello from VBC API!""}")
+    End Sub
+
+    Sub Main()
+        Console.WriteLine("Starting VBC HTTP Server on port 8080...")
+        Dim server As New HttpServer(8080)
+        server.OnGet("/", AddressOf HandleHome)
+        server.OnGet("/api", AddressOf HandleApi)
+        Console.WriteLine("Server ready, accepting requests...")
+        server.Start(2)
+        Console.WriteLine("Server gracefully stopped after processing requests.")
+    End Sub
+End Module

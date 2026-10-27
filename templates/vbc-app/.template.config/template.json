@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "VBC",
+  "classifications": ["Common", "Console", "VBC"],
+  "name": "VBC Native Application",
+  "identity": "VBC.Native.ConsoleApp",
+  "shortName": "vbcapp",
+  "tags": {
+    "language": "Visual Basic",
+    "type": "project"
+  },
+  "sourceName": "VbcApp",
+  "preferNameDirectory": true
+}

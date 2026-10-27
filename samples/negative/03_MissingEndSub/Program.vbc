@@ -1,0 +1,4 @@
+Module Program
+    Sub Main()
+        Console.WriteLine("Missing End Sub")
+End Module

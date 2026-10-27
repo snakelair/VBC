@@ -1,0 +1,117 @@
+﻿Imports System
+
+Module ParserModule
+    Dim p_Tokens() As Token
+    Dim p_Pos As Integer
+    Dim p_Count As Integer
+    Dim p_CurrentNamespace As String
+    Dim p_ImportedNamespaces() As String
+
+    Sub ParserInit(toks() As Token)
+        p_Tokens = toks
+        p_Pos = 0
+        p_Count = toks.Length
+        p_CurrentNamespace = ""
+        p_ImportedNamespaces = []
+        p_ImportedNamespaces.Add("System")
+    End Sub
+
+    Function CurrKind() As Integer
+        If p_Pos >= p_Count Then Return TOK_EOF
+        Return p_Tokens(p_Pos).Kind
+    End Function
+
+    Function CurrText() As String
+        If p_Pos >= p_Count Then Return ""
+        Return p_Tokens(p_Pos).Text
+    End Function
+
+    Function CurrLine() As Integer
+        If p_Pos >= p_Count Then Return 0
+        Return p_Tokens(p_Pos).Line
+    End Function
+
+    Function CurrToken() As Token
+        If p_Pos >= p_Count Then Return p_Tokens(p_Count - 1)
+        Return p_Tokens(p_Pos)
+    End Function
+
+    Function PeekKind(offset As Integer) As Integer
+        Dim idx = p_Pos + offset
+        If idx >= p_Count Then Return TOK_EOF
+        Return p_Tokens(idx).Kind
+    End Function
+
+    Function ParserAdvance() As Token
+        Dim tok As Token = CurrToken()
+        If p_Pos < p_Count Then
+            p_Pos = p_Pos + 1
+        End If
+        Return tok
+    End Function
+
+    Function ParserMatch(expectedKind As Integer) As Token
+        Dim tok As Token = CurrToken()
+        If tok.Kind = expectedKind Then
+            ParserAdvance()
+            Return tok
+        End If
+        ReportError(tok.Line, tok.Col, "expected " & GetTokenKindName(expectedKind) & " but found '" & tok.Text & "' (" & GetTokenKindName(tok.Kind) & ")")
+        ParserAdvance()
+        Return tok
+    End Function
+
+    Sub SkipSeparators()
+        While CurrKind() = TOK_NEWLINE Or CurrKind() = TOK_COLON
+            ParserAdvance()
+        End While
+    End Sub
+
+    Function ParseTypeNameEx(allowEmptyParen As Boolean) As String
+        Dim tName As String = ""
+        If CurrKind() = TOK_BYTE Then
+            tName = "Byte"
+            ParserAdvance()
+        ElseIf CurrKind() = TOK_IDENT Then
+            tName = ParserMatch(TOK_IDENT).Text
+        Else
+            tName = CurrText()
+            ParserAdvance()
+        End If
+
+        While CurrKind() = TOK_DOT
+            ParserAdvance()
+            tName = tName & "." & ParserMatch(TOK_IDENT).Text
+        End While
+
+        ' Handle Generics like (Of String, Integer) or Array ()
+        If CurrKind() = TOK_LPAREN Then
+            If allowEmptyParen And PeekKind(1) = TOK_RPAREN Then
+                ParserAdvance()
+                ParserAdvance()
+                tName = tName & "()"
+            ElseIf p_Pos + 1 < p_Count And CaseInsensitiveEquals(p_Tokens(p_Pos + 1).Text, "of") Then
+                ParserAdvance()
+                ParserAdvance()
+                Dim innerT As String = ParseTypeName()
+                tName = tName & "_Of_" & MangleName(innerT)
+                While CurrKind() = TOK_COMMA
+                    ParserAdvance()
+                    Dim nextT As String = ParseTypeName()
+                    tName = tName & "_" & MangleName(nextT)
+                End While
+                ParserMatch(TOK_RPAREN)
+            End If
+        End If
+        If CurrKind() = TOK_QUESTION Then
+            ParserAdvance()
+            tName = "Nullable_Of_" & MangleName(tName)
+        End If
+        Return tName
+    End Function
+
+    Function ParseTypeName() As String
+        Return ParseTypeNameEx(True)
+    End Function
+
+End Module

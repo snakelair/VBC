@@ -1,0 +1,41 @@
+﻿Imports System
+
+Module EmitterModule
+    Structure LocalVarInfo
+        Dim Name As String
+        Dim TypeName As String
+        Dim IsByRef As Boolean
+    End Structure
+
+    Dim outBuf As String
+    Dim tempCounter As Integer
+    Dim currentSourceFile As String
+    Dim currentLocals() As LocalVarInfo
+    Dim globalSliceVars() As LocalVarInfo
+
+    Sub SetCurrentSourceFile(f As String)
+        currentSourceFile = NormalizePath(f)
+    End Sub
+
+    Sub EmitInit()
+        outBuf = ""
+        tempCounter = 0
+    End Sub
+
+    Sub EmitWrite(s As String)
+        outBuf = outBuf & s
+    End Sub
+
+    Sub EmitWriteLine(s As String)
+        outBuf = outBuf & s & "\n"
+    End Sub
+
+    Function NextTemp(prefix As String) As String
+        tempCounter = tempCounter + 1
+        Return prefix & IntToStr(tempCounter)
+    End Function
+
+    Dim currentEnclosingClass As String
+    Dim currentEnclosingStruct As String
+
+End Module

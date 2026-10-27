@@ -1,0 +1,5 @@
+Module Program
+    Sub Main()
+        Console.WriteLine("Hello from VBC! Fast native execution with zero GC.")
+    End Sub
+End Module

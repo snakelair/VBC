@@ -1,0 +1,2050 @@
+﻿Imports System
+
+Module Common
+    Structure SourceSpan
+        Dim StartLine As Integer
+        Dim StartCol As Integer
+        Dim EndLine As Integer
+        Dim EndCol As Integer
+    End Structure
+
+    Function StringLength(s As String) As Long
+        Return s.Length
+    End Function
+
+    Function StringByte(s As String, idx As Long) As Integer
+        Return s.ByteAt(idx)
+    End Function
+
+    Function StringSub(s As String, start As Long, len As Long) As String
+        Return s.Substring(start, len)
+    End Function
+
+    Function StringEquals(a As String, b As String) As Boolean
+        Return CaseInsensitiveEquals(a, b)
+    End Function
+
+    Function IsDigit(ch As Integer) As Boolean
+        Return ch >= 48 And ch <= 57
+    End Function
+
+    Function IsAlpha(ch As Integer) As Boolean
+        Return (ch >= 65 And ch <= 90) Or (ch >= 97 And ch <= 122)
+    End Function
+
+    Function IsAlphaOrUnderscore(ch As Integer) As Boolean
+        Return IsAlpha(ch) Or ch = 95
+    End Function
+
+    Function IsAlphaNumOrUnderscore(ch As Integer) As Boolean
+        Return IsAlpha(ch) Or IsDigit(ch) Or ch = 95
+    End Function
+
+    Function IsWhitespace(ch As Integer) As Boolean
+        Return ch = 32 Or ch = 9 Or ch = 13 Or ch = 10
+    End Function
+
+    Function ToLowerChar(ch As Integer) As Integer
+        If ch >= 65 And ch <= 90 Then
+            Return ch + 32
+        End If
+        Return ch
+    End Function
+
+    Function CaseInsensitiveEquals(a As String, b As String) As Boolean
+        If a.Length <> b.Length Then
+            Return False
+        End If
+        Dim len = a.Length
+        For i = 0 To len - 1
+            Dim ca = ToLowerChar(a.ByteAt(i))
+            Dim cb = ToLowerChar(b.ByteAt(i))
+            If ca <> cb Then
+                Return False
+            End If
+        Next
+        Return True
+    End Function
+
+    Function EscapeCString(str As String) As String
+        If str.Length = 0 Then Return ""
+        Dim res As String = ""
+        Dim i = 0
+        While i < str.Length
+            Dim ch = str.ByteAt(i)
+            If ch = 92 And i + 1 < str.Length Then
+                Dim nextC = str.ByteAt(i + 1)
+                If nextC = 110 Or nextC = 114 Or nextC = 116 Or nextC = 48 Or nextC = 92 Or nextC = 34 Then
+                    res = res & str.Substring(i, 2)
+                    i = i + 2
+                    Continue While
+                End If
+            End If
+            If ch = 92 Then
+                res = res & "\\" & "\\"
+            ElseIf ch = 34 Then
+                res = res & "\\" & """"
+            ElseIf ch = 13 Then
+                res = res & "\\" & "r"
+            ElseIf ch = 10 Then
+                res = res & "\\" & "n"
+            ElseIf ch = 9 Then
+                res = res & "\\" & "t"
+            Else
+                res = res & str.Substring(i, 1)
+            End If
+            i = i + 1
+        End While
+        Return res
+    End Function
+
+    Function ReplaceDoubleQuotes(s As String) As String
+        Dim res As String = ""
+        Dim i = 0
+        While i < s.Length
+            If s.ByteAt(i) = 34 And i + 1 < s.Length Then
+                If s.ByteAt(i + 1) = 34 Then
+                    res = res & """"
+                    i = i + 2
+                    Continue While
+                End If
+            End If
+            res = res & s.Substring(i, 1)
+            i = i + 1
+        End While
+        Return res
+    End Function
+
+    Function IntToStr(n As Long) As String
+        Return "" & n
+    End Function
+End Module
+Imports System
+
+Module TokenConstants
+    ' Token Kind Constants
+    Const TOK_EOF As Integer = 0
+    Const TOK_IDENT As Integer = 1
+    Const TOK_INT As Integer = 2
+    Const TOK_STR As Integer = 3
+    Const TOK_FLOAT As Integer = 4
+
+    ' Keywords
+    Const TOK_MODULE As Integer = 10
+    Const TOK_STRUCTURE As Integer = 11
+    Const TOK_SUB As Integer = 12
+    Const TOK_FUNCTION As Integer = 13
+    Const TOK_END As Integer = 14
+    Const TOK_DIM As Integer = 15
+    Const TOK_AS As Integer = 16
+    Const TOK_CONST As Integer = 17
+    Const TOK_IMPORTS As Integer = 18
+    Const TOK_IF As Integer = 19
+    Const TOK_THEN As Integer = 20
+    Const TOK_ELSEIF As Integer = 21
+    Const TOK_ELSE As Integer = 22
+    Const TOK_FOR As Integer = 23
+    Const TOK_EACH As Integer = 24
+    Const TOK_IN As Integer = 25
+    Const TOK_TO As Integer = 26
+    Const TOK_STEP As Integer = 27
+    Const TOK_NEXT As Integer = 28
+    Const TOK_WHILE As Integer = 29
+    Const TOK_RETURN As Integer = 30
+    Const TOK_EXIT As Integer = 31
+    Const TOK_FROM As Integer = 32
+    Const TOK_WHERE As Integer = 33
+    Const TOK_SELECT As Integer = 34
+    Const TOK_AGGREGATE As Integer = 35
+    Const TOK_INTO As Integer = 36
+    Const TOK_DISTINCT As Integer = 37
+    Const TOK_TAKE As Integer = 38
+    Const TOK_SKIP As Integer = 39
+    Const TOK_BYVAL As Integer = 40
+    Const TOK_BYREF As Integer = 41
+    Const TOK_NEW As Integer = 42
+    Const TOK_TRUE As Integer = 43
+    Const TOK_FALSE As Integer = 44
+    Const TOK_NOTHING As Integer = 45
+    Const TOK_CONTINUE As Integer = 46
+
+    ' Punctuators
+    Const TOK_LPAREN As Integer = 50
+    Const TOK_RPAREN As Integer = 51
+    Const TOK_LBRACKET As Integer = 52
+    Const TOK_RBRACKET As Integer = 53
+    Const TOK_COMMA As Integer = 54
+    Const TOK_DOT As Integer = 55
+    Const TOK_COLON As Integer = 56
+    Const TOK_NEWLINE As Integer = 57
+
+    ' Operators
+    Const TOK_EQUAL As Integer = 60
+    Const TOK_NOTEQUAL As Integer = 61
+    Const TOK_LESS As Integer = 62
+    Const TOK_LESSEQ As Integer = 63
+    Const TOK_GREATER As Integer = 64
+    Const TOK_GREATEREQ As Integer = 65
+    Const TOK_PLUS As Integer = 66
+    Const TOK_MINUS As Integer = 67
+    Const TOK_STAR As Integer = 68
+    Const TOK_SLASH As Integer = 69
+    Const TOK_AMP As Integer = 70
+    Const TOK_MOD As Integer = 71
+    Const TOK_AND As Integer = 72
+    Const TOK_OR As Integer = 73
+    Const TOK_NOT As Integer = 74
+End Module
+
+Module TokenModule
+    Structure Token
+        Dim Kind As Integer
+        Dim Text As String
+        Dim Line As Integer
+        Dim Col As Integer
+        Dim IntValue As Long
+    End Structure
+
+    Function MakeToken(kind As Integer, text As String, line As Integer, col As Integer) As Token
+        Dim tok As Token
+        tok.Kind = kind
+        tok.Text = text
+        tok.Line = line
+        tok.Col = col
+        tok.IntValue = 0
+        Return tok
+    End Function
+
+    Function LookupKeyword(text As String) As Integer
+        If CaseInsensitiveEquals(text, "module") Then Return TOK_MODULE
+        If CaseInsensitiveEquals(text, "structure") Then Return TOK_STRUCTURE
+        If CaseInsensitiveEquals(text, "sub") Then Return TOK_SUB
+        If CaseInsensitiveEquals(text, "function") Then Return TOK_FUNCTION
+        If CaseInsensitiveEquals(text, "end") Then Return TOK_END
+        If CaseInsensitiveEquals(text, "dim") Then Return TOK_DIM
+        If CaseInsensitiveEquals(text, "as") Then Return TOK_AS
+        If CaseInsensitiveEquals(text, "const") Then Return TOK_CONST
+        If CaseInsensitiveEquals(text, "imports") Then Return TOK_IMPORTS
+        If CaseInsensitiveEquals(text, "if") Then Return TOK_IF
+        If CaseInsensitiveEquals(text, "then") Then Return TOK_THEN
+        If CaseInsensitiveEquals(text, "elseif") Then Return TOK_ELSEIF
+        If CaseInsensitiveEquals(text, "else") Then Return TOK_ELSE
+        If CaseInsensitiveEquals(text, "for") Then Return TOK_FOR
+        If CaseInsensitiveEquals(text, "each") Then Return TOK_EACH
+        If CaseInsensitiveEquals(text, "in") Then Return TOK_IN
+        If CaseInsensitiveEquals(text, "to") Then Return TOK_TO
+        If CaseInsensitiveEquals(text, "step") Then Return TOK_STEP
+        If CaseInsensitiveEquals(text, "next") Then Return TOK_NEXT
+        If CaseInsensitiveEquals(text, "while") Then Return TOK_WHILE
+        If CaseInsensitiveEquals(text, "return") Then Return TOK_RETURN
+        If CaseInsensitiveEquals(text, "exit") Then Return TOK_EXIT
+        If CaseInsensitiveEquals(text, "continue") Then Return TOK_CONTINUE
+        If CaseInsensitiveEquals(text, "from") Then Return TOK_FROM
+        If CaseInsensitiveEquals(text, "where") Then Return TOK_WHERE
+        If CaseInsensitiveEquals(text, "select") Then Return TOK_SELECT
+        If CaseInsensitiveEquals(text, "aggregate") Then Return TOK_AGGREGATE
+        If CaseInsensitiveEquals(text, "into") Then Return TOK_INTO
+        If CaseInsensitiveEquals(text, "distinct") Then Return TOK_DISTINCT
+        If CaseInsensitiveEquals(text, "take") Then Return TOK_TAKE
+        If CaseInsensitiveEquals(text, "skip") Then Return TOK_SKIP
+        If CaseInsensitiveEquals(text, "byval") Then Return TOK_BYVAL
+        If CaseInsensitiveEquals(text, "byref") Then Return TOK_BYREF
+        If CaseInsensitiveEquals(text, "new") Then Return TOK_NEW
+        If CaseInsensitiveEquals(text, "and") Or CaseInsensitiveEquals(text, "andalso") Then Return TOK_AND
+        If CaseInsensitiveEquals(text, "or") Or CaseInsensitiveEquals(text, "orelse") Then Return TOK_OR
+        If CaseInsensitiveEquals(text, "not") Then Return TOK_NOT
+        If CaseInsensitiveEquals(text, "mod") Then Return TOK_MOD
+        If CaseInsensitiveEquals(text, "true") Then Return TOK_TRUE
+        If CaseInsensitiveEquals(text, "false") Then Return TOK_FALSE
+        If CaseInsensitiveEquals(text, "nothing") Then Return TOK_NOTHING
+        Return TOK_IDENT
+    End Function
+End Module
+Imports System
+
+Module LexerModule
+    Structure Lexer
+        Dim Source As String
+        Dim SrcLen As Long
+        Dim Pos As Long
+        Dim Line As Integer
+        Dim Col As Integer
+    End Structure
+
+    Function LexerNew(source As String) As Lexer
+        Dim res As Lexer
+        res.Source = source
+        res.SrcLen = source.Length
+        res.Pos = 0
+        res.Line = 1
+        res.Col = 1
+        Return res
+    End Function
+
+    Function LexerPeek(ByRef lex As Lexer) As Integer
+        If lex.Pos >= lex.SrcLen Then
+            Return 0
+        End If
+        Return lex.Source.ByteAt(lex.Pos)
+    End Function
+
+    Function LexerPeekOffset(ByRef lex As Lexer, offset As Long) As Integer
+        Dim p = lex.Pos + offset
+        If p >= lex.SrcLen Then
+            Return 0
+        End If
+        Return lex.Source.ByteAt(p)
+    End Function
+
+    Function LexerAdvance(ByRef lex As Lexer) As Integer
+        If lex.Pos >= lex.SrcLen Then
+            Return 0
+        End If
+        Dim ch = lex.Source.ByteAt(lex.Pos)
+        lex.Pos = lex.Pos + 1
+        If ch = 10 Then
+            lex.Line = lex.Line + 1
+            lex.Col = 1
+        Else
+            lex.Col = lex.Col + 1
+        End If
+        Return ch
+    End Function
+
+    Function LexerNextToken(ByRef lex As Lexer) As Token
+        While lex.Pos < lex.SrcLen
+            Dim ch = LexerPeek(lex)
+
+            ' Skip whitespace (except newline)
+            If ch = 32 Or ch = 9 Or ch = 13 Then
+                LexerAdvance(lex)
+                Continue While
+            End If
+
+            ' Newline
+            If ch = 10 Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                LexerAdvance(lex)
+                Return MakeToken(TOK_NEWLINE, "\n", startLine, startCol)
+            End If
+
+            ' Colon statement separator
+            If ch = 58 Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                LexerAdvance(lex)
+                Return MakeToken(TOK_COLON, ":", startLine, startCol)
+            End If
+
+            ' Comments: single quote ' or Rem or //
+            If ch = 39 Or (ch = 47 And LexerPeekOffset(lex, 1) = 47) Then
+                While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 10
+                    LexerAdvance(lex)
+                End While
+                Continue While
+            End If
+
+            ' Numbers
+            If IsDigit(ch) Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                Dim startPos = lex.Pos
+                Dim intVal As Long = 0
+
+                While lex.Pos < lex.SrcLen And IsDigit(LexerPeek(lex))
+                    Dim d = LexerAdvance(lex) - 48
+                    intVal = intVal * 10 + d
+                End While
+
+                Dim numText As String = lex.Source.Substring(startPos, lex.Pos - startPos)
+                Dim tok As Token = MakeToken(TOK_INT, numText, startLine, startCol)
+                tok.IntValue = intVal
+                Return tok
+            End If
+
+            ' Strings: "..."
+            If ch = 34 Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                LexerAdvance(lex) ' skip opening quote
+                Dim startPos = lex.Pos
+                Dim hasEscape = False
+
+                While lex.Pos < lex.SrcLen
+                    Dim c = LexerPeek(lex)
+                    If c = 10 Or c = 0 Then
+                        Exit While
+                    End If
+                    If c = 34 Then
+                        LexerAdvance(lex)
+                        If LexerPeek(lex) = 34 Then
+                            hasEscape = True
+                            LexerAdvance(lex)
+                        Else
+                            Exit While
+                        End If
+                    Else
+                        LexerAdvance(lex)
+                    End If
+                End While
+
+                Dim rawStr As String = lex.Source.Substring(startPos, lex.Pos - 1 - startPos)
+                Dim strVal As String = rawStr
+                If hasEscape Then
+                    strVal = ReplaceDoubleQuotes(rawStr)
+                End If
+
+                Return MakeToken(TOK_STR, strVal, startLine, startCol)
+            End If
+
+            ' Identifiers and Keywords
+            If IsAlphaOrUnderscore(ch) Then
+                Dim startLine = lex.Line
+                Dim startCol = lex.Col
+                Dim startPos = lex.Pos
+
+                While lex.Pos < lex.SrcLen And IsAlphaNumOrUnderscore(LexerPeek(lex))
+                    LexerAdvance(lex)
+                End While
+
+                Dim idText As String = lex.Source.Substring(startPos, lex.Pos - startPos)
+
+                ' Check for Rem comment
+                If CaseInsensitiveEquals(idText, "rem") Then
+                    While lex.Pos < lex.SrcLen And LexerPeek(lex) <> 10
+                        LexerAdvance(lex)
+                    End While
+                    Continue While
+                End If
+
+                Dim kind = LookupKeyword(idText)
+                Return MakeToken(kind, idText, startLine, startCol)
+            End If
+
+            ' Operators and Punctuators
+            Dim opLine = lex.Line
+            Dim opCol = lex.Col
+            Dim c = LexerAdvance(lex)
+
+            If c = 40 Then Return MakeToken(TOK_LPAREN, "(", opLine, opCol)
+            If c = 41 Then Return MakeToken(TOK_RPAREN, ")", opLine, opCol)
+            If c = 91 Then Return MakeToken(TOK_LBRACKET, "[", opLine, opCol)
+            If c = 93 Then Return MakeToken(TOK_RBRACKET, "]", opLine, opCol)
+            If c = 44 Then Return MakeToken(TOK_COMMA, ",", opLine, opCol)
+            If c = 46 Then Return MakeToken(TOK_DOT, ".", opLine, opCol)
+            If c = 43 Then Return MakeToken(TOK_PLUS, "+", opLine, opCol)
+            If c = 45 Then Return MakeToken(TOK_MINUS, "-", opLine, opCol)
+            If c = 42 Then Return MakeToken(TOK_STAR, "*", opLine, opCol)
+            If c = 47 Then Return MakeToken(TOK_SLASH, "/", opLine, opCol)
+            If c = 38 Then Return MakeToken(TOK_AMP, "&", opLine, opCol)
+
+            If c = 61 Then Return MakeToken(TOK_EQUAL, "=", opLine, opCol)
+
+            If c = 60 Then ' <
+                If LexerPeek(lex) = 62 Then ' <>
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_NOTEQUAL, "<>", opLine, opCol)
+                ElseIf LexerPeek(lex) = 61 Then ' <=
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_LESSEQ, "<=", opLine, opCol)
+                Else
+                    Return MakeToken(TOK_LESS, "<", opLine, opCol)
+                End If
+            End If
+
+            If c = 62 Then ' >
+                If LexerPeek(lex) = 61 Then ' >=
+                    LexerAdvance(lex)
+                    Return MakeToken(TOK_GREATEREQ, ">=", opLine, opCol)
+                Else
+                    Return MakeToken(TOK_GREATER, ">", opLine, opCol)
+                End If
+            End If
+        End While
+
+        Return MakeToken(TOK_EOF, "", lex.Line, lex.Col)
+    End Function
+
+    Function TokenizeAll(source As String) As Token()
+        Dim curLex As Lexer = LexerNew(source)
+        Dim tokens() As Token
+        While True
+            Dim tok As Token = LexerNextToken(curLex)
+            tokens.Add(tok)
+            If tok.Kind = TOK_EOF Then
+                Exit While
+            End If
+        End While
+        Return tokens
+    End Function
+End Module
+Imports System
+
+Module AstConstants
+    Const NODE_UNIT As Integer = 1
+    Const NODE_MODULE As Integer = 2
+    Const NODE_STRUCTURE As Integer = 3
+    Const NODE_FIELD As Integer = 4
+    Const NODE_FUNCTION As Integer = 5
+    Const NODE_SUB As Integer = 6
+    Const NODE_PARAM As Integer = 7
+    Const NODE_VARDECL As Integer = 8
+    Const NODE_ASSIGN As Integer = 9
+    Const NODE_IF As Integer = 10
+    Const NODE_FOR As Integer = 11
+    Const NODE_FOREACH As Integer = 12
+    Const NODE_WHILE As Integer = 13
+    Const NODE_RETURN As Integer = 14
+    Const NODE_EXPR_STMT As Integer = 15
+    Const NODE_BINARY As Integer = 16
+    Const NODE_UNARY As Integer = 17
+    Const NODE_INVOKE As Integer = 18
+    Const NODE_MEMBER As Integer = 19
+    Const NODE_LITERAL As Integer = 20
+    Const NODE_IDENT As Integer = 21
+    Const NODE_ARRAY_LIT As Integer = 22
+    Const NODE_QUERY As Integer = 23
+    Const NODE_BLOCK As Integer = 24
+    Const NODE_ELSEIF As Integer = 25
+    Const NODE_IF_EXPR As Integer = 26
+    Const NODE_CONTINUE As Integer = 27
+End Module
+
+Module AstArenaModule
+    Structure AstNode
+        Dim Kind As Integer
+        Dim Name As String
+        Dim TypeName As String
+        Dim Op As Integer
+        Dim IntValue As Long
+        Dim StringValue As String
+        Dim FirstChild As Integer
+        Dim NextSibling As Integer
+        Dim ChildCount As Integer
+        Dim Line As Integer
+    End Structure
+
+    Dim Nodes() As AstNode
+
+    Function InitArena() As Integer
+        Nodes = []
+        Return 0
+    End Function
+
+    Function AllocNode(kind As Integer, name As String, line As Integer) As Integer
+        Dim n As AstNode
+        n.Kind = kind
+        n.Name = name
+        n.TypeName = ""
+        n.Op = 0
+        n.IntValue = 0
+        n.StringValue = ""
+        n.FirstChild = -1
+        n.NextSibling = -1
+        n.ChildCount = 0
+        n.Line = line
+
+        Dim id = Nodes.Length
+        Nodes.Add(n)
+        Return id
+    End Function
+
+    Sub AddChild(parentId As Integer, childId As Integer)
+        If parentId < 0 Or childId < 0 Then Return
+        If parentId >= Nodes.Length Or childId >= Nodes.Length Then Return
+
+        If Nodes(parentId).FirstChild = -1 Then
+            Nodes(parentId).FirstChild = childId
+        Else
+            Dim curr = Nodes(parentId).FirstChild
+            While Nodes(curr).NextSibling <> -1
+                curr = Nodes(curr).NextSibling
+            End While
+            Nodes(curr).NextSibling = childId
+        End If
+
+        Nodes(parentId).ChildCount = Nodes(parentId).ChildCount + 1
+    End Sub
+
+    Function GetChildAt(parentId As Integer, index As Integer) As Integer
+        If parentId < 0 Or parentId >= Nodes.Length Then Return -1
+        Dim curr = Nodes(parentId).FirstChild
+        Dim i = 0
+        While curr <> -1
+            If i = index Then Return curr
+            curr = Nodes(curr).NextSibling
+            i = i + 1
+        End While
+        Return -1
+    End Function
+End Module
+Imports System
+
+Module ParserModule
+    Dim p_Tokens() As Token
+    Dim p_Pos As Integer
+    Dim p_Count As Integer
+
+    Sub ParserInit(toks() As Token)
+        p_Tokens = toks
+        p_Pos = 0
+        p_Count = toks.Length
+    End Sub
+
+    Function CurrKind() As Integer
+        If p_Pos >= p_Count Then Return TOK_EOF
+        Return p_Tokens(p_Pos).Kind
+    End Function
+
+    Function CurrText() As String
+        If p_Pos >= p_Count Then Return ""
+        Return p_Tokens(p_Pos).Text
+    End Function
+
+    Function CurrLine() As Integer
+        If p_Pos >= p_Count Then Return 0
+        Return p_Tokens(p_Pos).Line
+    End Function
+
+    Function CurrToken() As Token
+        If p_Pos >= p_Count Then Return p_Tokens(p_Count - 1)
+        Return p_Tokens(p_Pos)
+    End Function
+
+    Function PeekKind(offset As Integer) As Integer
+        Dim idx = p_Pos + offset
+        If idx >= p_Count Then Return TOK_EOF
+        Return p_Tokens(idx).Kind
+    End Function
+
+    Function ParserAdvance() As Token
+        Dim tok As Token = CurrToken()
+        If p_Pos < p_Count Then
+            p_Pos = p_Pos + 1
+        End If
+        Return tok
+    End Function
+
+    Function ParserMatch(expectedKind As Integer) As Token
+        Dim tok As Token = CurrToken()
+        If tok.Kind = expectedKind Then
+            ParserAdvance()
+            Return tok
+        End If
+        Console.WriteLine("Parser Error: expected token kind " & IntToStr(expectedKind) & " but found " & IntToStr(tok.Kind) & " ('" & tok.Text & "') at line " & IntToStr(tok.Line))
+        ParserAdvance()
+        Return tok
+    End Function
+
+    Sub SkipSeparators()
+        While CurrKind() = TOK_NEWLINE Or CurrKind() = TOK_COLON
+            ParserAdvance()
+        End While
+    End Sub
+
+    ' Top-Level Compilation Unit
+    Function ParseCompilationUnit() As Integer
+        Dim unitId = AllocNode(NODE_UNIT, "CompilationUnit", CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF
+            If CurrKind() = TOK_IMPORTS Then
+                ParserAdvance()
+                Dim ns As String = ParserMatch(TOK_IDENT).Text
+                While CurrKind() = TOK_DOT
+                    ParserAdvance()
+                    ns = ns & "." & ParserMatch(TOK_IDENT).Text
+                End While
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_MODULE Then
+                Dim modId = ParseModule()
+                AddChild(unitId, modId)
+                SkipSeparators()
+            ElseIf CurrKind() = TOK_STRUCTURE Then
+                Dim structId = ParseStructure()
+                AddChild(unitId, structId)
+                SkipSeparators()
+            Else
+                Console.WriteLine("Parser Warning: skipping unexpected token at top level: " & CurrText())
+                ParserAdvance()
+                SkipSeparators()
+            End If
+        End While
+
+        Return unitId
+    End Function
+
+    Function ParseModule() As Integer
+        ParserMatch(TOK_MODULE)
+        Dim modName As String = ParserMatch(TOK_IDENT).Text
+        Dim modId = AllocNode(NODE_MODULE, modName, CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            If CurrKind() = TOK_STRUCTURE Then
+                Dim sId = ParseStructure()
+                AddChild(modId, sId)
+            ElseIf CurrKind() = TOK_SUB Then
+                Dim fnId = ParseFunction(True)
+                AddChild(modId, fnId)
+            ElseIf CurrKind() = TOK_FUNCTION Then
+                Dim fnId = ParseFunction(False)
+                AddChild(modId, fnId)
+            ElseIf CurrKind() = TOK_DIM Or CurrKind() = TOK_CONST Then
+                Dim varId = ParseVariableDeclaration()
+                AddChild(modId, varId)
+            Else
+                Console.WriteLine("Parser Warning: skipping token in module: " & CurrText())
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_MODULE Then ParserAdvance()
+        Return modId
+    End Function
+
+    Function ParseStructure() As Integer
+        ParserMatch(TOK_STRUCTURE)
+        Dim sName As String = ParserMatch(TOK_IDENT).Text
+        Dim sId = AllocNode(NODE_STRUCTURE, sName, CurrLine())
+        SkipSeparators()
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            If CurrKind() = TOK_DIM Then
+                ParserAdvance()
+                Dim fldName As String = ParserMatch(TOK_IDENT).Text
+                Dim fldType As String = "Integer"
+                If CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    fldType = ParserMatch(TOK_IDENT).Text
+                End If
+                Dim fldId = AllocNode(NODE_FIELD, fldName, CurrLine())
+                Nodes(fldId).TypeName = fldType
+                AddChild(sId, fldId)
+            Else
+                ParserAdvance()
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_STRUCTURE Then ParserAdvance()
+        Return sId
+    End Function
+
+    Function ParseFunction(isSub As Boolean) As Integer
+        Dim nodeKind = If(isSub, NODE_SUB, NODE_FUNCTION)
+        If isSub Then
+            ParserMatch(TOK_SUB)
+        Else
+            ParserMatch(TOK_FUNCTION)
+        End If
+
+        Dim fnName As String = ParserMatch(TOK_IDENT).Text
+        Dim fnId = AllocNode(nodeKind, fnName, CurrLine())
+
+        ' Parameter list (...)
+        If CurrKind() = TOK_LPAREN Then
+            ParserAdvance()
+            While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                Dim isByRef As Boolean = False
+                If CurrKind() = TOK_BYVAL Then
+                    ParserAdvance()
+                ElseIf CurrKind() = TOK_BYREF Then
+                    ParserAdvance()
+                    isByRef = True
+                End If
+
+                Dim pName As String = ParserMatch(TOK_IDENT).Text
+                Dim pType As String = "Integer"
+                If CurrKind() = TOK_LPAREN And PeekKind(1) = TOK_RPAREN Then
+                    ' Array syntax: p() As String
+                    ParserAdvance()
+                    ParserAdvance()
+                    If CurrKind() = TOK_AS Then
+                        ParserAdvance()
+                        pType = ParserMatch(TOK_IDENT).Text & "()"
+                    End If
+                ElseIf CurrKind() = TOK_AS Then
+                    ParserAdvance()
+                    pType = ParserMatch(TOK_IDENT).Text
+                    If CurrKind() = TOK_LPAREN And PeekKind(1) = TOK_RPAREN Then
+                        ParserAdvance()
+                        ParserAdvance()
+                        pType = pType & "()"
+                    End If
+                End If
+
+                Dim paramId = AllocNode(NODE_PARAM, pName, CurrLine())
+                Nodes(paramId).TypeName = pType
+                Nodes(paramId).IntValue = If(isByRef, 1, 0)
+                AddChild(fnId, paramId)
+
+                If CurrKind() = TOK_COMMA Then
+                    ParserAdvance()
+                Else
+                    Exit While
+                End If
+            End While
+            ParserMatch(TOK_RPAREN)
+        End If
+
+        ' Return type for Function
+        If Not isSub And CurrKind() = TOK_AS Then
+            ParserAdvance()
+            Dim retType As String = ParserMatch(TOK_IDENT).Text
+            If CurrKind() = TOK_LPAREN And PeekKind(1) = TOK_RPAREN Then
+                ParserAdvance()
+                ParserAdvance()
+                retType = retType & "()"
+            End If
+            Nodes(fnId).TypeName = retType
+        ElseIf isSub Then
+            Nodes(fnId).TypeName = "void"
+        End If
+
+        SkipSeparators()
+
+        ' Body statements
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim stmtId = ParseStatement()
+            If stmtId >= 0 Then
+                AddChild(fnId, stmtId)
+            End If
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If isSub And CurrKind() = TOK_SUB Then
+            ParserAdvance()
+        ElseIf Not isSub And CurrKind() = TOK_FUNCTION Then
+            ParserAdvance()
+        End If
+
+        Return fnId
+    End Function
+
+    Function ParseStatement() As Integer
+        Dim k = CurrKind()
+        If k = TOK_DIM Or k = TOK_CONST Then
+            Return ParseVariableDeclaration()
+        ElseIf k = TOK_IF Then
+            Return ParseIf()
+        ElseIf k = TOK_FOR Then
+            Return ParseFor()
+        ElseIf k = TOK_WHILE Then
+            Return ParseWhile()
+        ElseIf k = TOK_RETURN Then
+            Return ParseReturn()
+        ElseIf k = TOK_EXIT Then
+            ParserAdvance()
+            If CurrKind() = TOK_FOR Or CurrKind() = TOK_WHILE Then ParserAdvance()
+            Dim exId = AllocNode(NODE_EXPR_STMT, "break", CurrLine())
+            Return exId
+        ElseIf k = TOK_CONTINUE Then
+            ParserAdvance()
+            If CurrKind() = TOK_FOR Or CurrKind() = TOK_WHILE Then ParserAdvance()
+            Dim cId = AllocNode(NODE_CONTINUE, "continue", CurrLine())
+            Return cId
+        Else
+            Return ParseAssignOrExprStatement()
+        End If
+    End Function
+
+    Function ParseVariableDeclaration() As Integer
+        Dim isConst As Boolean = (CurrKind() = TOK_CONST)
+        ParserAdvance() ' Dim or Const
+        Dim vName As String = ParserMatch(TOK_IDENT).Text
+        Dim vType As String = ""
+        Dim isArray As Boolean = False
+
+        If CurrKind() = TOK_LPAREN Then
+            ParserAdvance()
+            ParserMatch(TOK_RPAREN)
+            isArray = True
+        End If
+
+        If CurrKind() = TOK_AS Then
+            ParserAdvance()
+            vType = ParserMatch(TOK_IDENT).Text
+            If CurrKind() = TOK_LPAREN And PeekKind(1) = TOK_RPAREN Then
+                ParserAdvance()
+                ParserAdvance()
+                isArray = True
+            End If
+        End If
+
+        If isArray And vType.Length > 0 Then
+            vType = vType & "()"
+        End If
+
+        Dim varId = AllocNode(NODE_VARDECL, vName, CurrLine())
+        Nodes(varId).TypeName = vType
+
+        If CurrKind() = TOK_EQUAL Then
+            ParserAdvance()
+            Dim initExpr = ParseExpression()
+            AddChild(varId, initExpr)
+        End If
+
+        Return varId
+    End Function
+
+    Function ParseAssignOrExprStatement() As Integer
+        Dim exprId = ParseExpression()
+        If Nodes(exprId).Kind = NODE_BINARY And Nodes(exprId).Op = TOK_EQUAL Then
+            Dim targetNode = Nodes(exprId).FirstChild
+            Dim valNode = Nodes(targetNode).NextSibling
+            Dim assignId = AllocNode(NODE_ASSIGN, "=", Nodes(exprId).Line)
+            AddChild(assignId, targetNode)
+            AddChild(assignId, valNode)
+            Return assignId
+        End If
+
+        If CurrKind() = TOK_EQUAL Then
+            ParserAdvance()
+            Dim rhsId = ParseExpression()
+            Dim assignId = AllocNode(NODE_ASSIGN, "=", CurrLine())
+            AddChild(assignId, exprId)
+            AddChild(assignId, rhsId)
+            Return assignId
+        End If
+
+        Dim stmtId = AllocNode(NODE_EXPR_STMT, "expr", CurrLine())
+        AddChild(stmtId, exprId)
+        Return stmtId
+    End Function
+
+    Function ParseIf() As Integer
+        ParserMatch(TOK_IF)
+        Dim condId = ParseExpression()
+        If CurrKind() = TOK_THEN Then ParserAdvance()
+
+        ' Single-line If: statement follows on the same line
+        If CurrKind() <> TOK_NEWLINE And CurrKind() <> TOK_COLON And CurrKind() <> TOK_EOF Then
+            Dim sIfId = AllocNode(NODE_IF, "if", CurrLine())
+            AddChild(sIfId, condId)
+            Dim sThenBlock = AllocNode(NODE_BLOCK, "then", CurrLine())
+            AddChild(sIfId, sThenBlock)
+            Dim stmt = ParseStatement()
+            If stmt >= 0 Then AddChild(sThenBlock, stmt)
+            Return sIfId
+        End If
+
+        SkipSeparators()
+
+        Dim ifId = AllocNode(NODE_IF, "if", CurrLine())
+        AddChild(ifId, condId)
+
+        Dim thenBlock = AllocNode(NODE_BLOCK, "then", CurrLine())
+        AddChild(ifId, thenBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_ELSEIF And CurrKind() <> TOK_ELSE And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(thenBlock, s)
+            SkipSeparators()
+        End While
+
+        While CurrKind() = TOK_ELSEIF
+            ParserAdvance()
+            Dim eiCond = ParseExpression()
+            If CurrKind() = TOK_THEN Then ParserAdvance()
+            SkipSeparators()
+            Dim eiNode = AllocNode(NODE_ELSEIF, "elseif", CurrLine())
+            AddChild(eiNode, eiCond)
+            Dim eiBlock = AllocNode(NODE_BLOCK, "then", CurrLine())
+            AddChild(eiNode, eiBlock)
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_ELSEIF And CurrKind() <> TOK_ELSE And CurrKind() <> TOK_END
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(eiBlock, s)
+                SkipSeparators()
+            End While
+            AddChild(ifId, eiNode)
+        End While
+
+        ' Optional Else
+        If CurrKind() = TOK_ELSE Then
+            ParserAdvance()
+            SkipSeparators()
+            Dim elseBlock = AllocNode(NODE_BLOCK, "else", CurrLine())
+            AddChild(ifId, elseBlock)
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(elseBlock, s)
+                SkipSeparators()
+            End While
+        End If
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_IF Then ParserAdvance()
+        Return ifId
+    End Function
+
+    Function ParseFor() As Integer
+        ParserMatch(TOK_FOR)
+        If CurrKind() = TOK_EACH Then
+            ' For Each var In coll
+            ParserAdvance()
+            Dim vName As String = ParserMatch(TOK_IDENT).Text
+            ParserMatch(TOK_IN)
+            Dim collExpr = ParseExpression()
+            SkipSeparators()
+
+            Dim feId = AllocNode(NODE_FOREACH, vName, CurrLine())
+            AddChild(feId, collExpr)
+            Dim bodyId = AllocNode(NODE_BLOCK, "body", CurrLine())
+            AddChild(feId, bodyId)
+
+            While CurrKind() <> TOK_EOF And CurrKind() <> TOK_NEXT
+                Dim s = ParseStatement()
+                If s >= 0 Then AddChild(bodyId, s)
+                SkipSeparators()
+            End While
+
+            ParserMatch(TOK_NEXT)
+            If CurrKind() = TOK_IDENT Then ParserAdvance()
+            Return feId
+        End If
+
+        ' For var = start To finish [Step s]
+        Dim varName As String = ParserMatch(TOK_IDENT).Text
+        ParserMatch(TOK_EQUAL)
+        Dim startExpr = ParseExpression()
+        ParserMatch(TOK_TO)
+        Dim endExpr = ParseExpression()
+        Dim stepExpr = -1
+        If CurrKind() = TOK_STEP Then
+            ParserAdvance()
+            stepExpr = ParseExpression()
+        End If
+        SkipSeparators()
+
+        Dim forId = AllocNode(NODE_FOR, varName, CurrLine())
+        AddChild(forId, startExpr)
+        AddChild(forId, endExpr)
+        If stepExpr >= 0 Then
+            AddChild(forId, stepExpr)
+        Else
+            Dim oneId = AllocNode(NODE_LITERAL, "1", CurrLine())
+            Nodes(oneId).IntValue = 1
+            AddChild(forId, oneId)
+        End If
+
+        Dim bodyBlock = AllocNode(NODE_BLOCK, "body", CurrLine())
+        AddChild(forId, bodyBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_NEXT
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(bodyBlock, s)
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_NEXT)
+        If CurrKind() = TOK_IDENT Then ParserAdvance()
+        Return forId
+    End Function
+
+    Function ParseWhile() As Integer
+        ParserMatch(TOK_WHILE)
+        Dim condExpr = ParseExpression()
+        SkipSeparators()
+
+        Dim whileId = AllocNode(NODE_WHILE, "while", CurrLine())
+        AddChild(whileId, condExpr)
+        Dim bodyBlock = AllocNode(NODE_BLOCK, "body", CurrLine())
+        AddChild(whileId, bodyBlock)
+
+        While CurrKind() <> TOK_EOF And CurrKind() <> TOK_END
+            Dim s = ParseStatement()
+            If s >= 0 Then AddChild(bodyBlock, s)
+            SkipSeparators()
+        End While
+
+        ParserMatch(TOK_END)
+        If CurrKind() = TOK_WHILE Then ParserAdvance()
+        Return whileId
+    End Function
+
+    Function ParseReturn() As Integer
+        ParserMatch(TOK_RETURN)
+        Dim retId = AllocNode(NODE_RETURN, "return", CurrLine())
+        If CurrKind() <> TOK_NEWLINE And CurrKind() <> TOK_COLON And CurrKind() <> TOK_EOF Then
+            Dim exprId = ParseExpression()
+            AddChild(retId, exprId)
+        End If
+        Return retId
+    End Function
+
+    ' Expression Parsing with Operator Precedence
+    Function GetPrecedence(k As Integer) As Integer
+        If k = TOK_OR Then Return 1
+        If k = TOK_AND Then Return 2
+        If k = TOK_EQUAL Or k = TOK_NOTEQUAL Or k = TOK_LESS Or k = TOK_LESSEQ Or k = TOK_GREATER Or k = TOK_GREATEREQ Then Return 3
+        If k = TOK_AMP Then Return 4
+        If k = TOK_PLUS Or k = TOK_MINUS Then Return 5
+        If k = TOK_STAR Or k = TOK_SLASH Or k = TOK_MOD Then Return 6
+        Return 0
+    End Function
+
+    Function ParseExpression() As Integer
+        Return ParseBinary(0)
+    End Function
+
+    Function ParseBinary(parentPrec As Integer) As Integer
+        Dim left = ParseUnary()
+
+        While True
+            Dim prec = GetPrecedence(CurrKind())
+            If prec = 0 Or prec <= parentPrec Then
+                Exit While
+            End If
+
+            Dim opTok As Token = ParserAdvance()
+            Dim right = ParseBinary(prec)
+            Dim binId = AllocNode(NODE_BINARY, opTok.Text, opTok.Line)
+            Nodes(binId).Op = opTok.Kind
+            AddChild(binId, left)
+            AddChild(binId, right)
+            left = binId
+        End While
+
+        Return left
+    End Function
+
+    Function ParseUnary() As Integer
+        If CurrKind() = TOK_MINUS Or CurrKind() = TOK_NOT Then
+            Dim opTok As Token = ParserAdvance()
+            Dim operand = ParseUnary()
+            Dim unId = AllocNode(NODE_UNARY, opTok.Text, opTok.Line)
+            Nodes(unId).Op = opTok.Kind
+            AddChild(unId, operand)
+            Return unId
+        End If
+        Return ParsePostfix()
+    End Function
+
+    Function ParsePostfix() As Integer
+        Dim expr = ParsePrimary()
+
+        While True
+            If CurrKind() = TOK_DOT Then
+                ParserAdvance()
+                Dim memberTok As Token = ParserAdvance() ' identifier or keyword
+                Dim memId = AllocNode(NODE_MEMBER, memberTok.Text, memberTok.Line)
+                AddChild(memId, expr)
+                expr = memId
+            ElseIf CurrKind() = TOK_LPAREN Then
+                ParserAdvance()
+                Dim invId = AllocNode(NODE_INVOKE, "call", CurrLine())
+                AddChild(invId, expr)
+
+                While CurrKind() <> TOK_RPAREN And CurrKind() <> TOK_EOF
+                    Dim argId = ParseExpression()
+                    AddChild(invId, argId)
+                    If CurrKind() = TOK_COMMA Then
+                        ParserAdvance()
+                    Else
+                        Exit While
+                    End If
+                End While
+                ParserMatch(TOK_RPAREN)
+                expr = invId
+            Else
+                Exit While
+            End If
+        End While
+
+        Return expr
+    End Function
+
+    Function ParsePrimary() As Integer
+        Dim k = CurrKind()
+        If k = TOK_INT Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, tok.Text, tok.Line)
+            Nodes(n).IntValue = tok.IntValue
+            Nodes(n).TypeName = "Integer"
+            Return n
+        ElseIf k = TOK_STR Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, tok.Text, tok.Line)
+            Nodes(n).StringValue = tok.Text
+            Nodes(n).TypeName = "String"
+            Return n
+        ElseIf k = TOK_TRUE Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, "True", tok.Line)
+            Nodes(n).IntValue = 1
+            Nodes(n).TypeName = "Boolean"
+            Return n
+        ElseIf k = TOK_FALSE Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, "False", tok.Line)
+            Nodes(n).IntValue = 0
+            Nodes(n).TypeName = "Boolean"
+            Return n
+        ElseIf k = TOK_LBRACKET Then
+            ' Array Literal [1, 2, 3]
+            ParserAdvance()
+            Dim arrId = AllocNode(NODE_ARRAY_LIT, "[]", CurrLine())
+            While CurrKind() <> TOK_RBRACKET And CurrKind() <> TOK_EOF
+                Dim elem = ParseExpression()
+                AddChild(arrId, elem)
+                If CurrKind() = TOK_COMMA Then
+                    ParserAdvance()
+                Else
+                    Exit While
+                End If
+            End While
+            ParserMatch(TOK_RBRACKET)
+            Return arrId
+        ElseIf k = TOK_LPAREN Then
+            ParserAdvance()
+            Dim e = ParseExpression()
+            ParserMatch(TOK_RPAREN)
+            Return e
+        ElseIf k = TOK_FROM Then
+            ' LINQ Query: From x In src [Where ...] Select ...
+            ParserAdvance()
+            Dim rVar As String = ParserMatch(TOK_IDENT).Text
+            ParserMatch(TOK_IN)
+            Dim srcExpr = ParseExpression()
+            Dim whereExpr = -1
+            If CurrKind() = TOK_WHERE Then
+                ParserAdvance()
+                whereExpr = ParseExpression()
+            End If
+            ParserMatch(TOK_SELECT)
+            Dim selExpr = ParseExpression()
+
+            Dim qId = AllocNode(NODE_QUERY, rVar, CurrLine())
+            AddChild(qId, srcExpr)
+            If whereExpr >= 0 Then AddChild(qId, whereExpr)
+            AddChild(qId, selExpr)
+            Return qId
+        ElseIf k = TOK_IF Then
+            ParserAdvance()
+            ParserMatch(TOK_LPAREN)
+            Dim cond = ParseExpression()
+            ParserMatch(TOK_COMMA)
+            Dim tPart = ParseExpression()
+            ParserMatch(TOK_COMMA)
+            Dim fPart = ParseExpression()
+            ParserMatch(TOK_RPAREN)
+            Dim ifExprId = AllocNode(NODE_IF_EXPR, "if_expr", CurrLine())
+            AddChild(ifExprId, cond)
+            AddChild(ifExprId, tPart)
+            AddChild(ifExprId, fPart)
+            Return ifExprId
+        ElseIf k = TOK_NOTHING Then
+            Dim tok As Token = ParserAdvance()
+            Dim n = AllocNode(NODE_LITERAL, "NULL", tok.Line)
+            Nodes(n).TypeName = "Pointer"
+            Return n
+        ElseIf k = TOK_IDENT Then
+            Dim tok As Token = ParserAdvance()
+            Dim id = AllocNode(NODE_IDENT, tok.Text, tok.Line)
+            Return id
+        Else
+            Dim tok As Token = ParserAdvance()
+            Dim errId = AllocNode(NODE_LITERAL, "0", tok.Line)
+            Return errId
+        End If
+    End Function
+End Module
+Imports System
+
+Module EmitterModule
+    Dim outBuf As String
+    Dim tempCounter As Integer
+
+    Sub EmitInit()
+        outBuf = ""
+        tempCounter = 0
+    End Sub
+
+    Sub EmitWrite(s As String)
+        outBuf = outBuf & s
+    End Sub
+
+    Sub EmitWriteLine(s As String)
+        outBuf = outBuf & s & "\n"
+    End Sub
+
+    Function NextTemp(prefix As String) As String
+        tempCounter = tempCounter + 1
+        Return prefix & IntToStr(tempCounter)
+    End Function
+
+    Function MapCType(typeName As String) As String
+        If CaseInsensitiveEquals(typeName, "integer") Or CaseInsensitiveEquals(typeName, "int") Then Return "int32_t"
+        If CaseInsensitiveEquals(typeName, "long") Then Return "int64_t"
+        If CaseInsensitiveEquals(typeName, "string") Then Return "vbc_string_t"
+        If CaseInsensitiveEquals(typeName, "boolean") Or CaseInsensitiveEquals(typeName, "bool") Then Return "bool"
+        If CaseInsensitiveEquals(typeName, "single") Or CaseInsensitiveEquals(typeName, "float") Then Return "float"
+        If CaseInsensitiveEquals(typeName, "double") Then Return "double"
+        If CaseInsensitiveEquals(typeName, "byte") Then Return "uint8_t"
+        If CaseInsensitiveEquals(typeName, "void") Then Return "void"
+        If typeName.Length > 2 And CaseInsensitiveEquals(typeName.Substring(typeName.Length - 2, 2), "()") Then Return "vbc_slice_t"
+        If typeName.Length > 0 Then Return "Vbc_" & typeName
+        Return "int32_t"
+    End Function
+
+    Function IsStringExpr(nId As Integer) As Boolean
+        If nId < 0 Then Return False
+        If CaseInsensitiveEquals(Nodes(nId).TypeName, "String") Then Return True
+        Dim k = Nodes(nId).Kind
+        If k = NODE_LITERAL Then
+            Return CaseInsensitiveEquals(Nodes(nId).TypeName, "String")
+        ElseIf k = NODE_BINARY And Nodes(nId).Op = TOK_AMP Then
+            Return True
+        ElseIf k = NODE_MEMBER Then
+            Dim m = Nodes(nId).Name
+            Return CaseInsensitiveEquals(m, "Text") Or CaseInsensitiveEquals(m, "Source") Or CaseInsensitiveEquals(m, "Name") Or CaseInsensitiveEquals(m, "TypeName") Or CaseInsensitiveEquals(m, "StringValue")
+        ElseIf k = NODE_INVOKE Then
+            Dim callee = Nodes(nId).FirstChild
+            If Nodes(callee).Kind = NODE_MEMBER Then
+                Dim mem = Nodes(callee).Name
+                Return CaseInsensitiveEquals(mem, "Substring") Or CaseInsensitiveEquals(mem, "ReadAllText")
+            End If
+            Dim fn = Nodes(callee).Name
+            Return CaseInsensitiveEquals(fn, "CurrText") Or CaseInsensitiveEquals(fn, "EmitCompilationUnitToC") Or CaseInsensitiveEquals(fn, "EmitExpr") Or CaseInsensitiveEquals(fn, "MapCType") Or CaseInsensitiveEquals(fn, "NextTemp") Or CaseInsensitiveEquals(fn, "EscapeCString") Or CaseInsensitiveEquals(fn, "ReplaceDoubleQuotes") Or CaseInsensitiveEquals(fn, "StringSub") Or CaseInsensitiveEquals(fn, "args")
+        ElseIf k = NODE_IDENT Then
+            Dim name = Nodes(nId).Name
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(0, 4), "TOK_") Then Return False
+            If name.Length >= 5 And CaseInsensitiveEquals(name.Substring(0, 5), "NODE_") Then Return False
+            If CaseInsensitiveEquals(name, "res") Or CaseInsensitiveEquals(name, "indent") Or CaseInsensitiveEquals(name, "source") Or CaseInsensitiveEquals(name, "outBuf") Or CaseInsensitiveEquals(name, "prefix") Or CaseInsensitiveEquals(name, "str") Or CaseInsensitiveEquals(name, "cmd") Or CaseInsensitiveEquals(name, "inputFile") Or CaseInsensitiveEquals(name, "outputFile") Or CaseInsensitiveEquals(name, "cPath") Or CaseInsensitiveEquals(name, "cCode") Then
+                Return True
+            End If
+            If name.Length >= 3 And CaseInsensitiveEquals(name.Substring(name.Length - 3, 3), "Str") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Text") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Name") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Type") Then Return True
+            If name.Length >= 4 And CaseInsensitiveEquals(name.Substring(name.Length - 4, 4), "Path") Then Return True
+        End If
+        Return False
+    End Function
+
+    Function EmitCompilationUnitToC(unitId As Integer) As String
+        EmitInit()
+
+        EmitWriteLine("// Auto-generated by Self-Hosted VBC (vbc-stage2)")
+        EmitWriteLine("#include ""vbc_runtime.h""")
+        EmitWriteLine("#include ""vbc_socket.h""")
+        EmitWriteLine("#include ""vbc_http.h""")
+        EmitWriteLine("")
+
+        ' Forward declare structures
+        Dim modChild = Nodes(unitId).FirstChild
+        While modChild <> -1
+            If Nodes(modChild).Kind = NODE_STRUCTURE Then
+                EmitWriteLine("typedef struct Vbc_" & Nodes(modChild).Name & " Vbc_" & Nodes(modChild).Name & ";")
+            ElseIf Nodes(modChild).Kind = NODE_MODULE Then
+                Dim mc = Nodes(modChild).FirstChild
+                While mc <> -1
+                    If Nodes(mc).Kind = NODE_STRUCTURE Then
+                        EmitWriteLine("typedef struct Vbc_" & Nodes(mc).Name & " Vbc_" & Nodes(mc).Name & ";")
+                    End If
+                    mc = Nodes(mc).NextSibling
+                End While
+            End If
+            modChild = Nodes(modChild).NextSibling
+        End While
+        EmitWriteLine("")
+
+        ' Emit Structure definitions
+        modChild = Nodes(unitId).FirstChild
+        While modChild <> -1
+            If Nodes(modChild).Kind = NODE_STRUCTURE Then
+                EmitStructure(modChild)
+            ElseIf Nodes(modChild).Kind = NODE_MODULE Then
+                Dim mc = Nodes(modChild).FirstChild
+                While mc <> -1
+                    If Nodes(mc).Kind = NODE_STRUCTURE Then
+                        EmitStructure(mc)
+                    End If
+                    mc = Nodes(mc).NextSibling
+                End While
+            End If
+            modChild = Nodes(modChild).NextSibling
+        End While
+
+        ' Emit Module Global Variables
+        modChild = Nodes(unitId).FirstChild
+        While modChild <> -1
+            If Nodes(modChild).Kind = NODE_MODULE Then
+                Dim mc = Nodes(modChild).FirstChild
+                While mc <> -1
+                    If Nodes(mc).Kind = NODE_VARDECL Then
+                        Dim cType = MapCType(Nodes(mc).TypeName)
+                        If Nodes(mc).FirstChild >= 0 Then
+                            Dim initStr = EmitExpr(Nodes(mc).FirstChild)
+                            EmitWriteLine("static " & cType & " " & Nodes(mc).Name & " = " & initStr & ";")
+                        Else
+                            EmitWriteLine("static " & cType & " " & Nodes(mc).Name & " = {0};")
+                        End If
+                    End If
+                    mc = Nodes(mc).NextSibling
+                End While
+            End If
+            modChild = Nodes(modChild).NextSibling
+        End While
+        EmitWriteLine("")
+
+        ' Forward declare functions
+        modChild = Nodes(unitId).FirstChild
+        While modChild <> -1
+            If Nodes(modChild).Kind = NODE_MODULE Then
+                Dim mc = Nodes(modChild).FirstChild
+                While mc <> -1
+                    If Nodes(mc).Kind = NODE_FUNCTION Or Nodes(mc).Kind = NODE_SUB Then
+                        EmitFunctionPrototype(mc)
+                    End If
+                    mc = Nodes(mc).NextSibling
+                End While
+            End If
+            modChild = Nodes(modChild).NextSibling
+        End While
+        EmitWriteLine("")
+
+        ' Emit Function definitions
+        Dim hasMain = False
+        Dim mainHasParams = False
+        modChild = Nodes(unitId).FirstChild
+        While modChild <> -1
+            If Nodes(modChild).Kind = NODE_MODULE Then
+                Dim mc = Nodes(modChild).FirstChild
+                While mc <> -1
+                    If Nodes(mc).Kind = NODE_FUNCTION Or Nodes(mc).Kind = NODE_SUB Then
+                        If CaseInsensitiveEquals(Nodes(mc).Name, "main") Then
+                            hasMain = True
+                            If Nodes(mc).ChildCount > 0 And Nodes(Nodes(mc).FirstChild).Kind = NODE_PARAM Then
+                                mainHasParams = True
+                            End If
+                        End If
+                        EmitFunction(mc)
+                    End If
+                    mc = Nodes(mc).NextSibling
+                End While
+            End If
+            modChild = Nodes(modChild).NextSibling
+        End While
+
+        ' Emit Native C main() entrypoint
+        EmitWriteLine("/* ========================================================================= */")
+        EmitWriteLine("/* Native Entrypoint                                                         */")
+        EmitWriteLine("/* ========================================================================= */")
+        EmitWriteLine("int main(int argc, char** argv) {")
+        EmitWriteLine("    vbc_socket_system_init();")
+        EmitWriteLine("    vbc_stack_t _main_stack;")
+        EmitWriteLine("    vbc_stack_init(&_main_stack, 512 * 1024 * 1024);")
+        EmitWriteLine("")
+        If hasMain Then
+            If mainHasParams Then
+                EmitWriteLine("    vbc_slice_t _args = vbc_slice_create(&_main_stack, argc > 0 ? argc : 1, sizeof(vbc_string_t));")
+                EmitWriteLine("    for (int _ai = 0; _ai < argc; _ai++) {")
+                EmitWriteLine("        vbc_string_t _as = vbc_str_lit(argv[_ai]);")
+                EmitWriteLine("        vbc_slice_push(&_main_stack, &_args, &_as);")
+                EmitWriteLine("    }")
+                EmitWriteLine("    Vbc_Main(&_main_stack, _args);")
+            Else
+                EmitWriteLine("    (void)argc; (void)argv;")
+                EmitWriteLine("    Vbc_Main(&_main_stack);")
+            End If
+        Else
+            EmitWriteLine("    (void)argc; (void)argv;")
+        End If
+        EmitWriteLine("")
+        EmitWriteLine("    vbc_stack_free(&_main_stack);")
+        EmitWriteLine("    vbc_socket_system_cleanup();")
+        EmitWriteLine("    return 0;")
+        EmitWriteLine("}")
+
+        Return outBuf
+    End Function
+
+    Sub EmitStructure(sId As Integer)
+        EmitWriteLine("struct Vbc_" & Nodes(sId).Name & " {")
+        Dim fId = Nodes(sId).FirstChild
+        While fId <> -1
+            If Nodes(fId).Kind = NODE_FIELD Then
+                Dim cType = MapCType(Nodes(fId).TypeName)
+                EmitWriteLine("    " & cType & " " & Nodes(fId).Name & ";")
+            End If
+            fId = Nodes(fId).NextSibling
+        End While
+        EmitWriteLine("};")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitFunctionPrototype(fnId As Integer)
+        Dim isSub = (Nodes(fnId).Kind = NODE_SUB)
+        Dim retType = If(isSub, "void", MapCType(Nodes(fnId).TypeName))
+        Dim fnName = If(CaseInsensitiveEquals(Nodes(fnId).Name, "main"), "Vbc_Main", "Vbc_" & Nodes(fnId).Name)
+
+        EmitWrite(retType & " " & fnName & "(vbc_stack_t* _stack")
+        Dim p = Nodes(fnId).FirstChild
+        While p <> -1 And Nodes(p).Kind = NODE_PARAM
+            Dim pType = MapCType(Nodes(p).TypeName)
+            If Nodes(p).IntValue = 1 Then pType = pType & "*"
+            EmitWrite(", " & pType & " " & Nodes(p).Name)
+            p = Nodes(p).NextSibling
+        End While
+        EmitWriteLine(");")
+    End Sub
+
+    Sub EmitFunction(fnId As Integer)
+        If CaseInsensitiveEquals(Nodes(fnId).Name, "IntToStr") Then
+            EmitWriteLine("vbc_string_t Vbc_IntToStr(vbc_stack_t* _stack, int64_t n) {")
+            EmitWriteLine("    return vbc_i64_to_str(_stack, n);")
+            EmitWriteLine("}")
+            Return
+        End If
+
+        Dim isSub = (Nodes(fnId).Kind = NODE_SUB)
+        Dim retType = If(isSub, "void", MapCType(Nodes(fnId).TypeName))
+        Dim fnName = If(CaseInsensitiveEquals(Nodes(fnId).Name, "main"), "Vbc_Main", "Vbc_" & Nodes(fnId).Name)
+
+        EmitWrite(retType & " " & fnName & "(vbc_stack_t* _stack")
+        Dim p = Nodes(fnId).FirstChild
+        While p <> -1 And Nodes(p).Kind = NODE_PARAM
+            Dim pType = MapCType(Nodes(p).TypeName)
+            If Nodes(p).IntValue = 1 Then pType = pType & "*"
+            EmitWrite(", " & pType & " " & Nodes(p).Name)
+            p = Nodes(p).NextSibling
+        End While
+        EmitWriteLine(") {")
+        EmitWriteLine("")
+
+        ' Statements begin after params
+        Dim stmt = p
+        While stmt <> -1
+            EmitStatement(stmt, "    ")
+            stmt = Nodes(stmt).NextSibling
+        End While
+
+        EmitWriteLine("}")
+        EmitWriteLine("")
+    End Sub
+
+    Sub EmitStatement(sId As Integer, indent As String)
+        Dim k = Nodes(sId).Kind
+        If k = NODE_VARDECL Then
+            Dim typeName As String = Nodes(sId).TypeName
+            Dim varName As String = Nodes(sId).Name
+            If typeName.Length = 0 Then
+                If Nodes(sId).FirstChild >= 0 Then
+                    Dim initNode As Integer = Nodes(sId).FirstChild
+                    If Nodes(initNode).Kind = NODE_LITERAL And CaseInsensitiveEquals(Nodes(initNode).TypeName, "String") Then
+                        typeName = "String"
+                    ElseIf Nodes(initNode).Kind = NODE_BINARY And Nodes(initNode).Op = TOK_AMP Then
+                        typeName = "String"
+                    ElseIf Nodes(initNode).Kind = NODE_INVOKE Then
+                        Dim cNode As Integer = Nodes(initNode).FirstChild
+                        Dim fn As String = Nodes(cNode).Name
+                        If CaseInsensitiveEquals(fn, "CurrToken") Or CaseInsensitiveEquals(fn, "ParserAdvance") Or CaseInsensitiveEquals(fn, "ParserMatch") Or CaseInsensitiveEquals(fn, "LexerNextToken") Or CaseInsensitiveEquals(fn, "MakeToken") Then
+                            typeName = "Token"
+                        ElseIf CaseInsensitiveEquals(fn, "LexerNew") Then
+                            typeName = "Lexer"
+                        ElseIf CaseInsensitiveEquals(fn, "EmitCompilationUnitToC") Or CaseInsensitiveEquals(fn, "EmitExpr") Or CaseInsensitiveEquals(fn, "MapCType") Or CaseInsensitiveEquals(fn, "NextTemp") Or CaseInsensitiveEquals(fn, "EscapeCString") Or CaseInsensitiveEquals(fn, "ReplaceDoubleQuotes") Or CaseInsensitiveEquals(fn, "StringSub") Then
+                            typeName = "String"
+                        End If
+                    ElseIf Nodes(initNode).Kind = NODE_MEMBER Then
+                        Dim m As String = Nodes(initNode).Name
+                        If CaseInsensitiveEquals(m, "Text") Or CaseInsensitiveEquals(m, "Source") Or CaseInsensitiveEquals(m, "Name") Or CaseInsensitiveEquals(m, "TypeName") Or CaseInsensitiveEquals(m, "StringValue") Then
+                            typeName = "String"
+                        End If
+                    End If
+                End If
+                If typeName.Length = 0 Then
+                    If varName.Length >= 3 And CaseInsensitiveEquals(varName.Substring(varName.Length - 3, 3), "Str") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Text") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Name") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Type") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Path") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 4 And CaseInsensitiveEquals(varName.Substring(varName.Length - 4, 4), "Code") Then
+                        typeName = "String"
+                    ElseIf varName.Length >= 2 And CaseInsensitiveEquals(varName.Substring(0, 2), "is") Then
+                        typeName = "Boolean"
+                    ElseIf varName.Length >= 3 And CaseInsensitiveEquals(varName.Substring(0, 3), "tok") Then
+                        typeName = "Token"
+                    End If
+                End If
+            End If
+            Dim cType = MapCType(typeName)
+            If typeName.Length > 2 And CaseInsensitiveEquals(typeName.Substring(typeName.Length - 2, 2), "()") Then
+                Dim elemName = typeName.Substring(0, typeName.Length - 2)
+                Dim elemCType = MapCType(elemName)
+                If Nodes(sId).FirstChild >= 0 Then
+                    Dim initStr = EmitExpr(Nodes(sId).FirstChild)
+                    EmitWriteLine(indent & "vbc_slice_t " & Nodes(sId).Name & " = " & initStr & ";")
+                Else
+                    EmitWriteLine(indent & "vbc_slice_t " & Nodes(sId).Name & " = vbc_slice_create(_stack, 4, sizeof(" & elemCType & "));")
+                End If
+            Else
+                If Nodes(sId).FirstChild >= 0 Then
+                    Dim initStr = EmitExpr(Nodes(sId).FirstChild)
+                    EmitWriteLine(indent & cType & " " & Nodes(sId).Name & " = " & initStr & ";")
+                Else
+                    EmitWriteLine(indent & cType & " " & Nodes(sId).Name & " = {0};")
+                End If
+            End If
+
+        ElseIf k = NODE_ASSIGN Then
+            Dim targetNode = Nodes(sId).FirstChild
+            Dim valNode = Nodes(targetNode).NextSibling
+            Dim valStr = EmitExpr(valNode)
+
+            If Nodes(targetNode).Kind = NODE_INVOKE Then
+                ' Slice element assignment: arr(i) = val
+                Dim calleeNode = Nodes(targetNode).FirstChild
+                Dim idxNode = Nodes(calleeNode).NextSibling
+                Dim calleeStr = EmitExpr(calleeNode)
+                Dim idxStr = EmitExpr(idxNode)
+                If CaseInsensitiveEquals(calleeStr, "Nodes") Then
+                    EmitWriteLine(indent & "(*((Vbc_AstNode*)vbc_slice_get(&Nodes, " & idxStr & "))) = " & valStr & ";")
+                ElseIf CaseInsensitiveEquals(calleeStr, "p_Tokens") Then
+                    EmitWriteLine(indent & "(*((Vbc_Token*)vbc_slice_get(&p_Tokens, " & idxStr & "))) = " & valStr & ";")
+                ElseIf CaseInsensitiveEquals(calleeStr, "tokens") Then
+                    EmitWriteLine(indent & "(*((Vbc_Token*)vbc_slice_get(&tokens, " & idxStr & "))) = " & valStr & ";")
+                ElseIf CaseInsensitiveEquals(calleeStr, "args") Then
+                    EmitWriteLine(indent & "(*((vbc_string_t*)vbc_slice_get(&args, " & idxStr & "))) = " & valStr & ";")
+                Else
+                    EmitWriteLine(indent & "*(int32_t*)vbc_slice_get(&" & calleeStr & ", " & idxStr & ") = " & valStr & ";")
+                End If
+            Else
+                Dim targetStr = EmitExpr(targetNode)
+                If CaseInsensitiveEquals(targetStr, "Nodes") And Nodes(valNode).Kind = NODE_ARRAY_LIT Then
+                    EmitWriteLine(indent & "Nodes = vbc_slice_create(_stack, 16, sizeof(Vbc_AstNode));")
+                ElseIf (CaseInsensitiveEquals(targetStr, "tokens") Or CaseInsensitiveEquals(targetStr, "p_Tokens")) And Nodes(valNode).Kind = NODE_ARRAY_LIT Then
+                    EmitWriteLine(indent & targetStr & " = vbc_slice_create(_stack, 16, sizeof(Vbc_Token));")
+                Else
+                    EmitWriteLine(indent & targetStr & " = " & valStr & ";")
+                End If
+            End If
+
+        ElseIf k = NODE_IF Then
+            Dim condNode = Nodes(sId).FirstChild
+            Dim thenBlock = Nodes(condNode).NextSibling
+            Dim condStr = EmitExpr(condNode)
+            EmitWriteLine(indent & "if (" & condStr & ") {")
+            If thenBlock >= 0 Then
+                Dim stmt = Nodes(thenBlock).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+
+            Dim nextClause = If(thenBlock >= 0, Nodes(thenBlock).NextSibling, -1)
+            While nextClause >= 0 And Nodes(nextClause).Kind = NODE_ELSEIF
+                Dim eiCond = Nodes(nextClause).FirstChild
+                Dim eiBlock = Nodes(eiCond).NextSibling
+                Dim eiCondStr = EmitExpr(eiCond)
+                EmitWriteLine(indent & "} else if (" & eiCondStr & ") {")
+                If eiBlock >= 0 Then
+                    Dim stmt = Nodes(eiBlock).FirstChild
+                    While stmt <> -1
+                        EmitStatement(stmt, indent & "    ")
+                        stmt = Nodes(stmt).NextSibling
+                    End While
+                End If
+                nextClause = Nodes(nextClause).NextSibling
+            End While
+
+            If nextClause >= 0 And Nodes(nextClause).Kind = NODE_BLOCK Then
+                EmitWriteLine(indent & "} else {")
+                Dim stmt = Nodes(nextClause).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_FOR Then
+            Dim vName = Nodes(sId).Name
+            Dim startNode = Nodes(sId).FirstChild
+            Dim endNode = Nodes(startNode).NextSibling
+            Dim stepNode = Nodes(endNode).NextSibling
+            Dim bodyNode = Nodes(stepNode).NextSibling
+
+            Dim startStr = EmitExpr(startNode)
+            Dim endStr = EmitExpr(endNode)
+            Dim stepStr = EmitExpr(stepNode)
+
+            EmitWriteLine(indent & "for (int32_t " & vName & " = " & startStr & "; " & vName & " <= " & endStr & "; " & vName & " += " & stepStr & ") {")
+            If bodyNode >= 0 Then
+                Dim stmt = Nodes(bodyNode).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_FOREACH Then
+            Dim vName = Nodes(sId).Name
+            Dim collNode = Nodes(sId).FirstChild
+            Dim bodyNode = Nodes(collNode).NextSibling
+            Dim collStr = EmitExpr(collNode)
+            Dim qId = NextTemp("_fe")
+
+            EmitWriteLine(indent & "vbc_slice_t _c_" & qId & " = " & collStr & ";")
+            EmitWriteLine(indent & "for (int64_t _i_" & qId & " = 0; _i_" & qId & " < _c_" & qId & ".len; _i_" & qId & "++) {")
+            EmitWriteLine(indent & "    int32_t " & vName & " = ((int32_t*)_c_" & qId & ".data)[_i_" & qId & "];")
+            If bodyNode >= 0 Then
+                Dim stmt = Nodes(bodyNode).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_WHILE Then
+            Dim condStr = EmitExpr(Nodes(sId).FirstChild)
+            Dim bodyNode = Nodes(Nodes(sId).FirstChild).NextSibling
+            EmitWriteLine(indent & "while (" & condStr & ") {")
+            If bodyNode >= 0 Then
+                Dim stmt = Nodes(bodyNode).FirstChild
+                While stmt <> -1
+                    EmitStatement(stmt, indent & "    ")
+                    stmt = Nodes(stmt).NextSibling
+                End While
+            End If
+            EmitWriteLine(indent & "}")
+
+        ElseIf k = NODE_RETURN Then
+            If Nodes(sId).FirstChild >= 0 Then
+                Dim exprStr = EmitExpr(Nodes(sId).FirstChild)
+                EmitWriteLine(indent & "return " & exprStr & ";")
+            Else
+                EmitWriteLine(indent & "return;")
+            End If
+
+        ElseIf k = NODE_EXPR_STMT Then
+            If CaseInsensitiveEquals(Nodes(sId).Name, "break") Then
+                EmitWriteLine(indent & "break;")
+            ElseIf Nodes(sId).FirstChild >= 0 Then
+                Dim exprStr = EmitExpr(Nodes(sId).FirstChild)
+                EmitWriteLine(indent & exprStr & ";")
+            End If
+
+        ElseIf k = NODE_CONTINUE Then
+            EmitWriteLine(indent & "continue;")
+        End If
+    End Sub
+
+    Function EmitExpr(eId As Integer) As String
+        If eId < 0 Then Return "0"
+        Dim k = Nodes(eId).Kind
+
+        If k = NODE_LITERAL Then
+            If CaseInsensitiveEquals(Nodes(eId).TypeName, "String") Then
+                Return "vbc_str_lit(""" & EscapeCString(Nodes(eId).StringValue) & """)"
+            ElseIf CaseInsensitiveEquals(Nodes(eId).TypeName, "Boolean") Then
+                Return If(Nodes(eId).IntValue = 1, "true", "false")
+            Else
+                Return IntToStr(Nodes(eId).IntValue)
+            End If
+
+        ElseIf k = NODE_IDENT Then
+            Return Nodes(eId).Name
+
+        ElseIf k = NODE_BINARY Then
+            Dim leftNode = Nodes(eId).FirstChild
+            Dim rightNode = Nodes(leftNode).NextSibling
+            Dim leftStr = EmitExpr(leftNode)
+            Dim rightStr = EmitExpr(rightNode)
+            Dim op = Nodes(eId).Op
+
+            If op = TOK_PLUS Then Return "(" & leftStr & " + " & rightStr & ")"
+            If op = TOK_MINUS Then Return "(" & leftStr & " - " & rightStr & ")"
+            If op = TOK_STAR Then Return "(" & leftStr & " * " & rightStr & ")"
+            If op = TOK_SLASH Then Return "(" & leftStr & " / " & rightStr & ")"
+            If op = TOK_MOD Then Return "(" & leftStr & " % " & rightStr & ")"
+            If op = TOK_EQUAL Then Return "(" & leftStr & " == " & rightStr & ")"
+            If op = TOK_NOTEQUAL Then Return "(" & leftStr & " != " & rightStr & ")"
+            If op = TOK_LESS Then Return "(" & leftStr & " < " & rightStr & ")"
+            If op = TOK_LESSEQ Then Return "(" & leftStr & " <= " & rightStr & ")"
+            If op = TOK_GREATER Then Return "(" & leftStr & " > " & rightStr & ")"
+            If op = TOK_GREATEREQ Then Return "(" & leftStr & " >= " & rightStr & ")"
+            If op = TOK_AND Then Return "(" & leftStr & " && " & rightStr & ")"
+            If op = TOK_OR Then Return "(" & leftStr & " || " & rightStr & ")"
+            If op = TOK_AMP Then Return "vbc_str_concat(_stack, " & leftStr & ", " & rightStr & ")"
+            Return "(" & leftStr & " + " & rightStr & ")"
+
+        ElseIf k = NODE_UNARY Then
+            Dim opStr = EmitExpr(Nodes(eId).FirstChild)
+            If Nodes(eId).Op = TOK_NOT Then Return "(!" & opStr & ")"
+            If Nodes(eId).Op = TOK_MINUS Then Return "(-" & opStr & ")"
+            Return opStr
+
+        ElseIf k = NODE_MEMBER Then
+            Dim targetNode = Nodes(eId).FirstChild
+            Dim targetStr = EmitExpr(targetNode)
+            Dim mName = Nodes(eId).Name
+            Dim sep = "."
+            If CaseInsensitiveEquals(targetStr, "lex") Or CaseInsensitiveEquals(targetStr, "req") Then
+                sep = "->"
+            End If
+            If CaseInsensitiveEquals(mName, "length") Then
+                Return targetStr & sep & "len"
+            End If
+            Return targetStr & sep & mName
+
+        ElseIf k = NODE_INVOKE Then
+            Dim calleeNode = Nodes(eId).FirstChild
+            If Nodes(calleeNode).Kind = NODE_MEMBER Then
+                Dim targetNode = Nodes(calleeNode).FirstChild
+                Dim targetStr = EmitExpr(targetNode)
+                Dim memberName = Nodes(calleeNode).Name
+
+                If CaseInsensitiveEquals(targetStr, "console") Then
+                    If CaseInsensitiveEquals(memberName, "writeline") Or CaseInsensitiveEquals(memberName, "print") Then
+                        Dim argNode = Nodes(calleeNode).NextSibling
+                        If argNode >= 0 Then
+                            Dim argStr = EmitExpr(argNode)
+                            Return "vbc_println(" & argStr & ")"
+                        Else
+                            Return "puts("""")"
+                        End If
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "file") Then
+                    If CaseInsensitiveEquals(memberName, "readalltext") Then
+                        Dim pathStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                        Return "vbc_file_read_all_text(_stack, " & pathStr & ")"
+                    ElseIf CaseInsensitiveEquals(memberName, "writealltext") Then
+                        Dim p1 = Nodes(calleeNode).NextSibling
+                        Dim p2 = Nodes(p1).NextSibling
+                        Return "vbc_file_write_all_text(" & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                    End If
+                End If
+
+                If CaseInsensitiveEquals(targetStr, "process") Then
+                    If CaseInsensitiveEquals(memberName, "execute") Then
+                        Dim cmdStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                        Return "vbc_process_execute(" & cmdStr & ")"
+                    End If
+                End If
+
+                ' Slice methods: .Add, .Push
+                If CaseInsensitiveEquals(memberName, "add") Or CaseInsensitiveEquals(memberName, "push") Then
+                    Dim valStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                    Return "({ __typeof__(" & valStr & ") _item = (" & valStr & "); if ((" & targetStr & ").elem_size == 0) (" & targetStr & ").elem_size = sizeof(_item); vbc_slice_push(_stack, &" & targetStr & ", &_item); })"
+                End If
+
+                If CaseInsensitiveEquals(memberName, "substring") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Dim p2 = Nodes(p1).NextSibling
+                    Return "vbc_str_substring(_stack, " & targetStr & ", " & EmitExpr(p1) & ", " & EmitExpr(p2) & ")"
+                End If
+                If CaseInsensitiveEquals(memberName, "byteat") Then
+                    Dim p1 = Nodes(calleeNode).NextSibling
+                    Return "vbc_str_byte_at(" & targetStr & ", " & EmitExpr(p1) & ")"
+                End If
+            End If
+
+            ' Regular function call or slice indexing: Nodes(i), p_Tokens(i), ...
+            Dim fnName = EmitExpr(calleeNode)
+            If CaseInsensitiveEquals(fnName, "Nodes") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((Vbc_AstNode*)vbc_slice_get(&Nodes, " & idxStr & ")))"
+            End If
+            If CaseInsensitiveEquals(fnName, "p_Tokens") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((Vbc_Token*)vbc_slice_get(&p_Tokens, " & idxStr & ")))"
+            End If
+            If CaseInsensitiveEquals(fnName, "tokens") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((Vbc_Token*)vbc_slice_get(&tokens, " & idxStr & ")))"
+            End If
+            If CaseInsensitiveEquals(fnName, "args") Then
+                Dim idxStr = EmitExpr(Nodes(calleeNode).NextSibling)
+                Return "(*((vbc_string_t*)vbc_slice_get(&args, " & idxStr & ")))"
+            End If
+
+            Dim argsStr = "_stack"
+            Dim arg = Nodes(calleeNode).NextSibling
+            While arg <> -1
+                Dim argStr = EmitExpr(arg)
+                If (CaseInsensitiveEquals(fnName, "LexerPeek") Or CaseInsensitiveEquals(fnName, "LexerPeekOffset") Or CaseInsensitiveEquals(fnName, "LexerAdvance") Or CaseInsensitiveEquals(fnName, "LexerNextToken")) And Nodes(arg).Kind = NODE_IDENT Then
+                    If Not CaseInsensitiveEquals(argStr, "lex") Then
+                        argStr = "&" & argStr
+                    End If
+                End If
+                argsStr = argsStr & ", " & argStr
+                arg = Nodes(arg).NextSibling
+            End While
+            Return "Vbc_" & fnName & "(" & argsStr & ")"
+
+        ElseIf k = NODE_ARRAY_LIT Then
+            Dim qId = NextTemp("_arr")
+            Dim cnt = Nodes(eId).ChildCount
+            Dim elemSzStr = If(cnt = 0, "0", "sizeof(int32_t)")
+            Dim initStr = "({ vbc_slice_t _s_" & qId & " = vbc_slice_create(_stack, " & IntToStr(cnt) & ", " & elemSzStr & "); "
+            Dim el = Nodes(eId).FirstChild
+            While el <> -1
+                initStr = initStr & "{ int32_t _v = " & EmitExpr(el) & "; vbc_slice_push(_stack, &_s_" & qId & ", &_v); } "
+                el = Nodes(el).NextSibling
+            End While
+            initStr = initStr & "_s_" & qId & "; })"
+            Return initStr
+
+        ElseIf k = NODE_QUERY Then
+            Dim rVar = Nodes(eId).Name
+            Dim srcNode = Nodes(eId).FirstChild
+            Dim whereNode = If(Nodes(eId).ChildCount > 2, Nodes(srcNode).NextSibling, -1)
+            Dim selNode = If(Nodes(eId).ChildCount > 2, Nodes(whereNode).NextSibling, Nodes(srcNode).NextSibling)
+
+            Dim srcStr = EmitExpr(srcNode)
+            Dim whereStr = If(whereNode >= 0, EmitExpr(whereNode), "1")
+            Dim selStr = EmitExpr(selNode)
+            Dim qId = NextTemp("_q")
+
+            Dim qCode = "({ vbc_slice_t _s_" & qId & " = " & srcStr & "; "
+            qCode = qCode & "vbc_slice_t _r_" & qId & " = vbc_slice_create(_stack, _s_" & qId & ".len > 0 ? _s_" & qId & ".len : 4, sizeof(int32_t)); "
+            qCode = qCode & "for (int64_t _i_" & qId & " = 0; _i_" & qId & " < _s_" & qId & ".len; _i_" & qId & "++) { "
+            qCode = qCode & "int32_t " & rVar & " = ((int32_t*)_s_" & qId & ".data)[_i_" & qId & "]; "
+            qCode = qCode & "if (" & whereStr & ") { "
+            qCode = qCode & "int32_t _val = " & selStr & "; "
+            qCode = qCode & "vbc_slice_push(_stack, &_r_" & qId & ", &_val); "
+            qCode = qCode & "} "
+            qCode = qCode & "} "
+            qCode = qCode & "_r_" & qId & "; })"
+            Return qCode
+        ElseIf k = NODE_IF_EXPR Then
+            Dim condNode = Nodes(eId).FirstChild
+            Dim tNode = Nodes(condNode).NextSibling
+            Dim fNode = Nodes(tNode).NextSibling
+            Return "((" & EmitExpr(condNode) & ") ? (" & EmitExpr(tNode) & ") : (" & EmitExpr(fNode) & "))"
+        End If
+
+        Return "0"
+    End Function
+End Module
+Imports System
+
+Module DriverModule
+    Function CompileCSource(cFilePath As String, exeFilePath As String) As Integer
+        Dim cmd As String = "clang -O3 -w -g -gcodeview -I runtime/include -I ""c:/Projects My/VBC/runtime/include"" """ & cFilePath & """ ""c:/Projects My/VBC/runtime/src/vbc_socket.c"" ""c:/Projects My/VBC/runtime/src/vbc_http.c"" -lws2_32 -lkernel32 -o """ & exeFilePath & """"
+        Dim exitCode As Integer = Process.Execute(cmd)
+        Return exitCode
+    End Function
+
+    Function RunBinary(exeFilePath As String) As Integer
+        Dim cmd As String = """" & exeFilePath & """"
+        Dim exitCode As Integer = Process.Execute(cmd)
+        Return exitCode
+    End Function
+End Module
+Imports System
+
+Module Program
+    Sub Main(args() As String)
+        If args.Length < 2 Then
+            Console.WriteLine("VBC Self-Hosted Compiler v1.0.0 (Stage 2 - Pure Native)")
+            Console.WriteLine("Usage:")
+            Console.WriteLine("  vbc compile <file.vbc> [-o <out.exe>] [--emit-c]")
+            Console.WriteLine("  vbc run <file.vbc>")
+            Console.WriteLine("  vbc version")
+            Return
+        End If
+
+        Dim cmd As String = args(1)
+        If CaseInsensitiveEquals(cmd, "version") Or CaseInsensitiveEquals(cmd, "--version") Or CaseInsensitiveEquals(cmd, "-v") Then
+            Console.WriteLine("VBC Compiler v1.0.0 (Stage 2 Self-Hosted Native Binary)")
+            Console.WriteLine("Architecture: C99 / Clang with Goose Linear Data Stack")
+            Console.WriteLine("Zero Garbage Collection, Zero Runtime Overhead")
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "compile") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc compile <file.vbc>")
+                Return
+            End If
+            Dim inputFile As String = args(2)
+            Dim outputFile As String = "app.exe"
+            Dim emitC As Boolean = False
+
+            For i = 3 To args.Length - 1
+                If CaseInsensitiveEquals(args(i), "-o") And i + 1 < args.Length Then
+                    outputFile = args(i + 1)
+                ElseIf CaseInsensitiveEquals(args(i), "--emit-c") Then
+                    emitC = True
+                End If
+            Next
+
+            CompileSource(inputFile, outputFile, emitC)
+            Return
+        End If
+
+        If CaseInsensitiveEquals(cmd, "run") Then
+            If args.Length < 3 Then
+                Console.WriteLine("Error: Missing input source file. Usage: vbc run <file.vbc>")
+                Return
+            End If
+            Dim inputFile As String = args(2)
+            Dim tempExe As String = "temp_out.exe"
+            Dim ok As Boolean = CompileSource(inputFile, tempExe, False)
+            If ok Then
+                RunBinary(tempExe)
+            End If
+            Return
+        End If
+
+        ' If first argument after executable is a file, compile & run it directly
+        Dim fileToRun As String = args(1)
+        Dim defaultExe As String = "temp_out.exe"
+        If CompileSource(fileToRun, defaultExe, False) Then
+            RunBinary(defaultExe)
+        End If
+    End Sub
+
+    Function CompileSource(inputPath As String, outputPath As String, emitC As Boolean) As Boolean
+        Dim src As String = File.ReadAllText(inputPath)
+        If src.Length = 0 Then
+            Console.WriteLine("Error: Could not read source file: " & inputPath)
+            Return False
+        End If
+
+        ' 1. Tokenize
+        Dim tokens() As Token = TokenizeAll(src)
+
+        ' 2. Parse into Arena AST
+        InitArena()
+        ParserInit(tokens)
+        Dim rootId As Integer = ParseCompilationUnit()
+
+        ' 3. Code Generation to C
+        Dim cCode As String = EmitCompilationUnitToC(rootId)
+
+        Dim cPath As String = outputPath & ".c"
+        File.WriteAllText(cPath, cCode)
+        If emitC Then
+            Console.WriteLine("Generated C code: " & cPath)
+        End If
+
+        ' 4. Native Driver (Clang)
+        Dim res As Integer = CompileCSource(cPath, outputPath)
+        If res <> 0 Then
+            Console.WriteLine("Clang compilation failed with exit code: " & IntToStr(res))
+            Return False
+        End If
+
+        Console.WriteLine("Compilation successful: " & outputPath)
+        Return True
+    End Function
+End Module

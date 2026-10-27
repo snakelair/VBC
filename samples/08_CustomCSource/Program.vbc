@@ -1,0 +1,22 @@
+Include "my_math.c"
+Include MyMath = "my_math.c"
+
+Module Program
+    Sub Main()
+        Console.WriteLine("=== Custom C Source & Builtins Demo ===")
+
+        ' 1. Direct call without alias
+        Dim a = custom_add(20, 22)
+        Console.WriteLine("Direct custom_add(20, 22) = " & a)
+
+        ' 2. Call via explicit alias MyMath
+        Dim b = MyMath.custom_multiply(6, 7)
+        Console.WriteLine("MyMath.custom_multiply(6, 7) = " & b)
+
+        ' 3. C compiler builtins without includes via c. and C.
+        Dim bits = c.popcount(7)
+        Dim sz = C.sizeof(100)
+        Console.WriteLine("c.popcount(7) = " & bits)
+        Console.WriteLine("C.sizeof(100) = " & sz)
+    End Sub
+End Module
