@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module EmitterModule
     Sub EmitFunctionPrototype(fnId As Integer)

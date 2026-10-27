@@ -2,7 +2,7 @@
 <VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
   <TemplateData>
     <Name>VBC Native Application</Name>
-    <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+    <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
     <ProjectType>VisualBasic</ProjectType>
     <TemplateID>Vbc.NativeApplication</TemplateID>
     <SortOrder>10</SortOrder>

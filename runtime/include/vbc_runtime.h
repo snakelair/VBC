@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /* ========================================================================= */
-/* Goose-Style Linear Data Stack (Arena Bump Allocator)                       */
+/* Linear Arena Data Stack (Bump Allocator)                                  */
 /* ========================================================================= */
 
 typedef struct {
@@ -104,7 +104,7 @@ static inline void* vbc_stack_alloc(vbc_stack_t* stack, size_t size, size_t alig
     return (void*)aligned;
 }
 
-// O(1) scope-exit instant reclamation (Goose principle)
+// O(1) scope-exit instant reclamation (Linear stack principle)
 static inline void vbc_stack_reset(vbc_stack_t* stack, size_t mark) {
     stack->ptr = stack->base + mark;
 }

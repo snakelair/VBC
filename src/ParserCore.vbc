@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module ParserModule
     Dim p_Tokens() As Token

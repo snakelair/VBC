@@ -21,7 +21,7 @@ vstemplate_xml = """<?xml version="1.0" encoding="utf-8"?>
 <VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
   <TemplateData>
     <Name>VBC Native Application</Name>
-    <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+    <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
     <ProjectType>VisualBasic</ProjectType>
     <TemplateID>Vbc.NativeApplication</TemplateID>
     <SortOrder>10</SortOrder>
@@ -99,7 +99,7 @@ vstman_xml = """<VSTemplateManifest Version="1.0" xmlns="http://schemas.microsof
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
         <TemplateID>Vbc.NativeApplication</TemplateID>
         <Name>VBC Native Application</Name>
-        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
         <ProjectType>VisualBasic</ProjectType>
         <SortOrder>10</SortOrder>
         <CreateNewFolder>true</CreateNewFolder>
@@ -124,7 +124,7 @@ vstman_xml = """<VSTemplateManifest Version="1.0" xmlns="http://schemas.microsof
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
         <TemplateID>Vbc.NativeApplication.1033</TemplateID>
         <Name>VBC Native Application</Name>
-        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
         <ProjectType>VisualBasic</ProjectType>
         <SortOrder>10</SortOrder>
         <CreateNewFolder>true</CreateNewFolder>
@@ -149,7 +149,7 @@ vstman_xml = """<VSTemplateManifest Version="1.0" xmlns="http://schemas.microsof
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
         <TemplateID>Vbc.NativeApplication.1049</TemplateID>
         <Name>VBC Native Application</Name>
-        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
         <ProjectType>VisualBasic</ProjectType>
         <SortOrder>10</SortOrder>
         <CreateNewFolder>true</CreateNewFolder>
@@ -232,12 +232,12 @@ manifest_xml = """<?xml version="1.0" encoding="utf-8"?>
   <Metadata>
     <Identity Id="VbcLanguage.4a8e2b91-7f3c-41d6-8b29-e0d19c35b882" Version="1.0.1" Language="en-US" Publisher="VBC" />
     <DisplayName>VBC Language Support</DisplayName>
-    <Description xml:space="preserve">Visual Basic C (VBC) language extension for Visual Studio with Project Templates, IntelliSense and Goose data stack memory model.</Description>
-    <MoreInfo>https://github.com/aardappel/goose</MoreInfo>
+    <Description xml:space="preserve">Visual Basic C (VBC) language extension for Visual Studio with Project Templates, IntelliSense and linear arena memory model.</Description>
+    <MoreInfo>https://github.com/snakelair/VBC</MoreInfo>
     <License></License>
     <Icon></Icon>
     <PreviewImage></PreviewImage>
-    <Tags>vbc, visual basic, intellisense, lsp, goose, project template</Tags>
+    <Tags>vbc, visual basic, intellisense, lsp, arena, bump allocator, project template</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 19.0)">
@@ -316,7 +316,7 @@ catalog_json = json.dumps({
                 {
                     "language": "en-US",
                     "title": "VBC Language Support & Project Templates",
-                    "description": "Visual Basic C (VBC) language extension for Visual Studio with Project Templates, IntelliSense and Goose data stack memory model."
+                    "description": "Visual Basic C (VBC) language extension for Visual Studio with Project Templates, IntelliSense and linear arena memory model."
                 }
             ]
         },

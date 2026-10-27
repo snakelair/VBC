@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module Common
     Structure SourceSpan
@@ -1965,7 +1965,7 @@ Module Program
         Dim cmd As String = args(1)
         If CaseInsensitiveEquals(cmd, "version") Or CaseInsensitiveEquals(cmd, "--version") Or CaseInsensitiveEquals(cmd, "-v") Then
             Console.WriteLine("VBC Compiler v1.0.0 (Stage 2 Self-Hosted Native Binary)")
-            Console.WriteLine("Architecture: C99 / Clang with Goose Linear Data Stack")
+            Console.WriteLine("Architecture: C99 / Clang with Linear Arena Data Stack")
             Console.WriteLine("Zero Garbage Collection, Zero Runtime Overhead")
             Return
         End If

@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module ParserModule
     Function GetPrecedence(k As Integer) As Integer
@@ -245,5 +245,4 @@ Module ParserModule
             Return errId
         End If
     End Function
-End Module
 End Module

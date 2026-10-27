@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module EmitterModule
     Function EmitArrayLiteral(eId As Integer, elemCType As String) As String

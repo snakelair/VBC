@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module ParserModule
     Function ParseStatement() As Integer
@@ -225,7 +225,7 @@ Module ParserModule
     Function ParseIf() As Integer
         ParserMatch(TOK_IF)
         Dim condId = ParseExpression()
-        If CurrKind() = TOK_THEN Then ParserAdvance()
+        ParserMatch(TOK_THEN)
 
         ' Single-line If: statement follows on the same line
         If CurrKind() <> TOK_NEWLINE And CurrKind() <> TOK_COLON And CurrKind() <> TOK_EOF Then
@@ -255,7 +255,7 @@ Module ParserModule
         While CurrKind() = TOK_ELSEIF
             ParserAdvance()
             Dim eiCond = ParseExpression()
-            If CurrKind() = TOK_THEN Then ParserAdvance()
+            ParserMatch(TOK_THEN)
             SkipSeparators()
             Dim eiNode = AllocNode(NODE_ELSEIF, "elseif", CurrLine())
             AddChild(eiNode, eiCond)

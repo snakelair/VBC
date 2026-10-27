@@ -1,7 +1,7 @@
 {
   "name": "vbc-language-support",
   "displayName": "VBC Language Support",
-  "description": "Visual Basic C (VBC) language support with IntelliSense and Goose data stack memory model",
+  "description": "Visual Basic C (VBC) language support with IntelliSense and linear arena memory model",
   "version": "1.0.0",
   "license": "MIT",
   "publisher": "vbc",

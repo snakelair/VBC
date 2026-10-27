@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module EmitterModule
     Function EmitInvoke(eId As Integer) As String

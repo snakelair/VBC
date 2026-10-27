@@ -3,12 +3,12 @@
   <Metadata>
     <Identity Id="VbcExtension.f8a7e089-9a7c-4742-83b5-4b360b9381ea" Version="1.0.0" Language="en-US" Publisher="VBC" />
     <DisplayName>VBC Language Support</DisplayName>
-    <Description xml:space="preserve">Visual Basic C (VBC) language extension for Visual Studio with IntelliSense and Goose data stack memory model.</Description>
-    <MoreInfo>https://github.com/aardappel/goose</MoreInfo>
+    <Description xml:space="preserve">Visual Basic C (VBC) language extension for Visual Studio with IntelliSense and linear arena memory model.</Description>
+    <MoreInfo>https://github.com/snakelair/VBC</MoreInfo>
     <License></License>
     <Icon></Icon>
     <PreviewImage></PreviewImage>
-    <Tags>vbc, visual basic, intellisense, lsp, goose</Tags>
+    <Tags>vbc, visual basic, intellisense, lsp, arena, bump allocator</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 19.0)">

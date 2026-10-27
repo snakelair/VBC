@@ -2,7 +2,7 @@
 
 ## Critical Constraints
 - **VBC is Pure Native & Zero .NET**: Never assume .NET CLR, Garbage Collection, reflection, or standard .NET BCL libraries exist.
-- **Memory Model**: VBC runs on the Goose Linear Data Stack (bump allocation, O(1) frame resets, zero GC). Never leak memory across frame resets.
+- **Memory Model**: VBC runs on the Linear Arena Data Stack (bump allocation, O(1) frame resets, zero GC). Never leak memory across frame resets.
 - **Self-Hosting Protocol**: Source files reside in `src/`. NEVER edit `bootstrap/vbc_bootstrap.c` directly. When modifying `src/*.vbc`, ALWAYS run `build.bat rebuild` to recompile the self-hosted binary and update bootstrap C99 code.
 - **Reference Documentation**: Consult `AI_GUIDE.md` in the workspace root for complete grammar, AST contracts, supported primitives, and runtime headers.
 

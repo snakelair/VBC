@@ -1,17 +1,17 @@
 # VBC Developer & AI Agent Guide (Grounding Reference)
 
 > **Target Audience**: AI Coding Assistants (Antigravity, Cursor, Windsurf, Claude Code, GitHub Copilot) and Human Compiler Contributors.  
-> **Purpose**: Eliminates LLM hallucinations, defines the exact VBC language specification, Goose memory model, self-hosting compilation pipeline, and verification workflow.
+> **Purpose**: Eliminates LLM hallucinations, defines the exact VBC language specification, linear arena memory model, self-hosting compilation pipeline, and verification workflow.
 
 ---
 
 ## 1. What is VBC? (Core Architecture)
 
-**VBC** is a 100% self-hosted, pure native systems programming language that marries the clean syntax of **Visual Basic** with the zero-overhead memory model of **Goose**.
+**VBC** is a 100% self-hosted, pure native systems programming language that marries the clean syntax of **Visual Basic** with the zero-overhead memory model of **Linear Arena Stacks**.
 
 ### Key Differentiators vs Standard VB.NET:
 - **Zero GC & Zero .NET Dependency**: Does NOT use the CLR, .NET runtime, or garbage collector.
-- **Goose Linear Data Stack**: Bump-allocators allocate variables, strings, and temporary objects linearly. Exiting a function or loop resets the stack pointer ($O(1)$ reclamation in 1 CPU instruction).
+- **Linear Arena Data Stack**: Bump-allocators allocate variables, strings, and temporary objects linearly. Exiting a function or loop resets the stack pointer ($O(1)$ reclamation in 1 CPU instruction).
 - **Native C99 Target**: The compiler parses VBC source and emits standards-compliant C99/C11 code, compiled directly via Clang or GCC into an optimized native executable (`-O2` / `-O3`).
 - **Deterministic Polymorphism**: OOP classes use dynamic VTables generated in pure C99 without virtual machine overhead.
 
@@ -38,7 +38,7 @@ The compiler is written in VBC itself and resides in [`src/`](file:///c:/Project
 
 ---
 
-## 3. The Goose Memory Model (Rules for Writing VBC)
+## 3. The Linear Arena Memory Model (Rules for Writing VBC)
 
 ### 3.1. The Linear Data Stack (`vbc_stack_t`)
 - Every execution context receives a pointer to a linear memory arena `vbc_stack_t* _stack`.
@@ -68,7 +68,7 @@ The compiler is written in VBC itself and resides in [`src/`](file:///c:/Project
 - `Double`: 64-bit IEEE float (`double`)
 - `Boolean`: `True` / `False` (`bool`)
 - `Byte`: 8-bit unsigned integer (`uint8_t`)
-- `String`: Contiguous Goose string slice (`vbc_string_t`)
+- `String`: Contiguous string slice (`vbc_string_t`) on the linear stack
 - `T?` / `Nullable(Of T)`: Nullable value type with `.HasValue` and `.Value`
 
 ### Operators
@@ -124,7 +124,7 @@ End Class
 2. **Do NOT edit `bootstrap/vbc_bootstrap.c` directly**:
    - `bootstrap/vbc_bootstrap.c` is generated automatically. Always edit `src/*.vbc` and run `build.bat rebuild`.
 3. **Do NOT allocate with standard `malloc()` without stack awareness**:
-   - All runtime objects belong to the Goose stack or dedicated subsystem handles.
+   - All runtime objects belong to the linear stack arena or dedicated subsystem handles.
 
 ### ✅ ALWAYS DO:
 1. **Always verify changes using AI introspection and native tests**:

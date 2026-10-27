@@ -479,7 +479,7 @@ void vbc_http_server_start(vbc_http_server_t* server, int max_requests) {
         }
 
         vbc_socket_close(&client);
-        // O(1) Goose reclamation of entire request data stack!
+        // O(1) instant reclamation of entire request data stack arena!
         vbc_stack_reset(&server->req_stack, mark);
         handled++;
     }

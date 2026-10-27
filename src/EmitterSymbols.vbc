@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module EmitterModule
     Function ResolveTypeName(tName As String) As String

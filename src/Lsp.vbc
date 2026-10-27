@@ -203,7 +203,7 @@ Module LspModule
         ElseIf CaseInsensitiveEquals(word, "Double") Then
             Return "**Double** [C: double]\n\nDouble-precision 64-bit floating point."
         ElseIf CaseInsensitiveEquals(word, "String") Then
-            Return "**String** [C: vbc_string_t (const char* ptr, int64_t len)]\n\nZero-GC linear Goose stack string slice."
+            Return "**String** [C: vbc_string_t (const char* ptr, int64_t len)]\n\nZero-GC linear stack string slice."
         ElseIf CaseInsensitiveEquals(word, "Boolean") Then
             Return "**Boolean** [C: bool (int32_t)]\n\nBoolean flag (True / False)."
         ElseIf CaseInsensitiveEquals(word, "Char") Then
@@ -223,7 +223,7 @@ Module LspModule
         ElseIf CaseInsensitiveEquals(word, "XAttribute") Then
             Return "**XAttribute** [C: vbc_xml_attr_t*]\n\nNative XML Attribute key-value pair."
         ElseIf CaseInsensitiveEquals(word, "StringBuilder") Then
-            Return "**StringBuilder** [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\n\nMutable string buffer on Goose linear stack."
+            Return "**StringBuilder** [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\n\nMutable string buffer on linear arena stack."
         ElseIf CaseInsensitiveEquals(word, "Stopwatch") Then
             Return "**Stopwatch** [C: vbc_stopwatch_t { int64_t start_ticks; int64_t elapsed_ticks; bool is_running; }]\n\nHigh-resolution monotonic timer."
         ElseIf CaseInsensitiveEquals(word, "DateTime") Then
@@ -266,7 +266,7 @@ Module LspModule
             Dim baseT As String = StringSub(word, 0, word.Length - 1)
             Return "**" & word & "** [C: vbc_nullable_" & baseT & " { bool has_value; " & baseT & " value; }]\n\nNullable value type with .HasValue and .Value."
         End If
-        Return "**VBC Native Language Server**: Pure Native Visual Basic C with Goose linear data stack."
+        Return "**VBC Native Language Server**: Pure Native Visual Basic C with Linear Arena Data Stack."
     End Function
 
     Sub HandleHover(id As Long, msg As String)
@@ -280,7 +280,7 @@ Module LspModule
             End If
         End If
         If hoverText.Length = 0 Then
-            hoverText = "**VBC Native Language Server**: Pure Native Visual Basic C with Goose linear data stack."
+            hoverText = "**VBC Native Language Server**: Pure Native Visual Basic C with Linear Arena Data Stack."
         End If
 
         Dim res As String = "{""jsonrpc"":""2.0"",""id"":" & IntToStr(id) & ",""result"":{""contents"":{""kind"":""markdown"",""value"":""" & hoverText & """}}}"

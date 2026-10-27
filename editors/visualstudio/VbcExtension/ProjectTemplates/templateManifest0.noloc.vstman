@@ -6,7 +6,7 @@
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
         <TemplateID>Vbc.NativeApplication</TemplateID>
         <Name>VBC Native Application</Name>
-        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
         <ProjectType>VisualBasic</ProjectType>
         <SortOrder>10</SortOrder>
         <CreateNewFolder>true</CreateNewFolder>
@@ -31,7 +31,7 @@
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
         <TemplateID>Vbc.NativeApplication.1033</TemplateID>
         <Name>VBC Native Application</Name>
-        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
         <ProjectType>VisualBasic</ProjectType>
         <SortOrder>10</SortOrder>
         <CreateNewFolder>true</CreateNewFolder>
@@ -56,7 +56,7 @@
       <TemplateData xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
         <TemplateID>Vbc.NativeApplication.1049</TemplateID>
         <Name>VBC Native Application</Name>
-        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and Goose linear data stack.</Description>
+        <Description>Creates an ultra-fast native Visual Basic C (VBC) application with zero GC and linear arena data stack.</Description>
         <ProjectType>VisualBasic</ProjectType>
         <SortOrder>10</SortOrder>
         <CreateNewFolder>true</CreateNewFolder>

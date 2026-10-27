@@ -128,26 +128,16 @@ int32_t Vbc_ParserModule_ParseBinary(vbc_stack_t* _stack, int32_t parentPrec);
 int32_t Vbc_ParserModule_ParseUnary(vbc_stack_t* _stack);
 int32_t Vbc_ParserModule_ParsePostfix(vbc_stack_t* _stack);
 int32_t Vbc_ParserModule_ParsePrimary(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseStatement(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseTry(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseSyncLock(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseUsing(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseVariableDeclaration(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseAssignOrExprStatement(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseIf(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseFor(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseWhile(vbc_stack_t* _stack);
-int32_t Vbc_
-_ParseReturn(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseStatement(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseTry(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseSyncLock(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseUsing(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseVariableDeclaration(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseAssignOrExprStatement(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseIf(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseFor(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseWhile(vbc_stack_t* _stack);
+int32_t Vbc_ParserModule_ParseReturn(vbc_stack_t* _stack);
 void Vbc_ParserModule_ParseNamespace(vbc_stack_t* _stack, int32_t parentId);
 int32_t Vbc_ParserModule_ParseModule(vbc_stack_t* _stack);
 int32_t Vbc_ParserModule_ParseStructure(vbc_stack_t* _stack);
@@ -280,8 +270,6 @@ static int32_t p_Pos = {0};
 static int32_t p_Count = {0};
 static vbc_string_t p_CurrentNamespace = {0};
 static vbc_slice_t p_ImportedNamespaces = {0};
-static int32_t System = {0};
-static int32_t ParserModule = {0};
 static int32_t TOK_EOF = 0;
 static int32_t TOK_IDENT = 1;
 static int32_t TOK_INT = 2;
@@ -7012,7 +7000,7 @@ vbc_string_t Vbc_LspModule_GetCTypeHover(vbc_stack_t* _stack, vbc_string_t word)
         return vbc_str_lit("**Double** [C: double]\n\nDouble-precision 64-bit floating point.");
     } else if (Vbc_Common_CaseInsensitiveEquals(_stack, word, vbc_str_lit("String"))) {
 #line 3814 "src"
-        return vbc_str_lit("**String** [C: vbc_string_t (const char* ptr, int64_t len)]\n\nZero-GC linear Goose stack string slice.");
+        return vbc_str_lit("**String** [C: vbc_string_t (const char* ptr, int64_t len)]\n\nZero-GC linear stack string slice.");
     } else if (Vbc_Common_CaseInsensitiveEquals(_stack, word, vbc_str_lit("Boolean"))) {
 #line 3816 "src"
         return vbc_str_lit("**Boolean** [C: bool (int32_t)]\n\nBoolean flag (True / False).");
@@ -7042,7 +7030,7 @@ vbc_string_t Vbc_LspModule_GetCTypeHover(vbc_stack_t* _stack, vbc_string_t word)
         return vbc_str_lit("**XAttribute** [C: vbc_xml_attr_t*]\n\nNative XML Attribute key-value pair.");
     } else if (Vbc_Common_CaseInsensitiveEquals(_stack, word, vbc_str_lit("StringBuilder"))) {
 #line 3834 "src"
-        return vbc_str_lit("**StringBuilder** [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\n\nMutable string buffer on Goose linear stack.");
+        return vbc_str_lit("**StringBuilder** [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\n\nMutable string buffer on linear arena stack.");
     } else if (Vbc_Common_CaseInsensitiveEquals(_stack, word, vbc_str_lit("Stopwatch"))) {
 #line 3836 "src"
         return vbc_str_lit("**Stopwatch** [C: vbc_stopwatch_t { int64_t start_ticks; int64_t elapsed_ticks; bool is_running; }]\n\nHigh-resolution monotonic timer.");
@@ -7107,7 +7095,7 @@ vbc_string_t Vbc_LspModule_GetCTypeHover(vbc_stack_t* _stack, vbc_string_t word)
         return vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("**"), word), vbc_str_lit("** [C: vbc_nullable_")), baseT), vbc_str_lit(" { bool has_value; ")), baseT), vbc_str_lit(" value; }]\n\nNullable value type with .HasValue and .Value."));
     }
 #line 3877 "src"
-    return vbc_str_lit("**VBC Native Language Server**: Pure Native Visual Basic C with Goose linear data stack.");
+    return vbc_str_lit("**VBC Native Language Server**: Pure Native Visual Basic C with Linear Arena Data Stack.");
 }
 
 void Vbc_LspModule_HandleHover(vbc_stack_t* _stack, int64_t id, vbc_string_t msg) {
@@ -7131,7 +7119,7 @@ void Vbc_LspModule_HandleHover(vbc_stack_t* _stack, int64_t id, vbc_string_t msg
 #line 3891 "src"
     if ((hoverText.len == 0)) {
 #line 3891 "src"
-        hoverText = vbc_str_lit("**VBC Native Language Server**: Pure Native Visual Basic C with Goose linear data stack.");
+        hoverText = vbc_str_lit("**VBC Native Language Server**: Pure Native Visual Basic C with Linear Arena Data Stack.");
     }
 #line 3894 "src"
     vbc_string_t res = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("{\"jsonrpc\":\"2.0\",\"id\":"), Vbc_Common_IntToStr(_stack, id)), vbc_str_lit(",\"result\":{\"contents\":{\"kind\":\"markdown\",\"value\":\"")), hoverText), vbc_str_lit("\"}}}"));
@@ -7862,2799 +7850,2760 @@ int32_t Vbc_ParserModule_ParsePrimary(vbc_stack_t* _stack) {
     }
 }
 
-int32_t Vbc_
-_ParseStatement(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseStatement(vbc_stack_t* _stack) {
 
-#line 4324 "src"
+#line 4323 "src"
     int32_t k = Vbc_ParserModule_CurrKind(_stack);
-#line 4326 "src"
+#line 4325 "src"
     if (((k == TOK_DIM) || (k == TOK_CONST))) {
-#line 4326 "src"
-        return Vbc_
-_ParseVariableDeclaration(_stack);
+#line 4325 "src"
+        return Vbc_ParserModule_ParseVariableDeclaration(_stack);
     } else if ((k == TOK_IF)) {
-#line 4328 "src"
-        return Vbc_
-_ParseIf(_stack);
+#line 4327 "src"
+        return Vbc_ParserModule_ParseIf(_stack);
     } else if ((k == TOK_FOR)) {
-#line 4330 "src"
-        return Vbc_
-_ParseFor(_stack);
+#line 4329 "src"
+        return Vbc_ParserModule_ParseFor(_stack);
     } else if ((k == TOK_WHILE)) {
-#line 4332 "src"
-        return Vbc_
-_ParseWhile(_stack);
+#line 4331 "src"
+        return Vbc_ParserModule_ParseWhile(_stack);
     } else if ((k == TOK_RETURN)) {
-#line 4334 "src"
-        return Vbc_
-_ParseReturn(_stack);
+#line 4333 "src"
+        return Vbc_ParserModule_ParseReturn(_stack);
     } else if ((k == TOK_USING)) {
-#line 4336 "src"
-        return Vbc_
-_ParseUsing(_stack);
+#line 4335 "src"
+        return Vbc_ParserModule_ParseUsing(_stack);
     } else if ((k == TOK_TRY)) {
-#line 4338 "src"
-        return Vbc_
-_ParseTry(_stack);
+#line 4337 "src"
+        return Vbc_ParserModule_ParseTry(_stack);
     } else if ((k == TOK_SYNCLOCK)) {
-#line 4340 "src"
-        return Vbc_
-_ParseSyncLock(_stack);
+#line 4339 "src"
+        return Vbc_ParserModule_ParseSyncLock(_stack);
     } else if ((k == TOK_THROW)) {
-#line 4342 "src"
+#line 4341 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4343 "src"
+#line 4342 "src"
         int32_t exExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4344 "src"
+#line 4343 "src"
         int32_t thId = Vbc_AstArenaModule_AllocNode(_stack, NODE_EXPR_STMT, vbc_str_lit("throw"), Vbc_ParserModule_CurrLine(_stack));
-#line 4345 "src"
+#line 4344 "src"
         Vbc_AstArenaModule_AddChild(_stack, thId, exExpr);
-#line 4346 "src"
+#line 4345 "src"
         return thId;
     } else if ((k == TOK_EXIT)) {
-#line 4348 "src"
+#line 4347 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4349 "src"
+#line 4348 "src"
         if (((Vbc_ParserModule_CurrKind(_stack) == TOK_FOR) || (Vbc_ParserModule_CurrKind(_stack) == TOK_WHILE))) {
-#line 4349 "src"
+#line 4348 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4350 "src"
+#line 4349 "src"
         int32_t exId = Vbc_AstArenaModule_AllocNode(_stack, NODE_EXPR_STMT, vbc_str_lit("break"), Vbc_ParserModule_CurrLine(_stack));
-#line 4351 "src"
+#line 4350 "src"
         return exId;
     } else if ((k == TOK_CONTINUE)) {
-#line 4353 "src"
+#line 4352 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4354 "src"
+#line 4353 "src"
         if (((Vbc_ParserModule_CurrKind(_stack) == TOK_FOR) || (Vbc_ParserModule_CurrKind(_stack) == TOK_WHILE))) {
-#line 4354 "src"
+#line 4353 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4355 "src"
+#line 4354 "src"
         int32_t cId = Vbc_AstArenaModule_AllocNode(_stack, NODE_CONTINUE, vbc_str_lit("continue"), Vbc_ParserModule_CurrLine(_stack));
-#line 4356 "src"
+#line 4355 "src"
         return cId;
     } else {
-#line 4358 "src"
-        return Vbc_
-_ParseAssignOrExprStatement(_stack);
+#line 4357 "src"
+        return Vbc_ParserModule_ParseAssignOrExprStatement(_stack);
     }
 }
 
-int32_t Vbc_
-_ParseTry(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseTry(vbc_stack_t* _stack) {
 
-#line 4363 "src"
+#line 4362 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_TRY);
-#line 4364 "src"
+#line 4363 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4365 "src"
+#line 4364 "src"
     int32_t tryId = Vbc_AstArenaModule_AllocNode(_stack, NODE_TRY, vbc_str_lit("Try"), Vbc_ParserModule_CurrLine(_stack));
-#line 4366 "src"
+#line 4365 "src"
     int32_t tryBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("try_body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4367 "src"
+#line 4366 "src"
     Vbc_AstArenaModule_AddChild(_stack, tryId, tryBlock);
-#line 4370 "src"
+#line 4369 "src"
     while (((((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_CATCH)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_FINALLY)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4369 "src"
+        int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4370 "src"
-        int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4371 "src"
         if ((s >= 0)) {
-#line 4371 "src"
+#line 4370 "src"
             Vbc_AstArenaModule_AddChild(_stack, tryBlock, s);
         }
-#line 4372 "src"
+#line 4371 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4376 "src"
+#line 4375 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_CATCH)) {
-#line 4376 "src"
+#line 4375 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4377 "src"
+#line 4376 "src"
         vbc_string_t exVarName = vbc_str_lit("ex");
-#line 4379 "src"
+#line 4378 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IDENT)) {
-#line 4379 "src"
+#line 4378 "src"
             exVarName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4381 "src"
+#line 4380 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4381 "src"
+#line 4380 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4382 "src"
+#line 4381 "src"
                 vbc_string_t exType = Vbc_ParserModule_ParseTypeName(_stack);
             }
         }
-#line 4385 "src"
+#line 4384 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
-#line 4386 "src"
+#line 4385 "src"
         int32_t catchBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, exVarName, Vbc_ParserModule_CurrLine(_stack));
-#line 4387 "src"
+#line 4386 "src"
         Vbc_AstArenaModule_AddChild(_stack, tryId, catchBlock);
-#line 4389 "src"
+#line 4388 "src"
         while ((((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_FINALLY)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4388 "src"
+            int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4389 "src"
-            int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4390 "src"
             if ((s >= 0)) {
-#line 4390 "src"
+#line 4389 "src"
                 Vbc_AstArenaModule_AddChild(_stack, catchBlock, s);
             }
-#line 4391 "src"
+#line 4390 "src"
             Vbc_ParserModule_SkipSeparators(_stack);
         }
     }
-#line 4396 "src"
+#line 4395 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_FINALLY)) {
-#line 4396 "src"
+#line 4395 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4397 "src"
+#line 4396 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
-#line 4398 "src"
+#line 4397 "src"
         int32_t finallyBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("finally_body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4399 "src"
+#line 4398 "src"
         Vbc_AstArenaModule_AddChild(_stack, tryId, finallyBlock);
-#line 4401 "src"
+#line 4400 "src"
         while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4400 "src"
+            int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4401 "src"
-            int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4402 "src"
             if ((s >= 0)) {
-#line 4402 "src"
+#line 4401 "src"
                 Vbc_AstArenaModule_AddChild(_stack, finallyBlock, s);
             }
-#line 4403 "src"
+#line 4402 "src"
             Vbc_ParserModule_SkipSeparators(_stack);
         }
     }
-#line 4407 "src"
+#line 4406 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4408 "src"
+#line 4407 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_TRY)) {
-#line 4408 "src"
+#line 4407 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4409 "src"
+#line 4408 "src"
     return tryId;
 }
 
-int32_t Vbc_
-_ParseSyncLock(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseSyncLock(vbc_stack_t* _stack) {
 
-#line 4413 "src"
+#line 4412 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_SYNCLOCK);
-#line 4414 "src"
+#line 4413 "src"
     int32_t lockExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4415 "src"
+#line 4414 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4416 "src"
+#line 4415 "src"
     int32_t slId = Vbc_AstArenaModule_AllocNode(_stack, NODE_SYNCLOCK, vbc_str_lit("SyncLock"), Vbc_ParserModule_CurrLine(_stack));
-#line 4417 "src"
+#line 4416 "src"
     Vbc_AstArenaModule_AddChild(_stack, slId, lockExpr);
-#line 4419 "src"
+#line 4418 "src"
     int32_t bodyBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("synclock_body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4420 "src"
+#line 4419 "src"
     Vbc_AstArenaModule_AddChild(_stack, slId, bodyBlock);
-#line 4423 "src"
+#line 4422 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4422 "src"
+        int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4423 "src"
-        int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4424 "src"
         if ((s >= 0)) {
-#line 4424 "src"
+#line 4423 "src"
             Vbc_AstArenaModule_AddChild(_stack, bodyBlock, s);
         }
-#line 4425 "src"
+#line 4424 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4428 "src"
+#line 4427 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4429 "src"
+#line 4428 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_SYNCLOCK)) {
-#line 4429 "src"
+#line 4428 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4430 "src"
+#line 4429 "src"
     return slId;
 }
 
-int32_t Vbc_
-_ParseUsing(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseUsing(vbc_stack_t* _stack) {
 
-#line 4434 "src"
+#line 4433 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_USING);
-#line 4435 "src"
+#line 4434 "src"
     vbc_string_t varName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4436 "src"
+#line 4435 "src"
     vbc_string_t typeName = vbc_str_lit("");
-#line 4437 "src"
+#line 4436 "src"
     int32_t initExpr = (-1);
-#line 4440 "src"
+#line 4439 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4440 "src"
+#line 4439 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4442 "src"
+#line 4441 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_NEW)) {
-#line 4442 "src"
+#line 4441 "src"
             initExpr = Vbc_ParserModule_ParsePrimary(_stack);
-#line 4443 "src"
+#line 4442 "src"
             typeName = (*((Vbc_AstNode*)vbc_slice_get(&Nodes, initExpr))).Name;
         } else {
-#line 4445 "src"
+#line 4444 "src"
             typeName = Vbc_ParserModule_ParseTypeName(_stack);
-#line 4447 "src"
+#line 4446 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_EQUAL)) {
-#line 4447 "src"
+#line 4446 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4448 "src"
+#line 4447 "src"
                 initExpr = Vbc_ParserModule_ParseExpression(_stack);
             }
         }
     } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_EQUAL)) {
-#line 4452 "src"
+#line 4451 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4453 "src"
+#line 4452 "src"
         initExpr = Vbc_ParserModule_ParseExpression(_stack);
     }
-#line 4456 "src"
+#line 4455 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4458 "src"
+#line 4457 "src"
     int32_t uId = Vbc_AstArenaModule_AllocNode(_stack, NODE_USING, varName, Vbc_ParserModule_CurrLine(_stack));
-#line 4459 "src"
+#line 4458 "src"
     (*((Vbc_AstNode*)vbc_slice_get(&Nodes, uId))).TypeName = typeName;
-#line 4460 "src"
+#line 4459 "src"
     Vbc_AstArenaModule_AddChild(_stack, uId, initExpr);
-#line 4462 "src"
+#line 4461 "src"
     int32_t bodyBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4463 "src"
+#line 4462 "src"
     Vbc_AstArenaModule_AddChild(_stack, uId, bodyBlock);
-#line 4466 "src"
+#line 4465 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4465 "src"
+        int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4466 "src"
-        int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4467 "src"
         if ((s >= 0)) {
-#line 4467 "src"
+#line 4466 "src"
             Vbc_AstArenaModule_AddChild(_stack, bodyBlock, s);
         }
-#line 4468 "src"
+#line 4467 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4471 "src"
+#line 4470 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4472 "src"
+#line 4471 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_USING)) {
-#line 4472 "src"
+#line 4471 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4473 "src"
+#line 4472 "src"
     return uId;
 }
 
-int32_t Vbc_
-_ParseVariableDeclaration(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseVariableDeclaration(vbc_stack_t* _stack) {
 
-#line 4477 "src"
+#line 4476 "src"
     bool isConst = (Vbc_ParserModule_CurrKind(_stack) == TOK_CONST);
-#line 4479 "src"
+#line 4478 "src"
     if (((Vbc_ParserModule_CurrKind(_stack) == TOK_DIM) || (Vbc_ParserModule_CurrKind(_stack) == TOK_CONST))) {
-#line 4479 "src"
+#line 4478 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4481 "src"
+#line 4480 "src"
     vbc_string_t vName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4482 "src"
+#line 4481 "src"
     vbc_string_t vType = vbc_str_lit("");
-#line 4483 "src"
+#line 4482 "src"
     bool isArray = false;
-#line 4486 "src"
+#line 4485 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_LPAREN)) {
-#line 4486 "src"
+#line 4485 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4487 "src"
+#line 4486 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_RPAREN);
-#line 4488 "src"
+#line 4487 "src"
         isArray = true;
     }
-#line 4492 "src"
+#line 4491 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4492 "src"
+#line 4491 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4494 "src"
+#line 4493 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_NEW)) {
-#line 4494 "src"
+#line 4493 "src"
             int32_t newExpr = Vbc_ParserModule_ParsePrimary(_stack);
-#line 4495 "src"
+#line 4494 "src"
             int32_t varId = Vbc_AstArenaModule_AllocNode(_stack, NODE_VARDECL, vName, Vbc_ParserModule_CurrLine(_stack));
-#line 4496 "src"
+#line 4495 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, varId))).TypeName = (*((Vbc_AstNode*)vbc_slice_get(&Nodes, newExpr))).Name;
-#line 4497 "src"
+#line 4496 "src"
             Vbc_AstArenaModule_AddChild(_stack, varId, newExpr);
-#line 4498 "src"
+#line 4497 "src"
             return varId;
         }
-#line 4500 "src"
+#line 4499 "src"
         vType = Vbc_ParserModule_ParseTypeName(_stack);
     }
-#line 4504 "src"
+#line 4503 "src"
     if ((isArray && (vType.len > 0))) {
-#line 4504 "src"
+#line 4503 "src"
         vType = vbc_str_concat(_stack, vType, vbc_str_lit("()"));
     }
-#line 4507 "src"
+#line 4506 "src"
     int32_t varId = Vbc_AstArenaModule_AllocNode(_stack, NODE_VARDECL, vName, Vbc_ParserModule_CurrLine(_stack));
-#line 4508 "src"
+#line 4507 "src"
     (*((Vbc_AstNode*)vbc_slice_get(&Nodes, varId))).TypeName = vType;
-#line 4511 "src"
+#line 4510 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_EQUAL)) {
-#line 4511 "src"
+#line 4510 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4512 "src"
+#line 4511 "src"
         int32_t initExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4513 "src"
+#line 4512 "src"
         Vbc_AstArenaModule_AddChild(_stack, varId, initExpr);
     }
-#line 4516 "src"
+#line 4515 "src"
     return varId;
 }
 
-int32_t Vbc_
-_ParseAssignOrExprStatement(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseAssignOrExprStatement(vbc_stack_t* _stack) {
 
-#line 4520 "src"
+#line 4519 "src"
     int32_t exprId = Vbc_ParserModule_ParseExpression(_stack);
-#line 4522 "src"
+#line 4521 "src"
     if ((((*((Vbc_AstNode*)vbc_slice_get(&Nodes, exprId))).Kind == NODE_BINARY) && ((*((Vbc_AstNode*)vbc_slice_get(&Nodes, exprId))).Op == TOK_EQUAL))) {
-#line 4522 "src"
+#line 4521 "src"
         int32_t targetNode = (*((Vbc_AstNode*)vbc_slice_get(&Nodes, exprId))).FirstChild;
-#line 4523 "src"
+#line 4522 "src"
         int32_t valNode = (*((Vbc_AstNode*)vbc_slice_get(&Nodes, targetNode))).NextSibling;
-#line 4524 "src"
+#line 4523 "src"
         int32_t assignId = Vbc_AstArenaModule_AllocNode(_stack, NODE_ASSIGN, vbc_str_lit("="), (*((Vbc_AstNode*)vbc_slice_get(&Nodes, exprId))).Line);
-#line 4525 "src"
+#line 4524 "src"
         Vbc_AstArenaModule_AddChild(_stack, assignId, targetNode);
-#line 4526 "src"
+#line 4525 "src"
         Vbc_AstArenaModule_AddChild(_stack, assignId, valNode);
-#line 4527 "src"
+#line 4526 "src"
         return assignId;
     }
-#line 4531 "src"
+#line 4530 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_EQUAL)) {
-#line 4531 "src"
+#line 4530 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4532 "src"
+#line 4531 "src"
         int32_t rhsId = Vbc_ParserModule_ParseExpression(_stack);
-#line 4533 "src"
+#line 4532 "src"
         int32_t assignId = Vbc_AstArenaModule_AllocNode(_stack, NODE_ASSIGN, vbc_str_lit("="), Vbc_ParserModule_CurrLine(_stack));
-#line 4534 "src"
+#line 4533 "src"
         Vbc_AstArenaModule_AddChild(_stack, assignId, exprId);
-#line 4535 "src"
+#line 4534 "src"
         Vbc_AstArenaModule_AddChild(_stack, assignId, rhsId);
-#line 4536 "src"
+#line 4535 "src"
         return assignId;
     }
-#line 4539 "src"
+#line 4538 "src"
     int32_t stmtId = Vbc_AstArenaModule_AllocNode(_stack, NODE_EXPR_STMT, vbc_str_lit("expr"), Vbc_ParserModule_CurrLine(_stack));
-#line 4540 "src"
+#line 4539 "src"
     Vbc_AstArenaModule_AddChild(_stack, stmtId, exprId);
-#line 4541 "src"
+#line 4540 "src"
     return stmtId;
 }
 
-int32_t Vbc_
-_ParseIf(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseIf(vbc_stack_t* _stack) {
 
-#line 4545 "src"
+#line 4544 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_IF);
-#line 4546 "src"
+#line 4545 "src"
     int32_t condId = Vbc_ParserModule_ParseExpression(_stack);
-#line 4547 "src"
-    if ((Vbc_ParserModule_CurrKind(_stack) == TOK_THEN)) {
-#line 4547 "src"
-        Vbc_ParserModule_ParserAdvance(_stack);
-    }
-#line 4551 "src"
+#line 4546 "src"
+    Vbc_ParserModule_ParserMatch(_stack, TOK_THEN);
+#line 4550 "src"
     if ((((Vbc_ParserModule_CurrKind(_stack) != TOK_NEWLINE) && (Vbc_ParserModule_CurrKind(_stack) != TOK_COLON)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_EOF))) {
-#line 4551 "src"
+#line 4550 "src"
         int32_t sIfId = Vbc_AstArenaModule_AllocNode(_stack, NODE_IF, vbc_str_lit("if"), Vbc_ParserModule_CurrLine(_stack));
-#line 4552 "src"
+#line 4551 "src"
         Vbc_AstArenaModule_AddChild(_stack, sIfId, condId);
-#line 4553 "src"
+#line 4552 "src"
         int32_t sThenBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("then"), Vbc_ParserModule_CurrLine(_stack));
-#line 4554 "src"
+#line 4553 "src"
         Vbc_AstArenaModule_AddChild(_stack, sIfId, sThenBlock);
+#line 4554 "src"
+        int32_t stmt = Vbc_ParserModule_ParseStatement(_stack);
 #line 4555 "src"
-        int32_t stmt = Vbc_
-_ParseStatement(_stack);
-#line 4556 "src"
         if ((stmt >= 0)) {
-#line 4556 "src"
+#line 4555 "src"
             Vbc_AstArenaModule_AddChild(_stack, sThenBlock, stmt);
         }
-#line 4557 "src"
+#line 4556 "src"
         return sIfId;
     }
-#line 4560 "src"
+#line 4559 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4562 "src"
+#line 4561 "src"
     int32_t ifId = Vbc_AstArenaModule_AllocNode(_stack, NODE_IF, vbc_str_lit("if"), Vbc_ParserModule_CurrLine(_stack));
-#line 4563 "src"
+#line 4562 "src"
     Vbc_AstArenaModule_AddChild(_stack, ifId, condId);
-#line 4565 "src"
+#line 4564 "src"
     int32_t thenBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("then"), Vbc_ParserModule_CurrLine(_stack));
-#line 4566 "src"
+#line 4565 "src"
     Vbc_AstArenaModule_AddChild(_stack, ifId, thenBlock);
-#line 4569 "src"
+#line 4568 "src"
     while (((((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_ELSEIF)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_ELSE)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4568 "src"
+        int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4569 "src"
-        int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4570 "src"
         if ((s >= 0)) {
-#line 4570 "src"
+#line 4569 "src"
             Vbc_AstArenaModule_AddChild(_stack, thenBlock, s);
         }
-#line 4571 "src"
+#line 4570 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4575 "src"
+#line 4574 "src"
     while ((Vbc_ParserModule_CurrKind(_stack) == TOK_ELSEIF)) {
-#line 4575 "src"
+#line 4574 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4576 "src"
+#line 4575 "src"
         int32_t eiCond = Vbc_ParserModule_ParseExpression(_stack);
+#line 4576 "src"
+        Vbc_ParserModule_ParserMatch(_stack, TOK_THEN);
 #line 4577 "src"
-        if ((Vbc_ParserModule_CurrKind(_stack) == TOK_THEN)) {
-#line 4577 "src"
-            Vbc_ParserModule_ParserAdvance(_stack);
-        }
-#line 4578 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
-#line 4579 "src"
+#line 4578 "src"
         int32_t eiNode = Vbc_AstArenaModule_AllocNode(_stack, NODE_ELSEIF, vbc_str_lit("elseif"), Vbc_ParserModule_CurrLine(_stack));
-#line 4580 "src"
+#line 4579 "src"
         Vbc_AstArenaModule_AddChild(_stack, eiNode, eiCond);
-#line 4581 "src"
+#line 4580 "src"
         int32_t eiBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("then"), Vbc_ParserModule_CurrLine(_stack));
-#line 4582 "src"
+#line 4581 "src"
         Vbc_AstArenaModule_AddChild(_stack, eiNode, eiBlock);
-#line 4584 "src"
+#line 4583 "src"
         while (((((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_ELSEIF)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_ELSE)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4583 "src"
+            int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4584 "src"
-            int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4585 "src"
             if ((s >= 0)) {
-#line 4585 "src"
+#line 4584 "src"
                 Vbc_AstArenaModule_AddChild(_stack, eiBlock, s);
             }
-#line 4586 "src"
+#line 4585 "src"
             Vbc_ParserModule_SkipSeparators(_stack);
         }
-#line 4588 "src"
+#line 4587 "src"
         Vbc_AstArenaModule_AddChild(_stack, ifId, eiNode);
     }
-#line 4593 "src"
+#line 4592 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_ELSE)) {
-#line 4593 "src"
+#line 4592 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4594 "src"
+#line 4593 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
-#line 4595 "src"
+#line 4594 "src"
         int32_t elseBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("else"), Vbc_ParserModule_CurrLine(_stack));
-#line 4596 "src"
+#line 4595 "src"
         Vbc_AstArenaModule_AddChild(_stack, ifId, elseBlock);
-#line 4598 "src"
+#line 4597 "src"
         while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4597 "src"
+            int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4598 "src"
-            int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4599 "src"
             if ((s >= 0)) {
-#line 4599 "src"
+#line 4598 "src"
                 Vbc_AstArenaModule_AddChild(_stack, elseBlock, s);
             }
-#line 4600 "src"
+#line 4599 "src"
             Vbc_ParserModule_SkipSeparators(_stack);
         }
     }
-#line 4604 "src"
+#line 4603 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4605 "src"
+#line 4604 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IF)) {
-#line 4605 "src"
+#line 4604 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4606 "src"
+#line 4605 "src"
     return ifId;
 }
 
-int32_t Vbc_
-_ParseFor(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseFor(vbc_stack_t* _stack) {
 
-#line 4610 "src"
+#line 4609 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_FOR);
-#line 4613 "src"
+#line 4612 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_EACH)) {
-#line 4613 "src"
+#line 4612 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4614 "src"
+#line 4613 "src"
         vbc_string_t vName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4615 "src"
+#line 4614 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_IN);
-#line 4616 "src"
+#line 4615 "src"
         int32_t collExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4617 "src"
+#line 4616 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
-#line 4619 "src"
+#line 4618 "src"
         int32_t feId = Vbc_AstArenaModule_AllocNode(_stack, NODE_FOREACH, vName, Vbc_ParserModule_CurrLine(_stack));
-#line 4620 "src"
+#line 4619 "src"
         Vbc_AstArenaModule_AddChild(_stack, feId, collExpr);
-#line 4621 "src"
+#line 4620 "src"
         int32_t bodyId = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4622 "src"
+#line 4621 "src"
         Vbc_AstArenaModule_AddChild(_stack, feId, bodyId);
-#line 4625 "src"
+#line 4624 "src"
         while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_NEXT))) {
+#line 4624 "src"
+            int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4625 "src"
-            int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4626 "src"
             if ((s >= 0)) {
-#line 4626 "src"
+#line 4625 "src"
                 Vbc_AstArenaModule_AddChild(_stack, bodyId, s);
             }
-#line 4627 "src"
+#line 4626 "src"
             Vbc_ParserModule_SkipSeparators(_stack);
         }
-#line 4630 "src"
+#line 4629 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_NEXT);
-#line 4631 "src"
+#line 4630 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IDENT)) {
-#line 4631 "src"
+#line 4630 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4632 "src"
+#line 4631 "src"
         return feId;
     }
-#line 4636 "src"
+#line 4635 "src"
     vbc_string_t varName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4638 "src"
+#line 4637 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4638 "src"
+#line 4637 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4639 "src"
+#line 4638 "src"
         vbc_string_t varType = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
     }
-#line 4641 "src"
+#line 4640 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_EQUAL);
-#line 4642 "src"
+#line 4641 "src"
     int32_t startExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4643 "src"
+#line 4642 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_TO);
-#line 4644 "src"
+#line 4643 "src"
     int32_t endExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4645 "src"
+#line 4644 "src"
     int32_t stepExpr = (-1);
-#line 4647 "src"
+#line 4646 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_STEP)) {
-#line 4647 "src"
+#line 4646 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4648 "src"
+#line 4647 "src"
         stepExpr = Vbc_ParserModule_ParseExpression(_stack);
     }
-#line 4650 "src"
+#line 4649 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4652 "src"
+#line 4651 "src"
     int32_t forId = Vbc_AstArenaModule_AllocNode(_stack, NODE_FOR, varName, Vbc_ParserModule_CurrLine(_stack));
-#line 4653 "src"
+#line 4652 "src"
     Vbc_AstArenaModule_AddChild(_stack, forId, startExpr);
-#line 4654 "src"
+#line 4653 "src"
     Vbc_AstArenaModule_AddChild(_stack, forId, endExpr);
-#line 4656 "src"
+#line 4655 "src"
     if ((stepExpr >= 0)) {
-#line 4656 "src"
+#line 4655 "src"
         Vbc_AstArenaModule_AddChild(_stack, forId, stepExpr);
     } else {
-#line 4658 "src"
+#line 4657 "src"
         int32_t oneId = Vbc_AstArenaModule_AllocNode(_stack, NODE_LITERAL, vbc_str_lit("1"), Vbc_ParserModule_CurrLine(_stack));
-#line 4659 "src"
+#line 4658 "src"
         (*((Vbc_AstNode*)vbc_slice_get(&Nodes, oneId))).IntValue = 1;
-#line 4660 "src"
+#line 4659 "src"
         Vbc_AstArenaModule_AddChild(_stack, forId, oneId);
     }
-#line 4663 "src"
+#line 4662 "src"
     int32_t bodyBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4664 "src"
+#line 4663 "src"
     Vbc_AstArenaModule_AddChild(_stack, forId, bodyBlock);
-#line 4667 "src"
+#line 4666 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_NEXT))) {
+#line 4666 "src"
+        int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4667 "src"
-        int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4668 "src"
         if ((s >= 0)) {
-#line 4668 "src"
+#line 4667 "src"
             Vbc_AstArenaModule_AddChild(_stack, bodyBlock, s);
         }
-#line 4669 "src"
+#line 4668 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4672 "src"
+#line 4671 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_NEXT);
-#line 4673 "src"
+#line 4672 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IDENT)) {
-#line 4673 "src"
+#line 4672 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4674 "src"
+#line 4673 "src"
     return forId;
 }
 
-int32_t Vbc_
-_ParseWhile(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseWhile(vbc_stack_t* _stack) {
 
-#line 4678 "src"
+#line 4677 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_WHILE);
-#line 4679 "src"
+#line 4678 "src"
     int32_t condExpr = Vbc_ParserModule_ParseExpression(_stack);
-#line 4680 "src"
+#line 4679 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4682 "src"
+#line 4681 "src"
     int32_t whileId = Vbc_AstArenaModule_AllocNode(_stack, NODE_WHILE, vbc_str_lit("while"), Vbc_ParserModule_CurrLine(_stack));
-#line 4683 "src"
+#line 4682 "src"
     Vbc_AstArenaModule_AddChild(_stack, whileId, condExpr);
-#line 4684 "src"
+#line 4683 "src"
     int32_t bodyBlock = Vbc_AstArenaModule_AllocNode(_stack, NODE_BLOCK, vbc_str_lit("body"), Vbc_ParserModule_CurrLine(_stack));
-#line 4685 "src"
+#line 4684 "src"
     Vbc_AstArenaModule_AddChild(_stack, whileId, bodyBlock);
-#line 4688 "src"
+#line 4687 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
+#line 4687 "src"
+        int32_t s = Vbc_ParserModule_ParseStatement(_stack);
 #line 4688 "src"
-        int32_t s = Vbc_
-_ParseStatement(_stack);
-#line 4689 "src"
         if ((s >= 0)) {
-#line 4689 "src"
+#line 4688 "src"
             Vbc_AstArenaModule_AddChild(_stack, bodyBlock, s);
         }
-#line 4690 "src"
+#line 4689 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4693 "src"
+#line 4692 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4694 "src"
+#line 4693 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_WHILE)) {
-#line 4694 "src"
+#line 4693 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4695 "src"
+#line 4694 "src"
     return whileId;
 }
 
-int32_t Vbc_
-_ParseReturn(vbc_stack_t* _stack) {
+int32_t Vbc_ParserModule_ParseReturn(vbc_stack_t* _stack) {
 
-#line 4699 "src"
+#line 4698 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_RETURN);
-#line 4700 "src"
+#line 4699 "src"
     int32_t retId = Vbc_AstArenaModule_AllocNode(_stack, NODE_RETURN, vbc_str_lit("return"), Vbc_ParserModule_CurrLine(_stack));
-#line 4702 "src"
+#line 4701 "src"
     if ((((Vbc_ParserModule_CurrKind(_stack) != TOK_NEWLINE) && (Vbc_ParserModule_CurrKind(_stack) != TOK_COLON)) && (Vbc_ParserModule_CurrKind(_stack) != TOK_EOF))) {
-#line 4702 "src"
+#line 4701 "src"
         int32_t exprId = Vbc_ParserModule_ParseExpression(_stack);
-#line 4703 "src"
+#line 4702 "src"
         Vbc_AstArenaModule_AddChild(_stack, retId, exprId);
     }
-#line 4705 "src"
+#line 4704 "src"
     return retId;
 }
 
 void Vbc_ParserModule_ParseNamespace(vbc_stack_t* _stack, int32_t parentId) {
 
-#line 4715 "src"
+#line 4714 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_NAMESPACE);
-#line 4716 "src"
+#line 4715 "src"
     vbc_string_t nsName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4718 "src"
+#line 4717 "src"
     while ((Vbc_ParserModule_CurrKind(_stack) == TOK_DOT)) {
-#line 4718 "src"
+#line 4717 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4719 "src"
+#line 4718 "src"
         nsName = vbc_str_concat(_stack, vbc_str_concat(_stack, nsName, vbc_str_lit(".")), Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text);
     }
-#line 4721 "src"
+#line 4720 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4723 "src"
+#line 4722 "src"
     vbc_string_t oldNs = p_CurrentNamespace;
-#line 4725 "src"
+#line 4724 "src"
     if ((oldNs.len > 0)) {
-#line 4725 "src"
+#line 4724 "src"
         p_CurrentNamespace = vbc_str_concat(_stack, vbc_str_concat(_stack, oldNs, vbc_str_lit(".")), nsName);
     } else {
-#line 4727 "src"
+#line 4726 "src"
         p_CurrentNamespace = nsName;
     }
-#line 4731 "src"
+#line 4730 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
-#line 4732 "src"
+#line 4731 "src"
         if ((((Vbc_ParserModule_CurrKind(_stack) == TOK_PUBLIC) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PRIVATE)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PROTECTED))) {
-#line 4732 "src"
+#line 4731 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4735 "src"
+#line 4734 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_MODULE)) {
-#line 4735 "src"
+#line 4734 "src"
             int32_t modId = Vbc_ParserModule_ParseModule(_stack);
-#line 4736 "src"
+#line 4735 "src"
             Vbc_AstArenaModule_AddChild(_stack, parentId, modId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_STRUCTURE)) {
-#line 4738 "src"
+#line 4737 "src"
             int32_t structId = Vbc_ParserModule_ParseStructure(_stack);
-#line 4739 "src"
+#line 4738 "src"
             Vbc_AstArenaModule_AddChild(_stack, parentId, structId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_CLASS)) {
-#line 4741 "src"
+#line 4740 "src"
             int32_t classId = Vbc_ParserModule_ParseClass(_stack);
-#line 4742 "src"
+#line 4741 "src"
             Vbc_AstArenaModule_AddChild(_stack, parentId, classId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_INTERFACE)) {
-#line 4744 "src"
+#line 4743 "src"
             int32_t ifaceId = Vbc_ParserModule_ParseInterface(_stack);
-#line 4745 "src"
+#line 4744 "src"
             Vbc_AstArenaModule_AddChild(_stack, parentId, ifaceId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_NAMESPACE)) {
-#line 4747 "src"
+#line 4746 "src"
             Vbc_ParserModule_ParseNamespace(_stack, parentId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_SUB)) {
-#line 4749 "src"
+#line 4748 "src"
             int32_t fnId = Vbc_ParserModule_ParseFunction(_stack, true);
-#line 4751 "src"
+#line 4750 "src"
             if ((!Vbc_Common_CaseInsensitiveEquals(_stack, (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name, vbc_str_lit("main")))) {
-#line 4751 "src"
+#line 4750 "src"
                 (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name = vbc_str_concat(_stack, vbc_str_concat(_stack, p_CurrentNamespace, vbc_str_lit(".")), (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name);
             }
-#line 4753 "src"
+#line 4752 "src"
             Vbc_AstArenaModule_AddChild(_stack, parentId, fnId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_FUNCTION)) {
-#line 4755 "src"
+#line 4754 "src"
             int32_t fnId = Vbc_ParserModule_ParseFunction(_stack, false);
-#line 4757 "src"
+#line 4756 "src"
             if ((!Vbc_Common_CaseInsensitiveEquals(_stack, (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name, vbc_str_lit("main")))) {
-#line 4757 "src"
+#line 4756 "src"
                 (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name = vbc_str_concat(_stack, vbc_str_concat(_stack, p_CurrentNamespace, vbc_str_lit(".")), (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name);
             }
-#line 4759 "src"
+#line 4758 "src"
             Vbc_AstArenaModule_AddChild(_stack, parentId, fnId);
         } else {
-#line 4761 "src"
+#line 4760 "src"
             Vbc_Common_ReportWarning(_stack, Vbc_ParserModule_CurrLine(_stack), 0, vbc_str_concat(_stack, vbc_str_lit("skipping unexpected token in namespace: "), Vbc_ParserModule_CurrText(_stack)));
-#line 4762 "src"
+#line 4761 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4764 "src"
+#line 4763 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4767 "src"
+#line 4766 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4768 "src"
+#line 4767 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_NAMESPACE)) {
-#line 4768 "src"
+#line 4767 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4769 "src"
+#line 4768 "src"
     p_CurrentNamespace = oldNs;
 }
 
 int32_t Vbc_ParserModule_ParseModule(vbc_stack_t* _stack) {
 
-#line 4773 "src"
+#line 4772 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_MODULE);
-#line 4774 "src"
+#line 4773 "src"
     vbc_string_t modName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4776 "src"
+#line 4775 "src"
     if ((p_CurrentNamespace.len > 0)) {
-#line 4776 "src"
+#line 4775 "src"
         modName = vbc_str_concat(_stack, vbc_str_concat(_stack, p_CurrentNamespace, vbc_str_lit(".")), modName);
     }
-#line 4778 "src"
+#line 4777 "src"
     int32_t modId = Vbc_AstArenaModule_AllocNode(_stack, NODE_MODULE, modName, Vbc_ParserModule_CurrLine(_stack));
-#line 4779 "src"
+#line 4778 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4782 "src"
+#line 4781 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
-#line 4783 "src"
+#line 4782 "src"
         if ((((Vbc_ParserModule_CurrKind(_stack) == TOK_PUBLIC) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PRIVATE)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PROTECTED))) {
-#line 4783 "src"
+#line 4782 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4786 "src"
+#line 4785 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_STRUCTURE)) {
-#line 4786 "src"
+#line 4785 "src"
             int32_t sId = Vbc_ParserModule_ParseStructure(_stack);
-#line 4787 "src"
+#line 4786 "src"
             Vbc_AstArenaModule_AddChild(_stack, modId, sId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_CLASS)) {
-#line 4789 "src"
+#line 4788 "src"
             int32_t cId = Vbc_ParserModule_ParseClass(_stack);
-#line 4790 "src"
+#line 4789 "src"
             Vbc_AstArenaModule_AddChild(_stack, modId, cId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_INTERFACE)) {
-#line 4792 "src"
+#line 4791 "src"
             int32_t ifaceId = Vbc_ParserModule_ParseInterface(_stack);
-#line 4793 "src"
+#line 4792 "src"
             Vbc_AstArenaModule_AddChild(_stack, modId, ifaceId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_SUB)) {
-#line 4795 "src"
+#line 4794 "src"
             int32_t fnId = Vbc_ParserModule_ParseFunction(_stack, true);
-#line 4797 "src"
+#line 4796 "src"
             if ((!Vbc_Common_CaseInsensitiveEquals(_stack, (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name, vbc_str_lit("main")))) {
-#line 4797 "src"
+#line 4796 "src"
                 (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name = vbc_str_concat(_stack, vbc_str_concat(_stack, modName, vbc_str_lit(".")), (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name);
             }
-#line 4799 "src"
+#line 4798 "src"
             Vbc_AstArenaModule_AddChild(_stack, modId, fnId);
         } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_FUNCTION)) {
-#line 4801 "src"
+#line 4800 "src"
             int32_t fnId = Vbc_ParserModule_ParseFunction(_stack, false);
-#line 4803 "src"
+#line 4802 "src"
             if ((!Vbc_Common_CaseInsensitiveEquals(_stack, (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name, vbc_str_lit("main")))) {
-#line 4803 "src"
+#line 4802 "src"
                 (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name = vbc_str_concat(_stack, vbc_str_concat(_stack, modName, vbc_str_lit(".")), (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name);
             }
-#line 4805 "src"
+#line 4804 "src"
             Vbc_AstArenaModule_AddChild(_stack, modId, fnId);
         } else if ((((Vbc_ParserModule_CurrKind(_stack) == TOK_DIM) || (Vbc_ParserModule_CurrKind(_stack) == TOK_CONST)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_IDENT))) {
+#line 4806 "src"
+            int32_t varId = Vbc_ParserModule_ParseVariableDeclaration(_stack);
 #line 4807 "src"
-            int32_t varId = Vbc_
-_ParseVariableDeclaration(_stack);
-#line 4808 "src"
             Vbc_AstArenaModule_AddChild(_stack, modId, varId);
         } else {
-#line 4810 "src"
+#line 4809 "src"
             Vbc_Common_ReportWarning(_stack, Vbc_ParserModule_CurrLine(_stack), 0, vbc_str_concat(_stack, vbc_str_lit("skipping token in module: "), Vbc_ParserModule_CurrText(_stack)));
-#line 4811 "src"
+#line 4810 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4813 "src"
+#line 4812 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4816 "src"
+#line 4815 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4817 "src"
+#line 4816 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_MODULE)) {
-#line 4817 "src"
+#line 4816 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4818 "src"
+#line 4817 "src"
     return modId;
 }
 
 int32_t Vbc_ParserModule_ParseStructure(vbc_stack_t* _stack) {
 
-#line 4822 "src"
+#line 4821 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_STRUCTURE);
-#line 4823 "src"
+#line 4822 "src"
     vbc_string_t sName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4825 "src"
+#line 4824 "src"
     if ((p_CurrentNamespace.len > 0)) {
-#line 4825 "src"
+#line 4824 "src"
         sName = vbc_str_concat(_stack, vbc_str_concat(_stack, p_CurrentNamespace, vbc_str_lit(".")), sName);
     }
-#line 4827 "src"
+#line 4826 "src"
     int32_t sId = Vbc_AstArenaModule_AllocNode(_stack, NODE_STRUCTURE, sName, Vbc_ParserModule_CurrLine(_stack));
-#line 4828 "src"
+#line 4827 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4831 "src"
+#line 4830 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
-#line 4832 "src"
+#line 4831 "src"
         while ((((Vbc_ParserModule_CurrKind(_stack) == TOK_PUBLIC) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PRIVATE)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PROTECTED))) {
-#line 4832 "src"
+#line 4831 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4836 "src"
+#line 4835 "src"
         if (((Vbc_ParserModule_CurrKind(_stack) == TOK_SUB) || (Vbc_ParserModule_CurrKind(_stack) == TOK_FUNCTION))) {
-#line 4836 "src"
+#line 4835 "src"
             bool isSub = (Vbc_ParserModule_CurrKind(_stack) == TOK_SUB);
-#line 4837 "src"
+#line 4836 "src"
             int32_t fnId = Vbc_ParserModule_ParseFunction(_stack, isSub);
-#line 4839 "src"
+#line 4838 "src"
             if (Vbc_Common_CaseInsensitiveEquals(_stack, (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name, vbc_str_lit("New"))) {
-#line 4839 "src"
+#line 4838 "src"
                 (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).IntValue = 8;
             }
-#line 4841 "src"
+#line 4840 "src"
             Vbc_AstArenaModule_AddChild(_stack, sId, fnId);
         } else if (((Vbc_ParserModule_CurrKind(_stack) == TOK_DIM) || (Vbc_ParserModule_CurrKind(_stack) == TOK_IDENT))) {
-#line 4843 "src"
+#line 4842 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_DIM)) {
-#line 4843 "src"
+#line 4842 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
             }
-#line 4844 "src"
+#line 4843 "src"
             vbc_string_t fldName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4845 "src"
+#line 4844 "src"
             vbc_string_t fldType = vbc_str_lit("Integer");
-#line 4847 "src"
+#line 4846 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4847 "src"
+#line 4846 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4848 "src"
+#line 4847 "src"
                 fldType = Vbc_ParserModule_ParseTypeName(_stack);
             }
-#line 4850 "src"
+#line 4849 "src"
             int32_t fldId = Vbc_AstArenaModule_AllocNode(_stack, NODE_FIELD, fldName, Vbc_ParserModule_CurrLine(_stack));
-#line 4851 "src"
+#line 4850 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fldId))).TypeName = fldType;
-#line 4852 "src"
+#line 4851 "src"
             Vbc_AstArenaModule_AddChild(_stack, sId, fldId);
         } else {
-#line 4854 "src"
+#line 4853 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4856 "src"
+#line 4855 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4859 "src"
+#line 4858 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4860 "src"
+#line 4859 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_STRUCTURE)) {
-#line 4860 "src"
+#line 4859 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4861 "src"
+#line 4860 "src"
     return sId;
 }
 
 int32_t Vbc_ParserModule_ParseClass(vbc_stack_t* _stack) {
 
-#line 4865 "src"
+#line 4864 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_CLASS);
-#line 4866 "src"
+#line 4865 "src"
     vbc_string_t cName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4868 "src"
+#line 4867 "src"
     if ((p_CurrentNamespace.len > 0)) {
-#line 4868 "src"
+#line 4867 "src"
         cName = vbc_str_concat(_stack, vbc_str_concat(_stack, p_CurrentNamespace, vbc_str_lit(".")), cName);
     }
-#line 4870 "src"
+#line 4869 "src"
     vbc_string_t baseClass = vbc_str_lit("");
-#line 4871 "src"
+#line 4870 "src"
     vbc_string_t implIfaces = vbc_str_lit("");
-#line 4873 "src"
+#line 4872 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_INHERITS)) {
-#line 4873 "src"
+#line 4872 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4874 "src"
+#line 4873 "src"
         baseClass = Vbc_ParserModule_ParseTypeName(_stack);
     }
-#line 4877 "src"
+#line 4876 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IMPLEMENTS)) {
-#line 4877 "src"
+#line 4876 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4878 "src"
+#line 4877 "src"
         implIfaces = Vbc_ParserModule_ParseTypeName(_stack);
-#line 4880 "src"
+#line 4879 "src"
         while ((Vbc_ParserModule_CurrKind(_stack) == TOK_COMMA)) {
-#line 4880 "src"
+#line 4879 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
-#line 4881 "src"
+#line 4880 "src"
             implIfaces = vbc_str_concat(_stack, vbc_str_concat(_stack, implIfaces, vbc_str_lit(",")), Vbc_ParserModule_ParseTypeName(_stack));
         }
     }
-#line 4884 "src"
+#line 4883 "src"
     int32_t cId = Vbc_AstArenaModule_AllocNode(_stack, NODE_CLASS, cName, Vbc_ParserModule_CurrLine(_stack));
-#line 4885 "src"
+#line 4884 "src"
     (*((Vbc_AstNode*)vbc_slice_get(&Nodes, cId))).TypeName = baseClass;
-#line 4886 "src"
+#line 4885 "src"
     (*((Vbc_AstNode*)vbc_slice_get(&Nodes, cId))).StringValue = implIfaces;
-#line 4887 "src"
+#line 4886 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4890 "src"
+#line 4889 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
-#line 4890 "src"
+#line 4889 "src"
         bool isOverridable = false;
-#line 4891 "src"
+#line 4890 "src"
         bool isOverrides = false;
-#line 4893 "src"
+#line 4892 "src"
         while ((((((Vbc_ParserModule_CurrKind(_stack) == TOK_PUBLIC) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PRIVATE)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PROTECTED)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_OVERRIDABLE)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_OVERRIDES))) {
-#line 4893 "src"
+#line 4892 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_OVERRIDABLE)) {
-#line 4893 "src"
+#line 4892 "src"
                 isOverridable = true;
             }
-#line 4894 "src"
+#line 4893 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_OVERRIDES)) {
-#line 4894 "src"
+#line 4893 "src"
                 isOverrides = true;
             }
-#line 4895 "src"
+#line 4894 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4899 "src"
+#line 4898 "src"
         if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IMPLEMENTS)) {
-#line 4899 "src"
+#line 4898 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
-#line 4900 "src"
+#line 4899 "src"
             vbc_string_t ifName = Vbc_ParserModule_ParseTypeName(_stack);
-#line 4902 "src"
+#line 4901 "src"
             if ((implIfaces.len > 0)) {
-#line 4902 "src"
+#line 4901 "src"
                 implIfaces = vbc_str_concat(_stack, vbc_str_concat(_stack, implIfaces, vbc_str_lit(",")), ifName);
             } else {
-#line 4904 "src"
+#line 4903 "src"
                 implIfaces = ifName;
             }
-#line 4907 "src"
+#line 4906 "src"
             while ((Vbc_ParserModule_CurrKind(_stack) == TOK_COMMA)) {
-#line 4907 "src"
+#line 4906 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4908 "src"
+#line 4907 "src"
                 implIfaces = vbc_str_concat(_stack, vbc_str_concat(_stack, implIfaces, vbc_str_lit(",")), Vbc_ParserModule_ParseTypeName(_stack));
             }
-#line 4910 "src"
+#line 4909 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, cId))).StringValue = implIfaces;
         } else if (((Vbc_ParserModule_CurrKind(_stack) == TOK_SUB) || (Vbc_ParserModule_CurrKind(_stack) == TOK_FUNCTION))) {
-#line 4912 "src"
+#line 4911 "src"
             bool isSub = (Vbc_ParserModule_CurrKind(_stack) == TOK_SUB);
-#line 4913 "src"
+#line 4912 "src"
             int32_t fnId = Vbc_ParserModule_ParseFunction(_stack, isSub);
-#line 4914 "src"
+#line 4913 "src"
             int32_t flags = 0;
-#line 4915 "src"
+#line 4914 "src"
             if (isOverridable) {
-#line 4915 "src"
+#line 4914 "src"
                 flags = (flags + 2);
             }
-#line 4916 "src"
+#line 4915 "src"
             if (isOverrides) {
-#line 4916 "src"
+#line 4915 "src"
                 flags = (flags + 4);
             }
-#line 4917 "src"
+#line 4916 "src"
             if (Vbc_Common_CaseInsensitiveEquals(_stack, (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).Name, vbc_str_lit("New"))) {
-#line 4917 "src"
+#line 4916 "src"
                 flags = (flags + 8);
             }
-#line 4918 "src"
+#line 4917 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).IntValue = flags;
-#line 4919 "src"
+#line 4918 "src"
             Vbc_AstArenaModule_AddChild(_stack, cId, fnId);
         } else if (((Vbc_ParserModule_CurrKind(_stack) == TOK_DIM) || (Vbc_ParserModule_CurrKind(_stack) == TOK_IDENT))) {
-#line 4921 "src"
+#line 4920 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_DIM)) {
-#line 4921 "src"
+#line 4920 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
             }
-#line 4922 "src"
+#line 4921 "src"
             vbc_string_t fldName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4923 "src"
+#line 4922 "src"
             vbc_string_t fldType = vbc_str_lit("Integer");
-#line 4925 "src"
+#line 4924 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4925 "src"
+#line 4924 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4926 "src"
+#line 4925 "src"
                 fldType = Vbc_ParserModule_ParseTypeName(_stack);
             }
-#line 4928 "src"
+#line 4927 "src"
             int32_t fldId = Vbc_AstArenaModule_AllocNode(_stack, NODE_FIELD, fldName, Vbc_ParserModule_CurrLine(_stack));
-#line 4929 "src"
+#line 4928 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fldId))).TypeName = fldType;
-#line 4930 "src"
+#line 4929 "src"
             Vbc_AstArenaModule_AddChild(_stack, cId, fldId);
         } else {
-#line 4932 "src"
+#line 4931 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4934 "src"
+#line 4933 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4937 "src"
+#line 4936 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4938 "src"
+#line 4937 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_CLASS)) {
-#line 4938 "src"
+#line 4937 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4939 "src"
+#line 4938 "src"
     return cId;
 }
 
 int32_t Vbc_ParserModule_ParseInterface(vbc_stack_t* _stack) {
 
-#line 4943 "src"
+#line 4942 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_INTERFACE);
-#line 4944 "src"
+#line 4943 "src"
     vbc_string_t iName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4946 "src"
+#line 4945 "src"
     if ((p_CurrentNamespace.len > 0)) {
-#line 4946 "src"
+#line 4945 "src"
         iName = vbc_str_concat(_stack, vbc_str_concat(_stack, p_CurrentNamespace, vbc_str_lit(".")), iName);
     }
-#line 4948 "src"
+#line 4947 "src"
     int32_t ifaceId = Vbc_AstArenaModule_AllocNode(_stack, NODE_INTERFACE, iName, Vbc_ParserModule_CurrLine(_stack));
-#line 4949 "src"
+#line 4948 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 4952 "src"
+#line 4951 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
-#line 4953 "src"
+#line 4952 "src"
         while ((((Vbc_ParserModule_CurrKind(_stack) == TOK_PUBLIC) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PRIVATE)) || (Vbc_ParserModule_CurrKind(_stack) == TOK_PROTECTED))) {
-#line 4953 "src"
+#line 4952 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4957 "src"
+#line 4956 "src"
         if (((Vbc_ParserModule_CurrKind(_stack) == TOK_SUB) || (Vbc_ParserModule_CurrKind(_stack) == TOK_FUNCTION))) {
-#line 4957 "src"
+#line 4956 "src"
             bool isSub = (Vbc_ParserModule_CurrKind(_stack) == TOK_SUB);
-#line 4958 "src"
+#line 4957 "src"
             int32_t fnId = Vbc_ParserModule_ParseInterfaceMethod(_stack, isSub);
-#line 4959 "src"
+#line 4958 "src"
             Vbc_AstArenaModule_AddChild(_stack, ifaceId, fnId);
         } else {
-#line 4961 "src"
+#line 4960 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
         }
-#line 4963 "src"
+#line 4962 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 4966 "src"
+#line 4965 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 4967 "src"
+#line 4966 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_INTERFACE)) {
-#line 4967 "src"
+#line 4966 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 4968 "src"
+#line 4967 "src"
     return ifaceId;
 }
 
 int32_t Vbc_ParserModule_ParseInterfaceMethod(vbc_stack_t* _stack, bool isSub) {
 
-#line 4972 "src"
+#line 4971 "src"
     int32_t nodeKind = ((isSub) ? (NODE_SUB) : (NODE_FUNCTION));
-#line 4974 "src"
+#line 4973 "src"
     if (isSub) {
-#line 4974 "src"
+#line 4973 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_SUB);
     } else {
-#line 4976 "src"
+#line 4975 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_FUNCTION);
     }
-#line 4979 "src"
+#line 4978 "src"
     vbc_string_t fnName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4980 "src"
+#line 4979 "src"
     int32_t fnId = Vbc_AstArenaModule_AllocNode(_stack, nodeKind, fnName, Vbc_ParserModule_CurrLine(_stack));
-#line 4981 "src"
+#line 4980 "src"
     vbc_string_t retType = ((isSub) ? (vbc_str_lit("void")) : (vbc_str_lit("Integer")));
-#line 4984 "src"
+#line 4983 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_LPAREN)) {
-#line 4984 "src"
+#line 4983 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 4986 "src"
+#line 4985 "src"
         while (((Vbc_ParserModule_CurrKind(_stack) != TOK_RPAREN) && (Vbc_ParserModule_CurrKind(_stack) != TOK_EOF))) {
-#line 4986 "src"
+#line 4985 "src"
             bool isByRef = false;
-#line 4988 "src"
+#line 4987 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_BYVAL)) {
-#line 4988 "src"
+#line 4987 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
             } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_BYREF)) {
-#line 4990 "src"
+#line 4989 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4991 "src"
+#line 4990 "src"
                 isByRef = true;
             }
-#line 4993 "src"
+#line 4992 "src"
             vbc_string_t pName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 4994 "src"
+#line 4993 "src"
             vbc_string_t pType = vbc_str_lit("Integer");
-#line 4996 "src"
+#line 4995 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 4996 "src"
+#line 4995 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 4997 "src"
+#line 4996 "src"
                 pType = Vbc_ParserModule_ParseTypeName(_stack);
             }
-#line 4999 "src"
+#line 4998 "src"
             int32_t pId = Vbc_AstArenaModule_AllocNode(_stack, NODE_PARAM, pName, Vbc_ParserModule_CurrLine(_stack));
-#line 5000 "src"
+#line 4999 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, pId))).TypeName = pType;
-#line 5001 "src"
+#line 5000 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, pId))).IntValue = ((isByRef) ? (1) : (0));
-#line 5002 "src"
+#line 5001 "src"
             Vbc_AstArenaModule_AddChild(_stack, fnId, pId);
-#line 5004 "src"
+#line 5003 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_COMMA)) {
-#line 5004 "src"
+#line 5003 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
             } else {
-#line 5006 "src"
+#line 5005 "src"
                 break;
             }
         }
-#line 5009 "src"
+#line 5008 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_RPAREN);
     }
-#line 5013 "src"
+#line 5012 "src"
     if (((!isSub) && (Vbc_ParserModule_CurrKind(_stack) == TOK_AS))) {
-#line 5013 "src"
+#line 5012 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 5014 "src"
+#line 5013 "src"
         retType = Vbc_ParserModule_ParseTypeName(_stack);
     }
-#line 5016 "src"
+#line 5015 "src"
     (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).TypeName = retType;
-#line 5017 "src"
+#line 5016 "src"
     return fnId;
 }
 
 int32_t Vbc_ParserModule_ParseFunction(vbc_stack_t* _stack, bool isSub) {
 
-#line 5021 "src"
+#line 5020 "src"
     int32_t nodeKind = ((isSub) ? (NODE_SUB) : (NODE_FUNCTION));
-#line 5023 "src"
+#line 5022 "src"
     if (isSub) {
-#line 5023 "src"
+#line 5022 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_SUB);
     } else {
-#line 5025 "src"
+#line 5024 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_FUNCTION);
     }
-#line 5028 "src"
+#line 5027 "src"
     vbc_string_t fnName = vbc_str_lit("");
-#line 5030 "src"
+#line 5029 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_NEW)) {
-#line 5030 "src"
+#line 5029 "src"
         fnName = Vbc_ParserModule_ParserAdvance(_stack).Text;
     } else {
-#line 5032 "src"
+#line 5031 "src"
         fnName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
     }
-#line 5034 "src"
+#line 5033 "src"
     int32_t fnId = Vbc_AstArenaModule_AllocNode(_stack, nodeKind, fnName, Vbc_ParserModule_CurrLine(_stack));
-#line 5038 "src"
+#line 5037 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_LPAREN)) {
-#line 5038 "src"
+#line 5037 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 5040 "src"
+#line 5039 "src"
         while (((Vbc_ParserModule_CurrKind(_stack) != TOK_RPAREN) && (Vbc_ParserModule_CurrKind(_stack) != TOK_EOF))) {
-#line 5040 "src"
+#line 5039 "src"
             bool isByRef = false;
-#line 5042 "src"
+#line 5041 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_BYVAL)) {
-#line 5042 "src"
+#line 5041 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
             } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_BYREF)) {
-#line 5044 "src"
+#line 5043 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 5045 "src"
+#line 5044 "src"
                 isByRef = true;
             }
-#line 5048 "src"
+#line 5047 "src"
             vbc_string_t pName = Vbc_ParserModule_ParserMatch(_stack, TOK_IDENT).Text;
-#line 5049 "src"
+#line 5048 "src"
             vbc_string_t pType = vbc_str_lit("Integer");
-#line 5052 "src"
+#line 5051 "src"
             if (((Vbc_ParserModule_CurrKind(_stack) == TOK_LPAREN) && (Vbc_ParserModule_PeekKind(_stack, 1) == TOK_RPAREN))) {
+#line 5051 "src"
+                Vbc_ParserModule_ParserAdvance(_stack);
 #line 5052 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 5053 "src"
-                Vbc_ParserModule_ParserAdvance(_stack);
-#line 5055 "src"
+#line 5054 "src"
                 if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 5055 "src"
+#line 5054 "src"
                     Vbc_ParserModule_ParserAdvance(_stack);
-#line 5056 "src"
+#line 5055 "src"
                     pType = vbc_str_concat(_stack, Vbc_ParserModule_ParseTypeName(_stack), vbc_str_lit("()"));
                 }
             } else if ((Vbc_ParserModule_CurrKind(_stack) == TOK_AS)) {
-#line 5059 "src"
+#line 5058 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
-#line 5060 "src"
+#line 5059 "src"
                 pType = Vbc_ParserModule_ParseTypeName(_stack);
             }
-#line 5063 "src"
+#line 5062 "src"
             int32_t paramId = Vbc_AstArenaModule_AllocNode(_stack, NODE_PARAM, pName, Vbc_ParserModule_CurrLine(_stack));
-#line 5064 "src"
+#line 5063 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, paramId))).TypeName = pType;
-#line 5065 "src"
+#line 5064 "src"
             (*((Vbc_AstNode*)vbc_slice_get(&Nodes, paramId))).IntValue = ((isByRef) ? (1) : (0));
-#line 5066 "src"
+#line 5065 "src"
             Vbc_AstArenaModule_AddChild(_stack, fnId, paramId);
-#line 5069 "src"
+#line 5068 "src"
             if ((Vbc_ParserModule_CurrKind(_stack) == TOK_COMMA)) {
-#line 5069 "src"
+#line 5068 "src"
                 Vbc_ParserModule_ParserAdvance(_stack);
             } else {
-#line 5071 "src"
+#line 5070 "src"
                 break;
             }
         }
-#line 5074 "src"
+#line 5073 "src"
         Vbc_ParserModule_ParserMatch(_stack, TOK_RPAREN);
     }
-#line 5079 "src"
+#line 5078 "src"
     if (((!isSub) && (Vbc_ParserModule_CurrKind(_stack) == TOK_AS))) {
-#line 5079 "src"
+#line 5078 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 5080 "src"
+#line 5079 "src"
         vbc_string_t retType = Vbc_ParserModule_ParseTypeName(_stack);
-#line 5081 "src"
+#line 5080 "src"
         (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).TypeName = retType;
     } else if (isSub) {
-#line 5083 "src"
+#line 5082 "src"
         (*((Vbc_AstNode*)vbc_slice_get(&Nodes, fnId))).TypeName = vbc_str_lit("void");
     }
-#line 5087 "src"
+#line 5086 "src"
     if ((Vbc_ParserModule_CurrKind(_stack) == TOK_IMPLEMENTS)) {
-#line 5087 "src"
+#line 5086 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
-#line 5088 "src"
+#line 5087 "src"
         vbc_string_t implTarget = Vbc_ParserModule_ParseTypeName(_stack);
-#line 5090 "src"
+#line 5089 "src"
         while ((Vbc_ParserModule_CurrKind(_stack) == TOK_COMMA)) {
-#line 5090 "src"
+#line 5089 "src"
             Vbc_ParserModule_ParserAdvance(_stack);
-#line 5091 "src"
+#line 5090 "src"
             implTarget = vbc_str_concat(_stack, vbc_str_concat(_stack, implTarget, vbc_str_lit(",")), Vbc_ParserModule_ParseTypeName(_stack));
         }
     }
-#line 5095 "src"
+#line 5094 "src"
     Vbc_ParserModule_SkipSeparators(_stack);
-#line 5099 "src"
+#line 5098 "src"
     while (((Vbc_ParserModule_CurrKind(_stack) != TOK_EOF) && (Vbc_ParserModule_CurrKind(_stack) != TOK_END))) {
-#line 5099 "src"
-        int32_t stmtId = Vbc_
-_ParseStatement(_stack);
-#line 5101 "src"
+#line 5098 "src"
+        int32_t stmtId = Vbc_ParserModule_ParseStatement(_stack);
+#line 5100 "src"
         if ((stmtId >= 0)) {
-#line 5101 "src"
+#line 5100 "src"
             Vbc_AstArenaModule_AddChild(_stack, fnId, stmtId);
         }
-#line 5103 "src"
+#line 5102 "src"
         Vbc_ParserModule_SkipSeparators(_stack);
     }
-#line 5106 "src"
+#line 5105 "src"
     Vbc_ParserModule_ParserMatch(_stack, TOK_END);
-#line 5108 "src"
+#line 5107 "src"
     if ((isSub && (Vbc_ParserModule_CurrKind(_stack) == TOK_SUB))) {
-#line 5108 "src"
+#line 5107 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     } else if (((!isSub) && (Vbc_ParserModule_CurrKind(_stack) == TOK_FUNCTION))) {
-#line 5110 "src"
+#line 5109 "src"
         Vbc_ParserModule_ParserAdvance(_stack);
     }
-#line 5113 "src"
+#line 5112 "src"
     return fnId;
 }
 
 void Vbc_Main(vbc_stack_t* _stack, vbc_slice_t args) {
 
-#line 5123 "src"
+#line 5122 "src"
     if ((args.len < 2)) {
-#line 5123 "src"
+#line 5122 "src"
         vbc_println(vbc_str_lit("VBC Self-Hosted Compiler v1.0.0 (Pure Native - Zero .NET Dependency)"));
-#line 5124 "src"
+#line 5123 "src"
         vbc_println(vbc_str_lit("Usage:"));
-#line 5125 "src"
+#line 5124 "src"
         vbc_println(vbc_str_lit("  vbc compile <file.vbc> [-o <out.exe>] [--emit-c] [--json]"));
-#line 5126 "src"
+#line 5125 "src"
         vbc_println(vbc_str_lit("  vbc run <file.vbc>"));
-#line 5127 "src"
+#line 5126 "src"
         vbc_println(vbc_str_lit("  vbc test [samples_dir]"));
-#line 5128 "src"
+#line 5127 "src"
         vbc_println(vbc_str_lit("  vbc --check <file.vbc> [--json]"));
-#line 5129 "src"
+#line 5128 "src"
         vbc_println(vbc_str_lit("  vbc --dump-tokens <file.vbc>"));
-#line 5130 "src"
+#line 5129 "src"
         vbc_println(vbc_str_lit("  vbc --dump-ast <file.vbc>"));
-#line 5131 "src"
+#line 5130 "src"
         vbc_println(vbc_str_lit("  vbc --ai-spec"));
-#line 5132 "src"
+#line 5131 "src"
         vbc_println(vbc_str_lit("  vbc lsp"));
-#line 5133 "src"
+#line 5132 "src"
         vbc_println(vbc_str_lit("  vbc version"));
-#line 5134 "src"
+#line 5133 "src"
         return;
     }
-#line 5137 "src"
+#line 5136 "src"
     vbc_string_t cmd = (*((vbc_string_t*)vbc_slice_get(&args, 1)));
-#line 5139 "src"
+#line 5138 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("lsp"))) {
-#line 5139 "src"
+#line 5138 "src"
         Vbc_LspModule_RunLspServer(_stack);
-#line 5140 "src"
+#line 5139 "src"
         return;
     }
-#line 5144 "src"
+#line 5143 "src"
     if ((Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("--ai-spec")) || Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("ai-spec")))) {
-#line 5144 "src"
+#line 5143 "src"
         Vbc_Program_PrintAiSpec(_stack);
-#line 5145 "src"
+#line 5144 "src"
         return;
     }
-#line 5149 "src"
+#line 5148 "src"
     if (((Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("version")) || Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("--version"))) || Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("-v")))) {
-#line 5149 "src"
+#line 5148 "src"
         vbc_println(vbc_str_lit("VBC Compiler v1.0.0 (Self-Hosted Native Binary)"));
+#line 5149 "src"
+        vbc_println(vbc_str_lit("Architecture: C99 / Clang with Linear Arena Data Stack"));
 #line 5150 "src"
-        vbc_println(vbc_str_lit("Architecture: C99 / Clang with Goose Linear Data Stack"));
-#line 5151 "src"
         vbc_println(vbc_str_lit("Zero Garbage Collection, Zero Runtime Overhead, Zero .NET Dependency"));
-#line 5152 "src"
+#line 5151 "src"
         return;
     }
-#line 5156 "src"
+#line 5155 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("test"))) {
-#line 5156 "src"
+#line 5155 "src"
         vbc_string_t testDir = vbc_str_lit("samples");
-#line 5158 "src"
+#line 5157 "src"
         if ((args.len >= 3)) {
-#line 5158 "src"
+#line 5157 "src"
             testDir = (*((vbc_string_t*)vbc_slice_get(&args, 2)));
         }
-#line 5160 "src"
+#line 5159 "src"
         Vbc_Program_RunTestSuite(_stack, testDir);
-#line 5161 "src"
+#line 5160 "src"
         return;
     }
-#line 5165 "src"
+#line 5164 "src"
     if ((Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("--check")) || Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("check")))) {
-#line 5166 "src"
+#line 5165 "src"
         if ((args.len < 3)) {
-#line 5166 "src"
+#line 5165 "src"
             vbc_println(vbc_str_lit("Error: Missing input source file. Usage: vbc --check <file.vbc> [--json]"));
-#line 5167 "src"
+#line 5166 "src"
             return;
         }
-#line 5169 "src"
+#line 5168 "src"
         vbc_string_t inputFile = (*((vbc_string_t*)vbc_slice_get(&args, 2)));
-#line 5170 "src"
+#line 5169 "src"
         bool isJson = false;
-#line 5172 "src"
+#line 5171 "src"
         for (int32_t i = 2; i <= (args.len - 1); i += 1) {
-#line 5173 "src"
+#line 5172 "src"
             if (Vbc_Common_CaseInsensitiveEquals(_stack, (*((vbc_string_t*)vbc_slice_get(&args, i))), vbc_str_lit("--json"))) {
-#line 5173 "src"
+#line 5172 "src"
                 isJson = true;
             } else if (((!Vbc_Common_CaseInsensitiveEquals(_stack, (*((vbc_string_t*)vbc_slice_get(&args, i))), vbc_str_lit("--check"))) && (!Vbc_Common_CaseInsensitiveEquals(_stack, (*((vbc_string_t*)vbc_slice_get(&args, i))), vbc_str_lit("check"))))) {
-#line 5175 "src"
+#line 5174 "src"
                 inputFile = (*((vbc_string_t*)vbc_slice_get(&args, i)));
             }
         }
-#line 5178 "src"
+#line 5177 "src"
         Vbc_Program_CheckSource(_stack, inputFile, isJson);
-#line 5179 "src"
+#line 5178 "src"
         return;
     }
-#line 5183 "src"
+#line 5182 "src"
     if ((Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("--dump-tokens")) || Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("dump-tokens")))) {
-#line 5184 "src"
+#line 5183 "src"
         if ((args.len < 3)) {
-#line 5184 "src"
+#line 5183 "src"
             vbc_println(vbc_str_lit("Error: Missing input source file. Usage: vbc --dump-tokens <file.vbc>"));
-#line 5185 "src"
+#line 5184 "src"
             return;
         }
-#line 5187 "src"
+#line 5186 "src"
         Vbc_Program_DumpTokens(_stack, (*((vbc_string_t*)vbc_slice_get(&args, 2))));
-#line 5188 "src"
+#line 5187 "src"
         return;
     }
-#line 5192 "src"
+#line 5191 "src"
     if ((Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("--dump-ast")) || Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("dump-ast")))) {
-#line 5193 "src"
+#line 5192 "src"
         if ((args.len < 3)) {
-#line 5193 "src"
+#line 5192 "src"
             vbc_println(vbc_str_lit("Error: Missing input source file. Usage: vbc --dump-ast <file.vbc>"));
-#line 5194 "src"
+#line 5193 "src"
             return;
         }
-#line 5196 "src"
+#line 5195 "src"
         Vbc_Program_DumpAst(_stack, (*((vbc_string_t*)vbc_slice_get(&args, 2))));
-#line 5197 "src"
+#line 5196 "src"
         return;
     }
-#line 5201 "src"
+#line 5200 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("compile"))) {
-#line 5202 "src"
+#line 5201 "src"
         if ((args.len < 3)) {
-#line 5202 "src"
+#line 5201 "src"
             vbc_println(vbc_str_lit("Error: Missing input source file. Usage: vbc compile <file.vbc>"));
-#line 5203 "src"
+#line 5202 "src"
             return;
         }
-#line 5205 "src"
+#line 5204 "src"
         vbc_string_t inputFile = (*((vbc_string_t*)vbc_slice_get(&args, 2)));
-#line 5206 "src"
+#line 5205 "src"
         vbc_string_t outputFile = vbc_str_lit("app.exe");
-#line 5207 "src"
+#line 5206 "src"
         bool emitC = false;
-#line 5208 "src"
+#line 5207 "src"
         bool jsonMode = false;
-#line 5211 "src"
+#line 5210 "src"
         for (int32_t i = 3; i <= (args.len - 1); i += 1) {
-#line 5212 "src"
+#line 5211 "src"
             if ((Vbc_Common_CaseInsensitiveEquals(_stack, (*((vbc_string_t*)vbc_slice_get(&args, i))), vbc_str_lit("-o")) && ((i + 1) < args.len))) {
-#line 5212 "src"
+#line 5211 "src"
                 outputFile = (*((vbc_string_t*)vbc_slice_get(&args, (i + 1))));
             } else if (Vbc_Common_CaseInsensitiveEquals(_stack, (*((vbc_string_t*)vbc_slice_get(&args, i))), vbc_str_lit("--emit-c"))) {
-#line 5214 "src"
+#line 5213 "src"
                 emitC = true;
             } else if (Vbc_Common_CaseInsensitiveEquals(_stack, (*((vbc_string_t*)vbc_slice_get(&args, i))), vbc_str_lit("--json"))) {
-#line 5216 "src"
+#line 5215 "src"
                 jsonMode = true;
             }
         }
-#line 5220 "src"
+#line 5219 "src"
         Vbc_Program_CompileSource(_stack, inputFile, outputFile, emitC, jsonMode);
-#line 5221 "src"
+#line 5220 "src"
         return;
     }
-#line 5225 "src"
+#line 5224 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, cmd, vbc_str_lit("run"))) {
-#line 5226 "src"
+#line 5225 "src"
         if ((args.len < 3)) {
-#line 5226 "src"
+#line 5225 "src"
             vbc_println(vbc_str_lit("Error: Missing input source file. Usage: vbc run <file.vbc>"));
-#line 5227 "src"
+#line 5226 "src"
             return;
         }
-#line 5229 "src"
+#line 5228 "src"
         vbc_string_t inputFile = (*((vbc_string_t*)vbc_slice_get(&args, 2)));
-#line 5230 "src"
+#line 5229 "src"
         vbc_string_t tempExe = vbc_str_lit("temp_out.exe");
-#line 5231 "src"
+#line 5230 "src"
         bool ok = Vbc_Program_CompileSource(_stack, inputFile, tempExe, false, false);
-#line 5233 "src"
+#line 5232 "src"
         if (ok) {
-#line 5233 "src"
+#line 5232 "src"
             Vbc_DriverModule_RunBinary(_stack, tempExe);
         }
-#line 5235 "src"
+#line 5234 "src"
         return;
     }
-#line 5239 "src"
+#line 5238 "src"
     vbc_string_t fileToRun = (*((vbc_string_t*)vbc_slice_get(&args, 1)));
-#line 5240 "src"
+#line 5239 "src"
     vbc_string_t defaultExe = vbc_str_lit("temp_out.exe");
-#line 5242 "src"
+#line 5241 "src"
     if (Vbc_Program_CompileSource(_stack, fileToRun, defaultExe, false, false)) {
-#line 5242 "src"
+#line 5241 "src"
         Vbc_DriverModule_RunBinary(_stack, defaultExe);
     }
 }
 
 void Vbc_Program_PrintAiSpec(vbc_stack_t* _stack) {
 
-#line 5247 "src"
+#line 5246 "src"
     vbc_println(vbc_str_lit("{"));
-#line 5248 "src"
+#line 5247 "src"
     vbc_println(vbc_str_lit("  \"language\": \"VBC\","));
-#line 5249 "src"
+#line 5248 "src"
     vbc_println(vbc_str_lit("  \"version\": \"1.0.0\","));
-#line 5250 "src"
+#line 5249 "src"
     vbc_println(vbc_str_lit("  \"architecture\": \"100% Native Self-Hosted Pure C99 Backend\","));
+#line 5250 "src"
+    vbc_println(vbc_str_lit("  \"memoryModel\": \"Linear Arena Data Stack (linear bump allocator, O(1) scope reclamation, zero GC)\","));
 #line 5251 "src"
-    vbc_println(vbc_str_lit("  \"memoryModel\": \"Goose Linear Data Stack (linear bump allocator, O(1) scope reclamation, zero GC)\","));
-#line 5252 "src"
     vbc_println(vbc_str_lit("  \"primitives\": [\"Integer\", \"Long\", \"Double\", \"Boolean\", \"Byte\", \"String\"],"));
-#line 5253 "src"
+#line 5252 "src"
     vbc_println(vbc_str_lit("  \"typeConstructs\": [\"Structure\", \"Class\", \"Interface\", \"T?\", \"Nullable(Of T)\"],"));
-#line 5254 "src"
+#line 5253 "src"
     vbc_println(vbc_str_lit("  \"oopFeatures\": [\"Inherits\", \"Overridable\", \"Overrides\", \"MyBase\", \"Me\", \"Sub New\", \"Using\"],"));
-#line 5255 "src"
+#line 5254 "src"
     vbc_println(vbc_str_lit("  \"bclModules\": [\"Console\", \"Math\", \"String\", \"Path\", \"File\", \"Directory\", \"GZip\", \"SHA256\", \"MD5\", \"RandomNumberGenerator\", \"Convert\", \"BitConverter\", \"Stopwatch\", \"DateTime\", \"TimeSpan\", \"StringBuilder\", \"Guid\", \"Environment\", \"HttpClient\", \"HttpServer\", \"FileSystemWatcher\", \"Dictionary(Of String, String)\", \"XDocument\", \"XElement\"]"));
-#line 5256 "src"
+#line 5255 "src"
     vbc_println(vbc_str_lit("}"));
 }
 
 vbc_string_t Vbc_Program_ReadSourceText(vbc_stack_t* _stack, vbc_string_t inputPath) {
 
-#line 5260 "src"
+#line 5259 "src"
     vbc_string_t src = vbc_str_lit("");
-#line 5262 "src"
+#line 5261 "src"
     if (vbc_dir_exists(inputPath)) {
-#line 5262 "src"
+#line 5261 "src"
         vbc_slice_t files = vbc_dir_get_files(_stack, inputPath, vbc_str_lit(".vbc"));
-#line 5264 "src"
+#line 5263 "src"
         if ((files.len == 0)) {
-#line 5264 "src"
+#line 5263 "src"
             vbc_println(vbc_str_concat(_stack, vbc_str_lit("Error: No .vbc files found in directory: "), inputPath));
-#line 5265 "src"
+#line 5264 "src"
             return vbc_str_lit("");
         }
-#line 5268 "src"
+#line 5267 "src"
         for (int32_t i = 0; i <= (files.len - 1); i += 1) {
-#line 5268 "src"
+#line 5267 "src"
             vbc_string_t fileContent = vbc_file_read_all_text(_stack, (*((vbc_string_t*)vbc_slice_get(&files, i))));
-#line 5269 "src"
+#line 5268 "src"
             src = vbc_str_concat(_stack, vbc_str_concat(_stack, src, fileContent), vbc_str_lit("\n"));
         }
     } else {
-#line 5272 "src"
+#line 5271 "src"
         src = vbc_file_read_all_text(_stack, inputPath);
-#line 5274 "src"
+#line 5273 "src"
         if ((src.len == 0)) {
-#line 5274 "src"
+#line 5273 "src"
             vbc_println(vbc_str_concat(_stack, vbc_str_lit("Error: Could not read source file: "), inputPath));
-#line 5275 "src"
+#line 5274 "src"
             return vbc_str_lit("");
         }
     }
-#line 5278 "src"
+#line 5277 "src"
     return src;
 }
 
 void Vbc_Program_DumpTokens(vbc_stack_t* _stack, vbc_string_t inputPath) {
 
-#line 5282 "src"
+#line 5281 "src"
     vbc_string_t src = Vbc_Program_ReadSourceText(_stack, inputPath);
-#line 5283 "src"
+#line 5282 "src"
     if ((src.len == 0)) {
-#line 5283 "src"
+#line 5282 "src"
         return;
     }
-#line 5284 "src"
+#line 5283 "src"
     vbc_slice_t tokens = Vbc_LexerModule_TokenizeAll(_stack, src);
-#line 5285 "src"
+#line 5284 "src"
     vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("=== Token Stream ("), Vbc_Common_IntToStr(_stack, tokens.len)), vbc_str_lit(" tokens) ===")));
-#line 5287 "src"
+#line 5286 "src"
     for (int32_t i = 0; i <= (tokens.len - 1); i += 1) {
-#line 5287 "src"
+#line 5286 "src"
         Vbc_Token t = (*((Vbc_Token*)vbc_slice_get(&tokens, i)));
-#line 5288 "src"
+#line 5287 "src"
         vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("["), Vbc_Common_IntToStr(_stack, i)), vbc_str_lit("] Line ")), Vbc_Common_IntToStr(_stack, t.Line)), vbc_str_lit(":")), Vbc_Common_IntToStr(_stack, t.Col)), vbc_str_lit(" Kind=")), Vbc_TokenModule_GetTokenKindName(_stack, t.Kind)), vbc_str_lit(" (")), Vbc_Common_IntToStr(_stack, t.Kind)), vbc_str_lit(") Text='")), t.Text), vbc_str_lit("'")));
     }
 }
 
 void Vbc_Program_DumpAst(vbc_stack_t* _stack, vbc_string_t inputPath) {
 
-#line 5293 "src"
+#line 5292 "src"
     vbc_string_t src = Vbc_Program_ReadSourceText(_stack, inputPath);
-#line 5294 "src"
+#line 5293 "src"
     if ((src.len == 0)) {
-#line 5294 "src"
+#line 5293 "src"
         return;
     }
-#line 5295 "src"
+#line 5294 "src"
     vbc_slice_t tokens = Vbc_LexerModule_TokenizeAll(_stack, src);
-#line 5296 "src"
+#line 5295 "src"
     Vbc_AstArenaModule_InitArena(_stack);
-#line 5297 "src"
+#line 5296 "src"
     Vbc_Common_DiagInit(_stack, inputPath, false);
-#line 5298 "src"
+#line 5297 "src"
     Vbc_ParserModule_ParserInit(_stack, tokens);
-#line 5299 "src"
+#line 5298 "src"
     int32_t rootId = Vbc_ParserModule_ParseCompilationUnit(_stack);
-#line 5300 "src"
+#line 5299 "src"
     vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("=== Arena AST ("), Vbc_Common_IntToStr(_stack, Nodes.len)), vbc_str_lit(" nodes) ===")));
-#line 5301 "src"
+#line 5300 "src"
     Vbc_Program_DumpAstNode(_stack, rootId, vbc_str_lit(""));
 }
 
 void Vbc_Program_DumpAstNode(vbc_stack_t* _stack, int32_t nId, vbc_string_t indent) {
 
-#line 5305 "src"
+#line 5304 "src"
     if (((nId < 0) || (nId >= Nodes.len))) {
-#line 5305 "src"
+#line 5304 "src"
         return;
     }
-#line 5306 "src"
+#line 5305 "src"
     Vbc_AstNode n = (*((Vbc_AstNode*)vbc_slice_get(&Nodes, nId)));
-#line 5307 "src"
+#line 5306 "src"
     vbc_string_t desc = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, indent, vbc_str_lit("Node[")), Vbc_Common_IntToStr(_stack, nId)), vbc_str_lit("] Kind=")), Vbc_AstConstants_GetNodeKindName(_stack, n.Kind)), vbc_str_lit(" (")), Vbc_Common_IntToStr(_stack, n.Kind)), vbc_str_lit(")"));
-#line 5308 "src"
+#line 5307 "src"
     if ((n.Name.len > 0)) {
-#line 5308 "src"
+#line 5307 "src"
         desc = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, desc, vbc_str_lit(" Name='")), n.Name), vbc_str_lit("'"));
     }
-#line 5309 "src"
+#line 5308 "src"
     if ((n.TypeName.len > 0)) {
-#line 5309 "src"
+#line 5308 "src"
         desc = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, desc, vbc_str_lit(" Type='")), n.TypeName), vbc_str_lit("'"));
     }
-#line 5310 "src"
+#line 5309 "src"
     if ((n.Op > 0)) {
-#line 5310 "src"
+#line 5309 "src"
         desc = vbc_str_concat(_stack, vbc_str_concat(_stack, desc, vbc_str_lit(" Op=")), Vbc_TokenModule_GetTokenKindName(_stack, n.Op));
     }
-#line 5311 "src"
+#line 5310 "src"
     if ((n.IntValue != 0)) {
-#line 5311 "src"
+#line 5310 "src"
         desc = vbc_str_concat(_stack, vbc_str_concat(_stack, desc, vbc_str_lit(" IntVal=")), Vbc_Common_IntToStr(_stack, n.IntValue));
     }
-#line 5312 "src"
+#line 5311 "src"
     if ((n.StringValue.len > 0)) {
-#line 5312 "src"
+#line 5311 "src"
         desc = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, desc, vbc_str_lit(" StrVal='")), n.StringValue), vbc_str_lit("'"));
     }
-#line 5313 "src"
+#line 5312 "src"
     desc = vbc_str_concat(_stack, vbc_str_concat(_stack, desc, vbc_str_lit(" Line=")), Vbc_Common_IntToStr(_stack, n.Line));
-#line 5314 "src"
+#line 5313 "src"
     vbc_println(desc);
-#line 5316 "src"
+#line 5315 "src"
     int32_t ch = n.FirstChild;
-#line 5318 "src"
+#line 5317 "src"
     while ((ch != (-1))) {
-#line 5318 "src"
+#line 5317 "src"
         Vbc_Program_DumpAstNode(_stack, ch, vbc_str_concat(_stack, indent, vbc_str_lit("  ")));
-#line 5319 "src"
+#line 5318 "src"
         ch = (*((Vbc_AstNode*)vbc_slice_get(&Nodes, ch))).NextSibling;
     }
 }
 
 bool Vbc_Program_CheckSource(vbc_stack_t* _stack, vbc_string_t inputPath, bool jsonMode) {
 
-#line 5324 "src"
+#line 5323 "src"
     vbc_string_t src = Vbc_Program_ReadSourceText(_stack, inputPath);
-#line 5325 "src"
+#line 5324 "src"
     if ((src.len == 0)) {
-#line 5325 "src"
+#line 5324 "src"
         return false;
     }
-#line 5326 "src"
+#line 5325 "src"
     vbc_slice_t tokens = Vbc_LexerModule_TokenizeAll(_stack, src);
-#line 5327 "src"
+#line 5326 "src"
     Vbc_AstArenaModule_InitArena(_stack);
-#line 5328 "src"
+#line 5327 "src"
     Vbc_Common_DiagInit(_stack, inputPath, jsonMode);
-#line 5329 "src"
+#line 5328 "src"
     Vbc_ParserModule_ParserInit(_stack, tokens);
-#line 5330 "src"
+#line 5329 "src"
     int32_t rootId = Vbc_ParserModule_ParseCompilationUnit(_stack);
-#line 5333 "src"
+#line 5332 "src"
     if ((DiagErrorCount > 0)) {
-#line 5334 "src"
+#line 5333 "src"
         if (jsonMode) {
-#line 5334 "src"
+#line 5333 "src"
             vbc_println(Vbc_Common_GetDiagnosticsJson(_stack));
         } else {
-#line 5336 "src"
+#line 5335 "src"
             vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("Syntax & AST check FAILED with "), Vbc_Common_IntToStr(_stack, DiagErrorCount)), vbc_str_lit(" error(s): ")), inputPath));
         }
-#line 5338 "src"
+#line 5337 "src"
         return false;
     } else {
-#line 5341 "src"
+#line 5340 "src"
         if (jsonMode) {
-#line 5341 "src"
+#line 5340 "src"
             vbc_println(vbc_str_lit("[]"));
         } else {
-#line 5343 "src"
+#line 5342 "src"
             vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("Syntax & AST check PASSED: "), inputPath), vbc_str_lit(" (")), Vbc_Common_IntToStr(_stack, tokens.len)), vbc_str_lit(" tokens, ")), Vbc_Common_IntToStr(_stack, Nodes.len)), vbc_str_lit(" AST nodes)")));
         }
-#line 5345 "src"
+#line 5344 "src"
         return true;
     }
 }
 
 bool Vbc_Program_CompileSource(vbc_stack_t* _stack, vbc_string_t inputPath, vbc_string_t outputPath, bool emitC, bool jsonMode) {
 
-#line 5350 "src"
+#line 5349 "src"
     vbc_string_t src = Vbc_Program_ReadSourceText(_stack, inputPath);
-#line 5351 "src"
+#line 5350 "src"
     if ((src.len == 0)) {
-#line 5351 "src"
+#line 5350 "src"
         return false;
     }
-#line 5354 "src"
+#line 5353 "src"
     vbc_slice_t tokens = Vbc_LexerModule_TokenizeAll(_stack, src);
-#line 5357 "src"
+#line 5356 "src"
     Vbc_AstArenaModule_InitArena(_stack);
-#line 5358 "src"
+#line 5357 "src"
     Vbc_Common_DiagInit(_stack, inputPath, jsonMode);
-#line 5359 "src"
+#line 5358 "src"
     Vbc_ParserModule_ParserInit(_stack, tokens);
-#line 5360 "src"
+#line 5359 "src"
     int32_t rootId = Vbc_ParserModule_ParseCompilationUnit(_stack);
-#line 5363 "src"
+#line 5362 "src"
     if ((DiagErrorCount > 0)) {
-#line 5364 "src"
+#line 5363 "src"
         if (jsonMode) {
-#line 5364 "src"
+#line 5363 "src"
             vbc_println(Vbc_Common_GetDiagnosticsJson(_stack));
         } else {
-#line 5366 "src"
+#line 5365 "src"
             vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("Compilation ABORTED: "), Vbc_Common_IntToStr(_stack, DiagErrorCount)), vbc_str_lit(" syntax error(s) found in ")), inputPath));
         }
-#line 5368 "src"
+#line 5367 "src"
         return false;
     }
-#line 5372 "src"
+#line 5371 "src"
     Vbc_EmitterModule_SetCurrentSourceFile(_stack, inputPath);
-#line 5373 "src"
+#line 5372 "src"
     vbc_string_t cCode = Vbc_EmitterModule_EmitCompilationUnitToC(_stack, rootId);
-#line 5375 "src"
+#line 5374 "src"
     vbc_string_t cPath = vbc_str_concat(_stack, outputPath, vbc_str_lit(".c"));
-#line 5376 "src"
+#line 5375 "src"
     vbc_file_write_all_text(cPath, cCode);
-#line 5378 "src"
+#line 5377 "src"
     if (emitC) {
-#line 5378 "src"
+#line 5377 "src"
         vbc_println(vbc_str_concat(_stack, vbc_str_lit("Generated C code: "), cPath));
     }
-#line 5382 "src"
+#line 5381 "src"
     int32_t res = Vbc_DriverModule_CompileCSource(_stack, cPath, outputPath);
-#line 5384 "src"
+#line 5383 "src"
     if ((res != 0)) {
-#line 5384 "src"
+#line 5383 "src"
         vbc_println(vbc_str_concat(_stack, vbc_str_lit("Clang compilation failed with exit code: "), Vbc_Common_IntToStr(_stack, res)));
-#line 5385 "src"
+#line 5384 "src"
         return false;
     }
-#line 5388 "src"
+#line 5387 "src"
     vbc_println(vbc_str_concat(_stack, vbc_str_lit("Compilation successful: "), outputPath));
-#line 5389 "src"
+#line 5388 "src"
     return true;
 }
 
 void Vbc_Program_RunTestSuite(vbc_stack_t* _stack, vbc_string_t samplesDir) {
 
+#line 5392 "src"
+    vbc_println(vbc_str_lit("=================================================="));
 #line 5393 "src"
-    vbc_println(vbc_str_lit("=================================================="));
-#line 5394 "src"
     vbc_println(vbc_str_lit("VBC Native Test Runner (Zero .NET Dependency)"));
-#line 5395 "src"
+#line 5394 "src"
     vbc_println(vbc_str_lit("=================================================="));
-#line 5396 "src"
+#line 5395 "src"
     puts("");
-#line 5398 "src"
+#line 5397 "src"
     vbc_slice_t testSamples = ({ vbc_slice_t _s__arr15 = vbc_slice_create(_stack, 12, sizeof(vbc_string_t)); { vbc_string_t _v = vbc_str_lit("01_HelloWorld"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("02_MemoryEfficiency"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("05_SelfHostingDemo"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("06_VisualStudioStarter"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("12_ClassesAndOop"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("13_NamespacesAndConcurrency"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("14_BitwiseAndHex"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("15_DotNet10Namespaces"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("16_BclComprehensive"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("17_XmlLinqAndAxis"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("18_Interfaces"); vbc_slice_push(_stack, &_s__arr15, &_v); } { vbc_string_t _v = vbc_str_lit("19_NullableAndNullCond"); vbc_slice_push(_stack, &_s__arr15, &_v); } _s__arr15; });
-#line 5400 "src"
+#line 5399 "src"
     int32_t passed = 0;
-#line 5401 "src"
+#line 5400 "src"
     int32_t failed = 0;
-#line 5404 "src"
+#line 5403 "src"
     for (int32_t i = 0; i <= (testSamples.len - 1); i += 1) {
-#line 5404 "src"
+#line 5403 "src"
         vbc_string_t sName = (*((vbc_string_t*)vbc_slice_get(&testSamples, i)));
-#line 5405 "src"
+#line 5404 "src"
         vbc_string_t sPath = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, samplesDir, vbc_str_lit("/")), sName), vbc_str_lit("/Program.vbc"));
-#line 5406 "src"
+#line 5405 "src"
         vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("[TEST "), Vbc_Common_IntToStr(_stack, (i + 1))), vbc_str_lit("/")), Vbc_Common_IntToStr(_stack, testSamples.len)), vbc_str_lit("] Testing ")), sName), vbc_str_lit("...")));
-#line 5407 "src"
+#line 5406 "src"
         vbc_string_t tempExe = vbc_str_lit("temp_test.exe");
-#line 5408 "src"
+#line 5407 "src"
         bool compOk = Vbc_Program_CompileSource(_stack, sPath, tempExe, false, false);
-#line 5410 "src"
+#line 5409 "src"
         if (compOk) {
-#line 5410 "src"
+#line 5409 "src"
             int32_t exitCode = Vbc_DriverModule_RunBinary(_stack, tempExe);
-#line 5412 "src"
+#line 5411 "src"
             if ((exitCode == 0)) {
-#line 5412 "src"
+#line 5411 "src"
                 vbc_println(vbc_str_lit("  -> PASS (Exit code 0)"));
-#line 5413 "src"
+#line 5412 "src"
                 passed = (passed + 1);
             } else {
-#line 5415 "src"
+#line 5414 "src"
                 vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("  -> FAIL (Execution exited with code "), Vbc_Common_IntToStr(_stack, exitCode)), vbc_str_lit(")")));
-#line 5416 "src"
+#line 5415 "src"
                 failed = (failed + 1);
             }
         } else {
-#line 5419 "src"
+#line 5418 "src"
             vbc_println(vbc_str_lit("  -> FAIL (Compilation failed)"));
-#line 5420 "src"
+#line 5419 "src"
             failed = (failed + 1);
         }
-#line 5422 "src"
+#line 5421 "src"
         puts("");
     }
-#line 5426 "src"
+#line 5425 "src"
     vbc_println(vbc_str_lit("--- Running Negative Diagnostic Tests ---"));
-#line 5427 "src"
+#line 5426 "src"
     vbc_slice_t negTests = ({ vbc_slice_t _s__arr16 = vbc_slice_create(_stack, 3, sizeof(vbc_string_t)); { vbc_string_t _v = vbc_str_lit("01_MissingThen"); vbc_slice_push(_stack, &_s__arr16, &_v); } { vbc_string_t _v = vbc_str_lit("02_UnclosedWhile"); vbc_slice_push(_stack, &_s__arr16, &_v); } { vbc_string_t _v = vbc_str_lit("03_MissingEndSub"); vbc_slice_push(_stack, &_s__arr16, &_v); } _s__arr16; });
-#line 5429 "src"
+#line 5428 "src"
     for (int32_t ni = 0; ni <= (negTests.len - 1); ni += 1) {
-#line 5429 "src"
+#line 5428 "src"
         vbc_string_t nName = (*((vbc_string_t*)vbc_slice_get(&negTests, ni)));
-#line 5430 "src"
+#line 5429 "src"
         vbc_string_t nPath = vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, samplesDir, vbc_str_lit("/negative/")), nName), vbc_str_lit("/Program.vbc"));
-#line 5431 "src"
+#line 5430 "src"
         vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("[NEG TEST "), Vbc_Common_IntToStr(_stack, (ni + 1))), vbc_str_lit("/")), Vbc_Common_IntToStr(_stack, negTests.len)), vbc_str_lit("] Testing error detection in ")), nName), vbc_str_lit("...")));
-#line 5432 "src"
+#line 5431 "src"
         Vbc_Common_DiagInit(_stack, nPath, true);
-#line 5433 "src"
+#line 5432 "src"
         vbc_string_t nSrc = Vbc_Program_ReadSourceText(_stack, nPath);
-#line 5435 "src"
+#line 5434 "src"
         if ((nSrc.len > 0)) {
-#line 5435 "src"
+#line 5434 "src"
             vbc_slice_t nToks = Vbc_LexerModule_TokenizeAll(_stack, nSrc);
-#line 5436 "src"
+#line 5435 "src"
             Vbc_AstArenaModule_InitArena(_stack);
-#line 5437 "src"
+#line 5436 "src"
             Vbc_ParserModule_ParserInit(_stack, nToks);
-#line 5438 "src"
+#line 5437 "src"
             Vbc_ParserModule_ParseCompilationUnit(_stack);
-#line 5440 "src"
+#line 5439 "src"
             if ((DiagErrorCount > 0)) {
-#line 5440 "src"
+#line 5439 "src"
                 vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("  -> PASS (Correctly detected "), Vbc_Common_IntToStr(_stack, DiagErrorCount)), vbc_str_lit(" syntax error(s))")));
-#line 5441 "src"
+#line 5440 "src"
                 passed = (passed + 1);
             } else {
-#line 5443 "src"
+#line 5442 "src"
                 vbc_println(vbc_str_lit("  -> FAIL (Expected syntax errors but none were reported)"));
-#line 5444 "src"
+#line 5443 "src"
                 failed = (failed + 1);
             }
         } else {
-#line 5447 "src"
+#line 5446 "src"
             vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("  -> FAIL (Could not read file: "), nPath), vbc_str_lit(")")));
-#line 5448 "src"
+#line 5447 "src"
             failed = (failed + 1);
         }
     }
-#line 5452 "src"
+#line 5451 "src"
     puts("");
+#line 5452 "src"
+    vbc_println(vbc_str_lit("=================================================="));
 #line 5453 "src"
-    vbc_println(vbc_str_lit("=================================================="));
-#line 5454 "src"
     vbc_println(vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_concat(_stack, vbc_str_lit("Test Summary: "), Vbc_Common_IntToStr(_stack, passed)), vbc_str_lit(" passed, ")), Vbc_Common_IntToStr(_stack, failed)), vbc_str_lit(" failed")));
-#line 5455 "src"
+#line 5454 "src"
     vbc_println(vbc_str_lit("=================================================="));
-#line 5457 "src"
+#line 5456 "src"
     if ((failed == 0)) {
-#line 5457 "src"
+#line 5456 "src"
         vbc_println(vbc_str_lit("All native VBC test suites PASSED successfully!"));
     }
 }
 
 Vbc_Token Vbc_TokenModule_MakeToken(vbc_stack_t* _stack, int32_t kind, vbc_string_t text, int32_t line, int32_t col) {
 
-#line 5581 "src"
+#line 5580 "src"
     Vbc_Token tok = {0};
-#line 5582 "src"
+#line 5581 "src"
     tok.Kind = kind;
-#line 5583 "src"
+#line 5582 "src"
     tok.Text = text;
-#line 5584 "src"
+#line 5583 "src"
     tok.Line = line;
-#line 5585 "src"
+#line 5584 "src"
     tok.Col = col;
-#line 5586 "src"
+#line 5585 "src"
     tok.IntValue = 0;
-#line 5587 "src"
+#line 5586 "src"
     return tok;
 }
 
 int32_t Vbc_TokenModule_LookupKeyword(vbc_stack_t* _stack, vbc_string_t text) {
 
-#line 5591 "src"
+#line 5590 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("module"))) {
-#line 5591 "src"
+#line 5590 "src"
         return TOK_MODULE;
     }
-#line 5592 "src"
+#line 5591 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("structure"))) {
-#line 5592 "src"
+#line 5591 "src"
         return TOK_STRUCTURE;
     }
-#line 5593 "src"
+#line 5592 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("sub"))) {
-#line 5593 "src"
+#line 5592 "src"
         return TOK_SUB;
     }
-#line 5594 "src"
+#line 5593 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("function"))) {
-#line 5594 "src"
+#line 5593 "src"
         return TOK_FUNCTION;
     }
-#line 5595 "src"
+#line 5594 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("end"))) {
-#line 5595 "src"
+#line 5594 "src"
         return TOK_END;
     }
-#line 5596 "src"
+#line 5595 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("dim"))) {
-#line 5596 "src"
+#line 5595 "src"
         return TOK_DIM;
     }
-#line 5597 "src"
+#line 5596 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("as"))) {
-#line 5597 "src"
+#line 5596 "src"
         return TOK_AS;
     }
-#line 5598 "src"
+#line 5597 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("const"))) {
-#line 5598 "src"
+#line 5597 "src"
         return TOK_CONST;
     }
-#line 5599 "src"
+#line 5598 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("imports"))) {
-#line 5599 "src"
+#line 5598 "src"
         return TOK_IMPORTS;
     }
-#line 5600 "src"
+#line 5599 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("if"))) {
-#line 5600 "src"
+#line 5599 "src"
         return TOK_IF;
     }
-#line 5601 "src"
+#line 5600 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("then"))) {
-#line 5601 "src"
+#line 5600 "src"
         return TOK_THEN;
     }
-#line 5602 "src"
+#line 5601 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("elseif"))) {
-#line 5602 "src"
+#line 5601 "src"
         return TOK_ELSEIF;
     }
-#line 5603 "src"
+#line 5602 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("else"))) {
-#line 5603 "src"
+#line 5602 "src"
         return TOK_ELSE;
     }
-#line 5604 "src"
+#line 5603 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("for"))) {
-#line 5604 "src"
+#line 5603 "src"
         return TOK_FOR;
     }
-#line 5605 "src"
+#line 5604 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("each"))) {
-#line 5605 "src"
+#line 5604 "src"
         return TOK_EACH;
     }
-#line 5606 "src"
+#line 5605 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("in"))) {
-#line 5606 "src"
+#line 5605 "src"
         return TOK_IN;
     }
-#line 5607 "src"
+#line 5606 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("to"))) {
-#line 5607 "src"
+#line 5606 "src"
         return TOK_TO;
     }
-#line 5608 "src"
+#line 5607 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("step"))) {
-#line 5608 "src"
+#line 5607 "src"
         return TOK_STEP;
     }
-#line 5609 "src"
+#line 5608 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("next"))) {
-#line 5609 "src"
+#line 5608 "src"
         return TOK_NEXT;
     }
-#line 5610 "src"
+#line 5609 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("while"))) {
-#line 5610 "src"
+#line 5609 "src"
         return TOK_WHILE;
     }
-#line 5611 "src"
+#line 5610 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("return"))) {
-#line 5611 "src"
+#line 5610 "src"
         return TOK_RETURN;
     }
-#line 5612 "src"
+#line 5611 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("exit"))) {
-#line 5612 "src"
+#line 5611 "src"
         return TOK_EXIT;
     }
-#line 5613 "src"
+#line 5612 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("continue"))) {
-#line 5613 "src"
+#line 5612 "src"
         return TOK_CONTINUE;
     }
-#line 5614 "src"
+#line 5613 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("from"))) {
-#line 5614 "src"
+#line 5613 "src"
         return TOK_FROM;
     }
-#line 5615 "src"
+#line 5614 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("where"))) {
-#line 5615 "src"
+#line 5614 "src"
         return TOK_WHERE;
     }
-#line 5616 "src"
+#line 5615 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("select"))) {
-#line 5616 "src"
+#line 5615 "src"
         return TOK_SELECT;
     }
-#line 5617 "src"
+#line 5616 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("aggregate"))) {
-#line 5617 "src"
+#line 5616 "src"
         return TOK_AGGREGATE;
     }
-#line 5618 "src"
+#line 5617 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("into"))) {
-#line 5618 "src"
+#line 5617 "src"
         return TOK_INTO;
     }
-#line 5619 "src"
+#line 5618 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("distinct"))) {
-#line 5619 "src"
+#line 5618 "src"
         return TOK_DISTINCT;
     }
-#line 5620 "src"
+#line 5619 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("take"))) {
-#line 5620 "src"
+#line 5619 "src"
         return TOK_TAKE;
     }
-#line 5621 "src"
+#line 5620 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("skip"))) {
-#line 5621 "src"
+#line 5620 "src"
         return TOK_SKIP;
     }
-#line 5622 "src"
+#line 5621 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("byval"))) {
-#line 5622 "src"
+#line 5621 "src"
         return TOK_BYVAL;
     }
-#line 5623 "src"
+#line 5622 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("byref"))) {
-#line 5623 "src"
+#line 5622 "src"
         return TOK_BYREF;
     }
-#line 5624 "src"
+#line 5623 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("new"))) {
-#line 5624 "src"
+#line 5623 "src"
         return TOK_NEW;
     }
-#line 5625 "src"
+#line 5624 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("andalso"))) {
-#line 5625 "src"
+#line 5624 "src"
         return TOK_ANDALSO;
     }
-#line 5626 "src"
+#line 5625 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("orelse"))) {
-#line 5626 "src"
+#line 5625 "src"
         return TOK_ORELSE;
     }
-#line 5627 "src"
+#line 5626 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("and"))) {
-#line 5627 "src"
+#line 5626 "src"
         return TOK_AND;
     }
-#line 5628 "src"
+#line 5627 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("or"))) {
-#line 5628 "src"
+#line 5627 "src"
         return TOK_OR;
     }
-#line 5629 "src"
+#line 5628 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("xor"))) {
-#line 5629 "src"
+#line 5628 "src"
         return TOK_XOR;
     }
-#line 5630 "src"
+#line 5629 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("shl"))) {
-#line 5630 "src"
+#line 5629 "src"
         return TOK_SHL;
     }
-#line 5631 "src"
+#line 5630 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("shr"))) {
-#line 5631 "src"
+#line 5630 "src"
         return TOK_SHR;
     }
-#line 5632 "src"
+#line 5631 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("not"))) {
-#line 5632 "src"
+#line 5631 "src"
         return TOK_NOT;
     }
-#line 5633 "src"
+#line 5632 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("mod"))) {
-#line 5633 "src"
+#line 5632 "src"
         return TOK_MOD;
     }
-#line 5634 "src"
+#line 5633 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("true"))) {
-#line 5634 "src"
+#line 5633 "src"
         return TOK_TRUE;
     }
-#line 5635 "src"
+#line 5634 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("false"))) {
-#line 5635 "src"
+#line 5634 "src"
         return TOK_FALSE;
     }
-#line 5636 "src"
+#line 5635 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("nothing"))) {
-#line 5636 "src"
+#line 5635 "src"
         return TOK_NOTHING;
     }
-#line 5637 "src"
+#line 5636 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("class"))) {
-#line 5637 "src"
+#line 5636 "src"
         return TOK_CLASS;
     }
-#line 5638 "src"
+#line 5637 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("inherits"))) {
-#line 5638 "src"
+#line 5637 "src"
         return TOK_INHERITS;
     }
-#line 5639 "src"
+#line 5638 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("overridable"))) {
-#line 5639 "src"
+#line 5638 "src"
         return TOK_OVERRIDABLE;
     }
-#line 5640 "src"
+#line 5639 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("overrides"))) {
-#line 5640 "src"
+#line 5639 "src"
         return TOK_OVERRIDES;
     }
-#line 5641 "src"
+#line 5640 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("mybase"))) {
-#line 5641 "src"
+#line 5640 "src"
         return TOK_MYBASE;
     }
-#line 5642 "src"
+#line 5641 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("me"))) {
-#line 5642 "src"
+#line 5641 "src"
         return TOK_ME;
     }
-#line 5643 "src"
+#line 5642 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("public"))) {
-#line 5643 "src"
+#line 5642 "src"
         return TOK_PUBLIC;
     }
-#line 5644 "src"
+#line 5643 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("private"))) {
-#line 5644 "src"
+#line 5643 "src"
         return TOK_PRIVATE;
     }
-#line 5645 "src"
+#line 5644 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("protected"))) {
-#line 5645 "src"
+#line 5644 "src"
         return TOK_PROTECTED;
     }
-#line 5646 "src"
+#line 5645 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("using"))) {
-#line 5646 "src"
+#line 5645 "src"
         return TOK_USING;
     }
-#line 5647 "src"
+#line 5646 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("namespace"))) {
-#line 5647 "src"
+#line 5646 "src"
         return TOK_NAMESPACE;
     }
-#line 5648 "src"
+#line 5647 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("try"))) {
-#line 5648 "src"
+#line 5647 "src"
         return TOK_TRY;
     }
-#line 5649 "src"
+#line 5648 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("catch"))) {
-#line 5649 "src"
+#line 5648 "src"
         return TOK_CATCH;
     }
-#line 5650 "src"
+#line 5649 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("finally"))) {
-#line 5650 "src"
+#line 5649 "src"
         return TOK_FINALLY;
     }
-#line 5651 "src"
+#line 5650 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("throw"))) {
-#line 5651 "src"
+#line 5650 "src"
         return TOK_THROW;
     }
-#line 5652 "src"
+#line 5651 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("synclock"))) {
-#line 5652 "src"
+#line 5651 "src"
         return TOK_SYNCLOCK;
     }
-#line 5653 "src"
+#line 5652 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("byte"))) {
-#line 5653 "src"
+#line 5652 "src"
         return TOK_BYTE;
     }
-#line 5654 "src"
+#line 5653 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("interface"))) {
-#line 5654 "src"
+#line 5653 "src"
         return TOK_INTERFACE;
     }
-#line 5655 "src"
+#line 5654 "src"
     if (Vbc_Common_CaseInsensitiveEquals(_stack, text, vbc_str_lit("implements"))) {
-#line 5655 "src"
+#line 5654 "src"
         return TOK_IMPLEMENTS;
     }
-#line 5656 "src"
+#line 5655 "src"
     return TOK_IDENT;
 }
 
 vbc_string_t Vbc_TokenModule_GetTokenKindName(vbc_stack_t* _stack, int32_t kind) {
 
-#line 5660 "src"
+#line 5659 "src"
     if ((kind == TOK_EOF)) {
-#line 5660 "src"
+#line 5659 "src"
         return vbc_str_lit("TOK_EOF");
     }
-#line 5661 "src"
+#line 5660 "src"
     if ((kind == TOK_IDENT)) {
-#line 5661 "src"
+#line 5660 "src"
         return vbc_str_lit("TOK_IDENT");
     }
-#line 5662 "src"
+#line 5661 "src"
     if ((kind == TOK_INT)) {
-#line 5662 "src"
+#line 5661 "src"
         return vbc_str_lit("TOK_INT");
     }
-#line 5663 "src"
+#line 5662 "src"
     if ((kind == TOK_STR)) {
-#line 5663 "src"
+#line 5662 "src"
         return vbc_str_lit("TOK_STR");
     }
-#line 5664 "src"
+#line 5663 "src"
     if ((kind == TOK_FLOAT)) {
-#line 5664 "src"
+#line 5663 "src"
         return vbc_str_lit("TOK_FLOAT");
     }
-#line 5665 "src"
+#line 5664 "src"
     if ((kind == TOK_MODULE)) {
-#line 5665 "src"
+#line 5664 "src"
         return vbc_str_lit("TOK_MODULE");
     }
-#line 5666 "src"
+#line 5665 "src"
     if ((kind == TOK_STRUCTURE)) {
-#line 5666 "src"
+#line 5665 "src"
         return vbc_str_lit("TOK_STRUCTURE");
     }
-#line 5667 "src"
+#line 5666 "src"
     if ((kind == TOK_SUB)) {
-#line 5667 "src"
+#line 5666 "src"
         return vbc_str_lit("TOK_SUB");
     }
-#line 5668 "src"
+#line 5667 "src"
     if ((kind == TOK_FUNCTION)) {
-#line 5668 "src"
+#line 5667 "src"
         return vbc_str_lit("TOK_FUNCTION");
     }
-#line 5669 "src"
+#line 5668 "src"
     if ((kind == TOK_END)) {
-#line 5669 "src"
+#line 5668 "src"
         return vbc_str_lit("TOK_END");
     }
-#line 5670 "src"
+#line 5669 "src"
     if ((kind == TOK_DIM)) {
-#line 5670 "src"
+#line 5669 "src"
         return vbc_str_lit("TOK_DIM");
     }
-#line 5671 "src"
+#line 5670 "src"
     if ((kind == TOK_AS)) {
-#line 5671 "src"
+#line 5670 "src"
         return vbc_str_lit("TOK_AS");
     }
-#line 5672 "src"
+#line 5671 "src"
     if ((kind == TOK_CONST)) {
-#line 5672 "src"
+#line 5671 "src"
         return vbc_str_lit("TOK_CONST");
     }
-#line 5673 "src"
+#line 5672 "src"
     if ((kind == TOK_IMPORTS)) {
-#line 5673 "src"
+#line 5672 "src"
         return vbc_str_lit("TOK_IMPORTS");
     }
-#line 5674 "src"
+#line 5673 "src"
     if ((kind == TOK_IF)) {
-#line 5674 "src"
+#line 5673 "src"
         return vbc_str_lit("TOK_IF");
     }
-#line 5675 "src"
+#line 5674 "src"
     if ((kind == TOK_THEN)) {
-#line 5675 "src"
+#line 5674 "src"
         return vbc_str_lit("TOK_THEN");
     }
-#line 5676 "src"
+#line 5675 "src"
     if ((kind == TOK_ELSEIF)) {
-#line 5676 "src"
+#line 5675 "src"
         return vbc_str_lit("TOK_ELSEIF");
     }
-#line 5677 "src"
+#line 5676 "src"
     if ((kind == TOK_ELSE)) {
-#line 5677 "src"
+#line 5676 "src"
         return vbc_str_lit("TOK_ELSE");
     }
-#line 5678 "src"
+#line 5677 "src"
     if ((kind == TOK_FOR)) {
-#line 5678 "src"
+#line 5677 "src"
         return vbc_str_lit("TOK_FOR");
     }
-#line 5679 "src"
+#line 5678 "src"
     if ((kind == TOK_EACH)) {
-#line 5679 "src"
+#line 5678 "src"
         return vbc_str_lit("TOK_EACH");
     }
-#line 5680 "src"
+#line 5679 "src"
     if ((kind == TOK_IN)) {
-#line 5680 "src"
+#line 5679 "src"
         return vbc_str_lit("TOK_IN");
     }
-#line 5681 "src"
+#line 5680 "src"
     if ((kind == TOK_TO)) {
-#line 5681 "src"
+#line 5680 "src"
         return vbc_str_lit("TOK_TO");
     }
-#line 5682 "src"
+#line 5681 "src"
     if ((kind == TOK_STEP)) {
-#line 5682 "src"
+#line 5681 "src"
         return vbc_str_lit("TOK_STEP");
     }
-#line 5683 "src"
+#line 5682 "src"
     if ((kind == TOK_NEXT)) {
-#line 5683 "src"
+#line 5682 "src"
         return vbc_str_lit("TOK_NEXT");
     }
-#line 5684 "src"
+#line 5683 "src"
     if ((kind == TOK_WHILE)) {
-#line 5684 "src"
+#line 5683 "src"
         return vbc_str_lit("TOK_WHILE");
     }
-#line 5685 "src"
+#line 5684 "src"
     if ((kind == TOK_RETURN)) {
-#line 5685 "src"
+#line 5684 "src"
         return vbc_str_lit("TOK_RETURN");
     }
-#line 5686 "src"
+#line 5685 "src"
     if ((kind == TOK_EXIT)) {
-#line 5686 "src"
+#line 5685 "src"
         return vbc_str_lit("TOK_EXIT");
     }
-#line 5687 "src"
+#line 5686 "src"
     if ((kind == TOK_CONTINUE)) {
-#line 5687 "src"
+#line 5686 "src"
         return vbc_str_lit("TOK_CONTINUE");
     }
-#line 5688 "src"
+#line 5687 "src"
     if ((kind == TOK_FROM)) {
-#line 5688 "src"
+#line 5687 "src"
         return vbc_str_lit("TOK_FROM");
     }
-#line 5689 "src"
+#line 5688 "src"
     if ((kind == TOK_WHERE)) {
-#line 5689 "src"
+#line 5688 "src"
         return vbc_str_lit("TOK_WHERE");
     }
-#line 5690 "src"
+#line 5689 "src"
     if ((kind == TOK_SELECT)) {
-#line 5690 "src"
+#line 5689 "src"
         return vbc_str_lit("TOK_SELECT");
     }
-#line 5691 "src"
+#line 5690 "src"
     if ((kind == TOK_AGGREGATE)) {
-#line 5691 "src"
+#line 5690 "src"
         return vbc_str_lit("TOK_AGGREGATE");
     }
-#line 5692 "src"
+#line 5691 "src"
     if ((kind == TOK_INTO)) {
-#line 5692 "src"
+#line 5691 "src"
         return vbc_str_lit("TOK_INTO");
     }
-#line 5693 "src"
+#line 5692 "src"
     if ((kind == TOK_DISTINCT)) {
-#line 5693 "src"
+#line 5692 "src"
         return vbc_str_lit("TOK_DISTINCT");
     }
-#line 5694 "src"
+#line 5693 "src"
     if ((kind == TOK_TAKE)) {
-#line 5694 "src"
+#line 5693 "src"
         return vbc_str_lit("TOK_TAKE");
     }
-#line 5695 "src"
+#line 5694 "src"
     if ((kind == TOK_SKIP)) {
-#line 5695 "src"
+#line 5694 "src"
         return vbc_str_lit("TOK_SKIP");
     }
-#line 5696 "src"
+#line 5695 "src"
     if ((kind == TOK_BYVAL)) {
-#line 5696 "src"
+#line 5695 "src"
         return vbc_str_lit("TOK_BYVAL");
     }
-#line 5697 "src"
+#line 5696 "src"
     if ((kind == TOK_BYREF)) {
-#line 5697 "src"
+#line 5696 "src"
         return vbc_str_lit("TOK_BYREF");
     }
-#line 5698 "src"
+#line 5697 "src"
     if ((kind == TOK_NEW)) {
-#line 5698 "src"
+#line 5697 "src"
         return vbc_str_lit("TOK_NEW");
     }
-#line 5699 "src"
+#line 5698 "src"
     if ((kind == TOK_TRUE)) {
-#line 5699 "src"
+#line 5698 "src"
         return vbc_str_lit("TOK_TRUE");
     }
-#line 5700 "src"
+#line 5699 "src"
     if ((kind == TOK_FALSE)) {
-#line 5700 "src"
+#line 5699 "src"
         return vbc_str_lit("TOK_FALSE");
     }
-#line 5701 "src"
+#line 5700 "src"
     if ((kind == TOK_NOTHING)) {
-#line 5701 "src"
+#line 5700 "src"
         return vbc_str_lit("TOK_NOTHING");
     }
-#line 5702 "src"
+#line 5701 "src"
     if ((kind == TOK_CLASS)) {
-#line 5702 "src"
+#line 5701 "src"
         return vbc_str_lit("TOK_CLASS");
     }
-#line 5703 "src"
+#line 5702 "src"
     if ((kind == TOK_INHERITS)) {
-#line 5703 "src"
+#line 5702 "src"
         return vbc_str_lit("TOK_INHERITS");
     }
-#line 5704 "src"
+#line 5703 "src"
     if ((kind == TOK_OVERRIDABLE)) {
-#line 5704 "src"
+#line 5703 "src"
         return vbc_str_lit("TOK_OVERRIDABLE");
     }
-#line 5705 "src"
+#line 5704 "src"
     if ((kind == TOK_OVERRIDES)) {
-#line 5705 "src"
+#line 5704 "src"
         return vbc_str_lit("TOK_OVERRIDES");
     }
-#line 5706 "src"
+#line 5705 "src"
     if ((kind == TOK_MYBASE)) {
-#line 5706 "src"
+#line 5705 "src"
         return vbc_str_lit("TOK_MYBASE");
     }
-#line 5707 "src"
+#line 5706 "src"
     if ((kind == TOK_ME)) {
-#line 5707 "src"
+#line 5706 "src"
         return vbc_str_lit("TOK_ME");
     }
-#line 5708 "src"
+#line 5707 "src"
     if ((kind == TOK_PUBLIC)) {
-#line 5708 "src"
+#line 5707 "src"
         return vbc_str_lit("TOK_PUBLIC");
     }
-#line 5709 "src"
+#line 5708 "src"
     if ((kind == TOK_PRIVATE)) {
-#line 5709 "src"
+#line 5708 "src"
         return vbc_str_lit("TOK_PRIVATE");
     }
-#line 5710 "src"
+#line 5709 "src"
     if ((kind == TOK_PROTECTED)) {
-#line 5710 "src"
+#line 5709 "src"
         return vbc_str_lit("TOK_PROTECTED");
     }
-#line 5711 "src"
+#line 5710 "src"
     if ((kind == TOK_USING)) {
-#line 5711 "src"
+#line 5710 "src"
         return vbc_str_lit("TOK_USING");
     }
-#line 5712 "src"
+#line 5711 "src"
     if ((kind == TOK_NAMESPACE)) {
-#line 5712 "src"
+#line 5711 "src"
         return vbc_str_lit("TOK_NAMESPACE");
     }
-#line 5713 "src"
+#line 5712 "src"
     if ((kind == TOK_TRY)) {
-#line 5713 "src"
+#line 5712 "src"
         return vbc_str_lit("TOK_TRY");
     }
-#line 5714 "src"
+#line 5713 "src"
     if ((kind == TOK_CATCH)) {
-#line 5714 "src"
+#line 5713 "src"
         return vbc_str_lit("TOK_CATCH");
     }
-#line 5715 "src"
+#line 5714 "src"
     if ((kind == TOK_FINALLY)) {
-#line 5715 "src"
+#line 5714 "src"
         return vbc_str_lit("TOK_FINALLY");
     }
-#line 5716 "src"
+#line 5715 "src"
     if ((kind == TOK_THROW)) {
-#line 5716 "src"
+#line 5715 "src"
         return vbc_str_lit("TOK_THROW");
     }
-#line 5717 "src"
+#line 5716 "src"
     if ((kind == TOK_SYNCLOCK)) {
-#line 5717 "src"
+#line 5716 "src"
         return vbc_str_lit("TOK_SYNCLOCK");
     }
-#line 5718 "src"
+#line 5717 "src"
     if ((kind == TOK_BYTE)) {
-#line 5718 "src"
+#line 5717 "src"
         return vbc_str_lit("TOK_BYTE");
     }
-#line 5719 "src"
+#line 5718 "src"
     if ((kind == TOK_INTERFACE)) {
-#line 5719 "src"
+#line 5718 "src"
         return vbc_str_lit("TOK_INTERFACE");
     }
-#line 5720 "src"
+#line 5719 "src"
     if ((kind == TOK_IMPLEMENTS)) {
-#line 5720 "src"
+#line 5719 "src"
         return vbc_str_lit("TOK_IMPLEMENTS");
     }
-#line 5721 "src"
+#line 5720 "src"
     if ((kind == TOK_QUESTION)) {
-#line 5721 "src"
+#line 5720 "src"
         return vbc_str_lit("TOK_QUESTION");
     }
-#line 5722 "src"
+#line 5721 "src"
     if ((kind == TOK_QDOT)) {
-#line 5722 "src"
+#line 5721 "src"
         return vbc_str_lit("TOK_QDOT");
     }
-#line 5723 "src"
+#line 5722 "src"
     if ((kind == TOK_QLPAREN)) {
-#line 5723 "src"
+#line 5722 "src"
         return vbc_str_lit("TOK_QLPAREN");
     }
-#line 5724 "src"
+#line 5723 "src"
     if ((kind == TOK_XML_CHILD)) {
-#line 5724 "src"
+#line 5723 "src"
         return vbc_str_lit("TOK_XML_CHILD");
     }
-#line 5725 "src"
+#line 5724 "src"
     if ((kind == TOK_XML_ATTR)) {
-#line 5725 "src"
+#line 5724 "src"
         return vbc_str_lit("TOK_XML_ATTR");
     }
-#line 5726 "src"
+#line 5725 "src"
     if ((kind == TOK_XML_DESC)) {
-#line 5726 "src"
+#line 5725 "src"
         return vbc_str_lit("TOK_XML_DESC");
     }
-#line 5727 "src"
+#line 5726 "src"
     if ((kind == TOK_LPAREN)) {
-#line 5727 "src"
+#line 5726 "src"
         return vbc_str_lit("TOK_LPAREN");
     }
-#line 5728 "src"
+#line 5727 "src"
     if ((kind == TOK_RPAREN)) {
-#line 5728 "src"
+#line 5727 "src"
         return vbc_str_lit("TOK_RPAREN");
     }
-#line 5729 "src"
+#line 5728 "src"
     if ((kind == TOK_LBRACKET)) {
-#line 5729 "src"
+#line 5728 "src"
         return vbc_str_lit("TOK_LBRACKET");
     }
-#line 5730 "src"
+#line 5729 "src"
     if ((kind == TOK_RBRACKET)) {
-#line 5730 "src"
+#line 5729 "src"
         return vbc_str_lit("TOK_RBRACKET");
     }
-#line 5731 "src"
+#line 5730 "src"
     if ((kind == TOK_COMMA)) {
-#line 5731 "src"
+#line 5730 "src"
         return vbc_str_lit("TOK_COMMA");
     }
-#line 5732 "src"
+#line 5731 "src"
     if ((kind == TOK_DOT)) {
-#line 5732 "src"
+#line 5731 "src"
         return vbc_str_lit("TOK_DOT");
     }
-#line 5733 "src"
+#line 5732 "src"
     if ((kind == TOK_COLON)) {
-#line 5733 "src"
+#line 5732 "src"
         return vbc_str_lit("TOK_COLON");
     }
-#line 5734 "src"
+#line 5733 "src"
     if ((kind == TOK_NEWLINE)) {
-#line 5734 "src"
+#line 5733 "src"
         return vbc_str_lit("TOK_NEWLINE");
     }
-#line 5735 "src"
+#line 5734 "src"
     if ((kind == TOK_EQUAL)) {
-#line 5735 "src"
+#line 5734 "src"
         return vbc_str_lit("TOK_EQUAL");
     }
-#line 5736 "src"
+#line 5735 "src"
     if ((kind == TOK_NOTEQUAL)) {
-#line 5736 "src"
+#line 5735 "src"
         return vbc_str_lit("TOK_NOTEQUAL");
     }
-#line 5737 "src"
+#line 5736 "src"
     if ((kind == TOK_LESS)) {
-#line 5737 "src"
+#line 5736 "src"
         return vbc_str_lit("TOK_LESS");
     }
-#line 5738 "src"
+#line 5737 "src"
     if ((kind == TOK_LESSEQ)) {
-#line 5738 "src"
+#line 5737 "src"
         return vbc_str_lit("TOK_LESSEQ");
     }
-#line 5739 "src"
+#line 5738 "src"
     if ((kind == TOK_GREATER)) {
-#line 5739 "src"
+#line 5738 "src"
         return vbc_str_lit("TOK_GREATER");
     }
-#line 5740 "src"
+#line 5739 "src"
     if ((kind == TOK_GREATEREQ)) {
-#line 5740 "src"
+#line 5739 "src"
         return vbc_str_lit("TOK_GREATEREQ");
     }
-#line 5741 "src"
+#line 5740 "src"
     if ((kind == TOK_PLUS)) {
-#line 5741 "src"
+#line 5740 "src"
         return vbc_str_lit("TOK_PLUS");
     }
-#line 5742 "src"
+#line 5741 "src"
     if ((kind == TOK_MINUS)) {
-#line 5742 "src"
+#line 5741 "src"
         return vbc_str_lit("TOK_MINUS");
     }
-#line 5743 "src"
+#line 5742 "src"
     if ((kind == TOK_STAR)) {
-#line 5743 "src"
+#line 5742 "src"
         return vbc_str_lit("TOK_STAR");
     }
-#line 5744 "src"
+#line 5743 "src"
     if ((kind == TOK_SLASH)) {
-#line 5744 "src"
+#line 5743 "src"
         return vbc_str_lit("TOK_SLASH");
     }
-#line 5745 "src"
+#line 5744 "src"
     if ((kind == TOK_AMP)) {
-#line 5745 "src"
+#line 5744 "src"
         return vbc_str_lit("TOK_AMP");
     }
-#line 5746 "src"
+#line 5745 "src"
     if ((kind == TOK_MOD)) {
-#line 5746 "src"
+#line 5745 "src"
         return vbc_str_lit("TOK_MOD");
     }
-#line 5747 "src"
+#line 5746 "src"
     if ((kind == TOK_AND)) {
-#line 5747 "src"
+#line 5746 "src"
         return vbc_str_lit("TOK_AND");
     }
-#line 5748 "src"
+#line 5747 "src"
     if ((kind == TOK_OR)) {
-#line 5748 "src"
+#line 5747 "src"
         return vbc_str_lit("TOK_OR");
     }
-#line 5749 "src"
+#line 5748 "src"
     if ((kind == TOK_NOT)) {
-#line 5749 "src"
+#line 5748 "src"
         return vbc_str_lit("TOK_NOT");
     }
-#line 5750 "src"
+#line 5749 "src"
     if ((kind == TOK_ANDALSO)) {
-#line 5750 "src"
+#line 5749 "src"
         return vbc_str_lit("TOK_ANDALSO");
     }
-#line 5751 "src"
+#line 5750 "src"
     if ((kind == TOK_ORELSE)) {
-#line 5751 "src"
+#line 5750 "src"
         return vbc_str_lit("TOK_ORELSE");
     }
-#line 5752 "src"
+#line 5751 "src"
     if ((kind == TOK_XOR)) {
-#line 5752 "src"
+#line 5751 "src"
         return vbc_str_lit("TOK_XOR");
     }
-#line 5753 "src"
+#line 5752 "src"
     if ((kind == TOK_SHL)) {
-#line 5753 "src"
+#line 5752 "src"
         return vbc_str_lit("TOK_SHL");
     }
-#line 5754 "src"
+#line 5753 "src"
     if ((kind == TOK_SHR)) {
-#line 5754 "src"
+#line 5753 "src"
         return vbc_str_lit("TOK_SHR");
     }
-#line 5755 "src"
+#line 5754 "src"
     return vbc_str_lit("TOK_UNKNOWN");
 }
 

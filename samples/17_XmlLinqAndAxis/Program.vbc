@@ -5,7 +5,7 @@ Module Program
     Sub Main()
         Console.WriteLine("=== VBC Pillar 3: XML DOM & XML Axis Syntax Demo ===")
 
-        Dim xmlText As String = "<catalog><book id=""bk101""><title>Native VBC Guide</title><author>DeepMind</author><price>49.99</price></book><book id=""bk102""><title>Goose Linear Allocator</title><author>Antigravity</author><price>29.95</price></book></catalog>"
+        Dim xmlText As String = "<catalog><book id=""bk101""><title>Native VBC Guide</title><author>DeepMind</author><price>49.99</price></book><book id=""bk102""><title>Linear Arena Allocator</title><author>Antigravity</author><price>29.95</price></book></catalog>"
 
         ' 1. Parse XML into XDocument
         Dim doc As XDocument = XDocument.Parse(xmlText)

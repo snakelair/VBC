@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module EmitterModule
     Function EmitCompilationUnitToC(unitId As Integer) As String

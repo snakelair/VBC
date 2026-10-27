@@ -93,7 +93,7 @@ namespace Vbc.VisualStudio
                 case "double":
                     return "Type Double [C: double]\nDouble-precision 64-bit floating point.";
                 case "string":
-                    return "Type String [C: vbc_string_t (const char* ptr, int64_t len)]\nZero-GC linear Goose stack string slice.";
+                    return "Type String [C: vbc_string_t (const char* ptr, int64_t len)]\nZero-GC linear stack string slice.";
                 case "boolean":
                     return "Type Boolean [C: bool (int32_t)]\nBoolean flag.";
                 case "char":
@@ -123,7 +123,7 @@ namespace Vbc.VisualStudio
                 case "xattribute":
                     return "Type XAttribute [C: vbc_xml_attr_t*]\nNative C XML Attribute node.";
                 case "stringbuilder":
-                    return "Type StringBuilder [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\nMutable string buffer on Goose linear stack.";
+                    return "Type StringBuilder [C: vbc_string_builder_t { char* data; int64_t len; int64_t cap; }]\nMutable string buffer on linear arena stack.";
                 case "stopwatch":
                     return "Type Stopwatch [C: vbc_stopwatch_t { int64_t start_ticks; int64_t elapsed_ticks; bool is_running; }]\nHigh-resolution monotonic timer.";
                 case "datetime":

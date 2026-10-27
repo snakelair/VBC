@@ -132,7 +132,7 @@ namespace Vbc.VisualStudio
             ("XAttribute", "Represents an XML attribute key-value pair [C: vbc_xml_attr_t*].", StandardGlyphGroup.GlyphGroupClass),
 
             // Base Class Library (BCL)
-            ("StringBuilder", "Mutable string buffer on Goose linear stack [C: vbc_string_builder_t].", StandardGlyphGroup.GlyphGroupClass),
+            ("StringBuilder", "Mutable string buffer on linear arena stack [C: vbc_string_builder_t].", StandardGlyphGroup.GlyphGroupClass),
             ("Stopwatch", "Monotonic high-precision hardware timer [C: vbc_stopwatch_t].", StandardGlyphGroup.GlyphGroupClass),
             ("DateTime", "Instant in time measured in 100ns ticks [C: vbc_datetime_t (int64_t ticks)].", StandardGlyphGroup.GlyphGroupClass),
             ("TimeSpan", "Time duration interval measured in 100ns ticks [C: vbc_timespan_t (int64_t ticks)].", StandardGlyphGroup.GlyphGroupClass),

@@ -1,4 +1,4 @@
-﻿Imports System
+Imports System
 
 Module ParserModule
     ' Top-Level Compilation Unit

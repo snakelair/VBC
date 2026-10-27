@@ -208,7 +208,7 @@ $report = @"
 ## Конфигурация стенда
 - **ОС**: Windows 11 (x86_64)
 - **C**: Clang 22.1.8 (LLVM-MinGW), флаги `-O3`
-- **VBC**: VBC Compiler (Goose Data Stack model, zero GC, $O(1)$ stack frame reclamation)
+- **VBC**: VBC Compiler (Linear Arena Data Stack model, zero GC, $O(1)$ stack frame reclamation)
 - **Go**: Go 1.27.0 windows/amd64 (`go build`)
 - **Rust**: rustc 1.99.1 (`--target x86_64-pc-windows-gnullvm -O`)
 - **Методология**: $Iterations независимых прогона каждого бинарника, замер высокоточного времени выполнения и пикового расхода памяти ядра Windows (Job Object PeakJobMemoryUsed, МБ).
@@ -218,7 +218,7 @@ $report = @"
 ## 1. Сводная таблица времени выполнения (Время, мс)
 *Меньше — быстрее*
 
-| Тест (Сценарий) | Описание | C (clang -O3) | VBC (Goose stack) | Go 1.27 | Rust (-O) | VBC vs Go | VBC vs Rust |
+| Тест (Сценарий) | Описание | C (clang -O3) | VBC (Linear Arena) | Go 1.27 | Rust (-O) | VBC vs Go | VBC vs Rust |
 |---|---|---:|---:|---:|---:|---:|---:|
 "@
 
@@ -236,7 +236,7 @@ $report += @"
 ## 2. Сводная таблица расхода оперативной памяти (Peak RAM, МБ)
 *Меньше — экономнее*
 
-| Тест (Сценарий) | C (clang -O3) | VBC (Goose stack) | Go 1.27 | Rust (-O) | Экономия памяти VBC vs Go |
+| Тест (Сценарий) | C (clang -O3) | VBC (Linear Arena) | Go 1.27 | Rust (-O) | Экономия памяти VBC vs Go |
 |---|---:|---:|---:|---:|---:|
 "@
 
@@ -252,7 +252,7 @@ $report += @"
 
 ## 3. Анализ и ключевые выводы
 
-1. **Скорость аллокаций и линейный стек (Goose Data Stack Model)**:
+1. **Скорость аллокаций и линейный стек (Linear Arena Data Stack Model)**:
    - В тесте `bm01_alloc_loop` (5 миллионов короткоживущих объектов) VBC демонстрирует скорость на уровне C и значительно опережает языки с традиционным трассирующим GC (Go).
    - Благодаря мгновенному возврату стекового указателя в $O(1)$ (`vbc_stack_reset`) при выходе из скоупа цикла и функций, у VBC полностью отсутствуют паузы GC, накладные расходы на барьеры записи (write barriers) и фрагментация кучи.
 
